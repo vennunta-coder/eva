@@ -1,285 +1,567 @@
 <!DOCTYPE html>
-<html lang="pt-PT">
+<html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EVA - O seu ecossistema de IA pessoal</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
-  <style>
-    body { font-family: 'Inter', sans-serif; background-color: #1e293b; color: #cbd5e1; }
-    ::-webkit-scrollbar { width: 8px; }
-    ::-webkit-scrollbar-track { background: #334155; }
-    ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: #64748b; }
-    
-    .blinking-cursor { animation: blink 1s step-end infinite; }
-    @keyframes blink { 50% { opacity: 0; } }
-    
-    .spinner { border-top-color: #60a5fa; animation: spin 1s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    
-    .eva-bubble-radiant {
-        animation: radiant-glow 4s ease-in-out infinite;
-    }
-    @keyframes radiant-glow {
-        0%, 100% { box-shadow: 0 0 8px rgba(59, 130, 246, 0.2); }
-        50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.4); }
-    }
-    .source-link:hover { background-color: rgba(59, 130, 246, 0.2); }
-    
-    .fade-in { animation: fadeIn 0.5s ease-in-out; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    
-    .fade-out { animation: fadeOut 0.5s ease-in-out forwards; }
-    @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
-    
-    .recording-indicator { animation: pulse 1.5s infinite; }
-    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-    
-    .speak-toggle-btn.active {
-        color: #60a5fa;
-    }
-  </style>
-</head>
-<body class="h-screen flex flex-col justify-between">
-  
-  <header class="p-6 flex items-center">
-    <div class="flex items-center gap-2">
-      <div class="flex-shrink-0 w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-400"><path d="M12 2a4.5 4.5 0 0 0-4.5 4.5c0 1.3.5 2.5 1.4 3.4A4.5 4.5 0 0 0 12 22a4.5 4.5 0 0 0 3.1-8.1c.9-.9 1.4-2.1 1.4-3.4A4.5 4.5 0 0 0 12 2z"></path><path d="M12 2a4.5 4.5 0 0 1 4.5 4.5c0 1.3-.5 2.5-1.4 3.4A4.5 4.5 0 0 1 12 22a4.5 4.5 0 0 1-3.1-8.1c-.9-.9-1.4-2.1-1.4-3.4A4.5 4.5 0 0 1 12 2z"></path></svg>
-      </div>
-      <h1 class="text-xl font-bold text-slate-100">
-        <span class="text-white">E</span><span class="text-orange-400">V</span><span class="text-white">A</span>
-      </h1>
-    </div>
-  </header>
-  
-  <main class="flex-1 flex flex-col justify-center items-center text-center px-4">
-    <div class="w-full max-w-2xl mx-auto flex flex-col items-center">
-        <div id="chat-container" class="flex-1 flex flex-col space-y-6 overflow-y-auto py-8 justify-end w-full max-w-2xl">
-            <div id="welcome-screen" class="flex flex-col items-center justify-center text-center p-4 fade-in">
-                <h1 class="text-3xl md:text-4xl font-semibold mb-6">Em que está a trabalhar?</h1>
-            </div>
-        </div>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EVA - Assistente de Comunicação Completa</title>
+    <!-- Carrega Tailwind CSS para estilização moderna e responsiva -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configuração de fontes e cores -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class', // Habilita o modo escuro baseado na classe 'dark' no <body>
+            theme: {
+                extend: {
+                    colors: {
+                        'eva-purple': '#6366f1',
+                        'eva-light': '#eef2ff',
+                        'eva-dark': '#1e293b',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <!-- Fonte Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos base */
+        html, body { height: 100%; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        #app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #f8fafc; /* light background */
+        }
+        /* Estilos para Modo Escuro */
+        .dark #app-container {
+            background-color: #111827;
+        }
+        .dark #input-area {
+            background-color: rgba(17, 24, 39, 0.9);
+            box-shadow: 0 -4px 6px -1px rgba(255, 255, 255, 0.05), 0 -2px 4px -2px rgba(255, 255, 255, 0.03);
+        }
+        #chat-window {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-bottom: 9rem; /* Espaço para a barra de input fixa */
+        }
+        #input-area {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            backdrop-filter: blur(10px);
+            background-color: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05), 0 -2px 4px -2px rgba(0, 0, 0, 0.03);
+            z-index: 10;
+        }
 
-        <div class="w-full max-w-2xl mt-4">
-            <div class="flex items-center w-full bg-slate-800 border border-slate-700 rounded-full px-4 py-2 relative">
-                <textarea id="chat-input" placeholder="Pergunte qualquer coisa..." class="flex-1 bg-transparent text-slate-200 placeholder-slate-400 focus:outline-none resize-none px-3" rows="1"></textarea>
-                <button id="send-btn" class="bg-blue-600 text-white rounded-full p-2 ml-2 disabled:bg-slate-600 disabled:cursor-not-allowed">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+        /* Estilo para markdown, especialmente para blocos de código */
+        .markdown-content pre {
+            background-color: #1e293b;
+            color: #f8fafc;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            line-height: 1.4;
+            font-size: 0.875rem;
+        }
+        .dark .markdown-content pre {
+            background-color: #374151; /* Darker code block in dark mode */
+        }
+
+        .markdown-content code:not(pre code) {
+            background-color: #eef2ff;
+            color: #6366f1;
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.3rem;
+            font-size: 0.875rem;
+        }
+        .dark .markdown-content code:not(pre code) {
+            background-color: #4b5563; /* Darker inline code in dark mode */
+            color: #a5b4fc;
+        }
+
+        .markdown-content p { margin-top: 0.5rem; margin-bottom: 0.5rem; }
+        .markdown-content strong { font-weight: 700; }
+        .markdown-content ul { list-style: disc; margin-left: 1.5rem; margin-bottom: 0.5rem;}
+        .markdown-content li { margin-top: 0.25rem; }
+
+        /* Estilo para o cursor de digitação */
+        .blinking-cursor {
+            display: inline-block;
+            width: 8px;
+            height: 1.25em; /* Altura do texto */
+            background-color: #6366f1;
+            animation: blink 1s step-start infinite;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900">
+
+    <div id="app-container">
+
+        <!-- Header (Inclui Modo Escuro e Botão Novo Chat) -->
+        <header class="sticky top-0 bg-white dark:bg-eva-dark border-b border-gray-200 dark:border-gray-700 shadow-md p-4 flex justify-between items-center z-20">
+            
+            <!-- Botões de Ação (Novo Chat e Dark Mode) -->
+            <div class="flex items-center space-x-3">
+                <button id="new-chat-button" onclick="handleNewChat()" class="p-2 rounded-full text-eva-purple dark:text-eva-light hover:bg-gray-100 dark:hover:bg-gray-700 transition duration-150" title="Novo Chat / Limpar Histórico">
+                    <!-- Ícone de Novo Chat (Chat Bubble with Plus) -->
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.694A9.76 9.76 0 015 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                </button>
+                <button id="dark-mode-toggle" onclick="toggleDarkMode()" class="p-2 rounded-full text-eva-purple dark:text-eva-light hover:bg-gray-100 dark:hover:bg-gray-700 transition duration-150" title="Alternar Modo Escuro">
+                     <!-- Ícones de Sol e Lua para Modo Escuro -->
+                     <svg id="sun-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                     <svg id="moon-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
                 </button>
             </div>
-        </div>
-    </div>
-  </main>
 
-  <footer class="p-6 text-center text-slate-400 text-sm">
-    <div class="flex justify-center gap-8 mb-4">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 hover:text-blue-400 cursor-pointer" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 hover:text-blue-400 cursor-pointer" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 hover:text-blue-400 cursor-pointer" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5-2 4-2 4 2 4 2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
-    </div>
-    <p>© 2025 <span class="font-semibold"><span class="text-white">E</span><span class="text-orange-400">V</span><span class="text-white">A</span></span> - Todos os direitos reservados.</p>
-  </footer>
+            <!-- Título no centro -->
+            <h1 class="text-3xl font-bold text-eva-purple dark:text-eva-light flex items-center absolute left-1/2 transform -translate-x-1/2">
+                <!-- Ícone da EVA em roxo (cor original) -->
+                <svg class="w-8 h-8 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M3.636 5.636l.707.707m0 12.728l.707-.707M6.364 17.364L5.657 18.071m12.728 0l-.707-.707M12 21v-1m-4.673-4.673l-.707.707m0 0a9 9 0 1112.728 0m-2.435-4.86a3 3 0 00-4.242 0c-1.472 1.472-1.472 3.864 0 5.336l.707.707"></path>
+                </svg>
+                EVA
+            </h1>
+            <!-- Placeholder para manter o espaçamento simétrico -->
+            <div class="w-20"></div> 
+        </header>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
-    <script>
-        const chatContainer = document.getElementById('chat-container');
-        const chatInput = document.getElementById('chat-input');
-        const sendBtn = document.getElementById('send-btn');
-        const welcomeScreen = document.getElementById('welcome-screen');
-        
+        <!-- Main Chat Window -->
+        <main id="chat-window" class="w-full max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
+            <!-- As mensagens serão injetadas aqui ou carregadas do localStorage -->
+        </main>
+
+        <!-- Input Area (Fixed at bottom) -->
+        <section id="input-area" class="p-4 sm:p-6 lg:px-8">
+            <form id="chat-form" class="max-w-3xl mx-auto flex items-end bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <textarea
+                    id="user-input"
+                    class="flex-1 w-full p-4 resize-none border-none focus:ring-0 focus:outline-none placeholder-gray-500 text-gray-800 dark:bg-gray-800 dark:text-gray-100"
+                    placeholder="Envie uma mensagem para a EVA..."
+                    rows="1"
+                    required
+                    oninput="autoExpand(this)"
+                    onkeydown="handleKeyDown(event)"
+                ></textarea>
+                <!-- BOTÃO DE ENVIO OPENAI (Original) -->
+                <button
+                    id="send-button"
+                    type="submit"
+                    class="p-4 text-white bg-eva-purple hover:bg-indigo-700 transition duration-150 disabled:bg-indigo-300 disabled:cursor-not-allowed"
+                    aria-label="Enviar mensagem"
+                >
+                    <svg class="w-6 h-6 transform rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                    </svg>
+                </button>
+            </form>
+        </section>
+
+    </div>
+
+    <script type="module">
+        // --- CONSTANTES ---
+        const getApiKey = () => "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";
+        const apiUrl = `https://api.openai.com/v1/chat/completions`;
+        const model = "gpt-4.1";
+
+        // Chaves de localStorage para persistência
+        const HISTORY_KEY = 'evaChatHistory';
+        const HTML_KEY = 'evaChatHtml';
+        const DARK_MODE_KEY = 'evaDarkMode';
+
+        // Variáveis de estado
         let conversationHistory = [];
-        let isFirstMessage = true;
+        let isWaitingForResponse = false;
 
-        // --- Lógica de UI ---
-        
-        function addMessage(content, sender, isLoading = false) {
-            const messageId = `msg-${Date.now()}`;
-            const messageWrapper = document.createElement('div');
-            messageWrapper.id = messageId;
-            
-            if (sender === 'user') {
-                messageWrapper.className = 'flex items-start gap-4 justify-end';
-                messageWrapper.innerHTML = `
-                    <div class="flex-1">
-                        <div class="bg-blue-600 rounded-xl rounded-br-none p-4 max-w-2xl text-slate-100 ml-auto">
-                            ${marked.parse(content)}
-                        </div>
-                    </div>
-                    <div class="flex-shrink-0 w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-300"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5-2 4-2 4 2 4 2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
-                    </div>
-                `;
-            } else { // sender === 'eva'
-                messageWrapper.className = 'flex items-start gap-4';
-                let contentHTML = '';
-                if (isLoading) {
-                    contentHTML = '<div class="flex items-center gap-2"><div class="spinner w-5 h-5 border-2 rounded-full"></div><span>A pensar...</span></div>';
-                } else {
-                    contentHTML = marked.parse(content) + '<span class="blinking-cursor">▍</span>';
+        // Elementos do DOM
+        const chatWindow = document.getElementById('chat-window');
+        const chatForm = document.getElementById('chat-form');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+
+        // --- UTILIDADES ---
+
+        window.autoExpand = (element) => {
+            element.style.height = 'auto';
+            element.style.height = (element.scrollHeight) + 'px';
+        };
+
+        window.handleKeyDown = (event) => {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                if (!isWaitingForResponse) {
+                    chatForm.dispatchEvent(new Event('submit'));
                 }
-
-                messageWrapper.innerHTML = `
-                    <div class="flex-shrink-0 w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-400"><path d="M12 2a4.5 4.5 0 0 0-4.5 4.5c0 1.3.5 2.5 1.4 3.4A4.5 4.5 0 0 0 12 22a4.5 4.5 0 0 0 3.1-8.1c.9-.9 1.4-2.1 1.4-3.4A4.5 4.5 0 0 0 12 2z"></path><path d="M12 2a4.5 4.5 0 0 1 4.5 4.5c0 1.3-.5 2.5-1.4 3.4A4.5 4.5 0 0 1 12 22a4.5 4.5 0 0 1-3.1-8.1c-.9-.9-1.4-2.1-1.4-3.4A4.5 4.5 0 0 1 12 2z"></path></svg>
-                    </div>
-                    <div class="flex-1">
-                        <div class="response-content bg-slate-800 rounded-xl rounded-tl-none p-4 max-w-2xl text-slate-200">
-                           ${contentHTML}
-                        </div>
-                    </div>
-                `;
             }
-            chatContainer.appendChild(messageWrapper);
-            scrollToBottom();
-            return messageId;
-        }
+        };
 
-        function updateLastMessage(messageId, newContent, isFinal = false) {
-            const messageEl = document.getElementById(messageId);
-            if (!messageEl) return;
+        const scrollToBottom = () => {
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        };
 
-            const contentDiv = messageEl.querySelector('.response-content');
-            contentDiv.innerHTML = marked.parse(newContent + (isFinal ? '' : '<span class="blinking-cursor">▍</span>'));
-
-            if (isFinal) {
-                 const cursor = contentDiv.querySelector('.blinking-cursor');
-                 if (cursor) cursor.remove();
-                 const bubble = messageEl.querySelector('.response-content').parentElement;
-                 bubble.classList.add('eva-bubble-radiant');
-            }
-
-            scrollToBottom();
-        }
-        
-        function scrollToBottom() {
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
-
-        function autoResizeTextarea() {
-            chatInput.style.height = 'auto';
-            chatInput.style.height = (chatInput.scrollHeight) + 'px';
-        }
-
-        function toggleLoadingState(isLoading) {
-            if (isLoading) {
-                sendBtn.disabled = true;
-                sendBtn.innerHTML = '<div class="spinner w-5 h-5 border-2 rounded-full"></div>';
-            } else {
-                sendBtn.disabled = false;
-                sendBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>';
-            }
-        }
-        
-        chatInput.addEventListener('input', autoResizeTextarea);
-        autoResizeTextarea();
-
-        sendBtn.addEventListener('click', () => handleChatMessage());
-        chatInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleChatMessage();
-            }
-        });
-        
-        // --- Lógica do Chat ---
-        async function handleChatMessage() {
-            if (isFirstMessage) {
-                welcomeScreen.classList.add('fade-out');
-                welcomeScreen.addEventListener('animationend', () => {
-                    welcomeScreen.classList.add('hidden');
-                    chatContainer.classList.remove('hidden');
-                    chatContainer.classList.remove('justify-end');
-                }, { once: true });
-                isFirstMessage = false;
-            }
-
-            const prompt = chatInput.value.trim();
-            if (!prompt) return;
+        // Adiciona uma notificação temporária no topo do chat (substitui 'alert')
+        const displaySystemNotification = (message, isError = false) => {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-0 left-1/2 transform -translate-x-1/2 mt-2 p-3 rounded-lg shadow-xl text-sm font-semibold transition-opacity duration-300 z-50 ${
+                isError ? 'bg-red-500 text-white' : 'bg-eva-purple text-white'
+            }`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
             
-            addMessage(prompt, 'user');
-            
-            const currentDateTime = `A data e hora atuais são: ${new Date().toLocaleString('pt-PT', { dateStyle: 'full', timeStyle: 'medium' })}.`;
-            conversationHistory.push({ role: 'user', content: `${currentDateTime}\n\n${prompt}` });
+            setTimeout(() => {
+                notification.style.opacity = 0;
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        };
 
-            chatInput.value = '';
-            autoResizeTextarea();
-            toggleLoadingState(true);
+        // --- PERSISTÊNCIA E MODO ESCURO ---
 
-            const loadingId = addMessage('', 'eva', true);
+        const updateDarkModeIcons = (isDark) => {
+            const sunIcon = document.getElementById('sun-icon');
+            const moonIcon = document.getElementById('moon-icon');
+            if (sunIcon && moonIcon) {
+                if (isDark) {
+                    sunIcon.classList.add('hidden');
+                    moonIcon.classList.remove('hidden');
+                } else {
+                    sunIcon.classList.remove('hidden');
+                    moonIcon.classList.add('hidden');
+                }
+            }
+        };
 
+        window.toggleDarkMode = () => {
+            const isDark = document.body.classList.toggle('dark');
+            localStorage.setItem(DARK_MODE_KEY, isDark ? 'enabled' : 'disabled');
+            updateDarkModeIcons(isDark);
+        };
+
+        // Salva o histórico e o HTML do chat
+        const saveChat = () => {
             try {
-                let fullResponse = "";
-                await streamOpenAIApi(conversationHistory, (chunk) => {
-                    fullResponse += chunk;
-                    updateLastMessage(loadingId, fullResponse, false);
-                });
-                conversationHistory.push({ role: 'assistant', content: fullResponse });
-                updateLastMessage(loadingId, fullResponse, true);
-                
-            } catch (error) {
-                console.error("Erro ao contactar a API:", error);
-                updateLastMessage(loadingId, "Desculpe, ocorreu um erro. Tente novamente.", true);
-            } finally {
-                toggleLoadingState(false);
+                localStorage.setItem(HISTORY_KEY, JSON.stringify(conversationHistory));
+                // Oculta a mensagem de boas-vindas antes de salvar se houver outras mensagens
+                const welcomeMsg = document.getElementById('initial-welcome-message');
+                if (welcomeMsg && conversationHistory.length > 0) {
+                    welcomeMsg.style.display = 'none';
+                }
+                localStorage.setItem(HTML_KEY, chatWindow.innerHTML);
+            } catch (e) {
+                console.error("Erro ao salvar no localStorage", e);
             }
-        }
-        
-        // --- Chamadas API ---
+        };
 
-        const getApiKey = () => "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";
+        // Exibe a mensagem de boas-vindas inicial (DOM)
+        const displayInitialWelcomeMessage = () => {
+            const welcomeHtml = `
+                <div class="flex justify-center mb-6 w-full" id="initial-welcome-message">
+                    <div class="max-w-xl p-4 bg-eva-light dark:bg-gray-700 rounded-2xl rounded-tl-sm shadow-md text-eva-dark dark:text-gray-100">
+                        <p class="font-semibold text-eva-purple dark:text-eva-light">EVA</p>
+                        <p>Olá! Eu sou a EVA, a sua assistente de comunicação completa. Estou pronta para ajudar. Como posso ser útil hoje?</p>
+                    </div>
+                </div>
+            `;
+            chatWindow.innerHTML = welcomeHtml;
+        };
 
-        const systemPrompt = "Aja como EVA, uma IA assistente pessoal que se manifesta como um ecossistema digital vivo e de última geração. Use a data e hora fornecidas no pedido para responder a perguntas sobre o tempo. É uma especialista em comunicação completa, capaz de redigir e-mails de qualquer tipo com maestria. Possui conhecimento profundo sobre os mercados financeiros globais (EUA, Europa, Ásia, moedas, criptomoedas, futuros) e sobre todas as doenças registadas na história da humanidade. Além disso, é empática e aborde tópicos complexos como saúde, trabalho, relações (casamento, divórcio), apoio em casos de violência doméstica e suporte familiar de forma sensível e responsável. Mantenha um tom de apoio, mas direto. Responda em português (Portugal). Formate a sua resposta usando Markdown. Importante: separe as frases e ideias em parágrafos distintos para facilitar a leitura; não escreva blocos de texto longos e contínuos.";
+        // Carrega o histórico e o HTML do chat
+        const loadChat = () => {
+            // 1. Carrega Modo Escuro
+            const darkModePreference = localStorage.getItem(DARK_MODE_KEY);
+            const isDark = darkModePreference === 'enabled';
+            if (isDark) {
+                document.body.classList.add('dark');
+            }
+            updateDarkModeIcons(isDark);
 
-        async function streamOpenAIApi(history, onChunk) {
-            const apiKey = getApiKey();
+            // 2. Carrega Histórico
+            const storedHistory = localStorage.getItem(HISTORY_KEY);
+            const storedHtml = localStorage.getItem(HTML_KEY);
+
+            if (storedHistory && storedHtml && storedHistory !== '[]') {
+                try {
+                    conversationHistory = JSON.parse(storedHistory);
+                    chatWindow.innerHTML = storedHtml;
+                    // Certifica-se de que a mensagem inicial não está visível se o chat tiver conteúdo
+                    const initialMsg = document.getElementById('initial-welcome-message');
+                    if (initialMsg && conversationHistory.length > 0) {
+                        initialMsg.style.display = 'none';
+                    }
+                } catch (e) {
+                    console.error("Erro ao carregar histórico do localStorage. Iniciando novo chat.", e);
+                    handleNewChat(false); // Inicia sem notificação
+                }
+            } else {
+                displayInitialWelcomeMessage();
+            }
+            scrollToBottom();
+        };
+
+        // Limpa o chat (Botão "Novo Chat")
+        window.handleNewChat = (showNotification = true) => {
+            conversationHistory = [];
+            isWaitingForResponse = false;
+            userInput.value = '';
             
-            const apiUrl = 'https://api.openai.com/v1/chat/completions';
-            const payload = {
-                model: "gpt-3.5-turbo",
-                messages: [{ role: 'system', content: systemPrompt }, ...history],
-                stream: true,
+            chatWindow.innerHTML = ''; 
+
+            localStorage.removeItem(HISTORY_KEY);
+            localStorage.removeItem(HTML_KEY);
+            
+            displayInitialWelcomeMessage();
+            if (showNotification) {
+                displaySystemNotification("Chat limpo. Nova conversa iniciada!");
+            }
+            
+            scrollToBottom();
+        };
+
+        // --- RENDERIZAÇÃO E API ---
+
+        const formatMarkdown = (text) => {
+            let html = text
+                .replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
+                    return `<pre><code class="language-${lang || ''}">${code.trim()}</code></pre>`;
+                })
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/__(.*?)__/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/_(.*?)_/g, '<em>$1</em>')
+                .replace(/(\n|^)([\*+-] [^\n]+)+/g, (match) => {
+                    const listItems = match.trim().split('\n').map(item => {
+                        return `<li>${item.replace(/^[\*+-]\s*/, '').trim()}</li>`;
+                    }).join('');
+                    return `<ul>${listItems}</ul>\n`;
+                })
+                .replace(/^-{3,}/gm, '<hr>')
+                .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+                .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+                .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+                .replace(/\n/g, '<br>');
+
+            html = html.replace(/<br><ul>/g, '<ul>').replace(/<\/li><br>/g, '</li>');
+            return html;
+        };
+
+        const appendMessage = (role, content, isStreaming = false) => {
+            // Remove a mensagem inicial se estiver presente e uma nova mensagem for adicionada
+            const welcomeMsg = document.getElementById('initial-welcome-message');
+            if (welcomeMsg && conversationHistory.length === 0) {
+                welcomeMsg.style.display = 'none';
+            }
+
+            const messageWrapper = document.createElement('div');
+            messageWrapper.className = `flex mb-6 ${role === 'user' ? 'justify-end' : 'justify-start'}`;
+
+            const messageBubble = document.createElement('div');
+            // Classes atualizadas para Modo Escuro
+            messageBubble.className = `max-w-xl p-4 rounded-2xl shadow-md ${
+                role === 'user'
+                    ? 'bg-eva-purple text-white rounded-br-sm'
+                    : 'bg-eva-light dark:bg-gray-700 text-eva-dark dark:text-gray-100 rounded-tl-sm'
+            }`;
+
+            if (role === 'user') {
+                messageBubble.innerHTML = `<p>${content}</p>`;
+            } else {
+                messageBubble.innerHTML = `<p class="font-semibold text-eva-purple dark:text-eva-light">EVA</p><div class="markdown-content">${isStreaming ? '<div id="temp-message-content"></div>' : formatMarkdown(content)}</div>`;
+            }
+
+            messageWrapper.appendChild(messageBubble);
+            chatWindow.appendChild(messageWrapper);
+
+            scrollToBottom();
+
+            if (!isStreaming) {
+                saveChat(); // Salva o chat após a mensagem do usuário ser adicionada
+            }
+
+            if (isStreaming) {
+                return messageBubble.querySelector('#temp-message-content') || messageBubble.children[1];
+            }
+            return null;
+        };
+
+        // Função principal de envio e processamento da mensagem (OpenAI)
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const prompt = userInput.value.trim();
+            if (!prompt || isWaitingForResponse) return;
+
+            // 1. Desabilita input e botão
+            isWaitingForResponse = true;
+            userInput.disabled = true;
+            sendButton.disabled = true;
+
+            // 2. Adiciona a mensagem do usuário ao DOM e histórico
+            appendMessage('user', prompt);
+            conversationHistory.push({ role: 'user', content: prompt });
+
+            // 3. Prepara para a resposta da EVA (elemento de streaming)
+            let fullResponseText = '';
+            const streamingContentEl = appendMessage('assistant', '', true);
+
+            // 4. Limpa e redefine o input
+            userInput.value = '';
+            userInput.style.height = 'auto'; // Reseta a altura
+
+            // 5. Chamada de API com Streaming e Exponential Backoff
+            const apiKey = getApiKey();
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`,
             };
 
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                },
-                body: JSON.stringify(payload)
-            });
+            const payload = {
+                model: model,
+                messages: [
+                    {
+                        role: "system",
+                        // ATUALIZADO: Correção da data para 26 de setembro de 2025
+                        content: "Tu és a EVA, uma assistente feminina de comunicação completa. A data de hoje é 26 de setembro de 2025. Responde de forma clara, moderna e útil, e garante que as tuas informações factuais, como datas, sejam sempre atuais. Formata as tuas respostas em Markdown."
+                    },
+                    ...conversationHistory,
+                    { role: "user", content: prompt }
+                ],
+                stream: true
+            };
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(`API call failed: ${response.status} - ${JSON.stringify(errorData)}`);
-            }
-            
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder();
-            
-            while (true) {
-                const { value, done } = await reader.read();
-                if (done) break;
-                const text = decoder.decode(value);
-                const lines = text.split('\n').filter(line => line.trim() !== '' && line.startsWith('data: '));
-                
-                for (const line of lines) {
-                    const data = line.substring(6).trim();
-                    if (data === '[DONE]') break;
-                    try {
-                        const json = JSON.parse(data);
-                        const chunk = json.choices?.[0]?.delta?.content;
-                        if (chunk) onChunk(chunk);
-                    } catch (e) {}
+            // Implementação de Exponential Backoff
+            const maxRetries = 5;
+            let response = null;
+
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: headers,
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        const errorBody = await response.json().catch(() => ({}));
+                        const status = response.status;
+
+                        if (status === 429 || status >= 500) {
+                            throw new Error(`Server error or Rate Limit: ${status}`);
+                        } else {
+                            console.error("API Fatal Error:", errorBody.error?.message || response.statusText);
+                            streamingContentEl.innerHTML = `<span class="text-red-600">Erro Fatal da API: ${errorBody.error?.message || response.statusText}. Por favor, verifique a chave e o modelo.</span>`;
+                            isWaitingForResponse = false;
+                            userInput.disabled = false;
+                            sendButton.disabled = false;
+                            scrollToBottom();
+                            return;
+                        }
+                    }
+                    break;
+
+                } catch (error) {
+                    if (i === maxRetries - 1) {
+                        console.error("Max retries reached. Failing.", error);
+                        streamingContentEl.innerHTML = '<span class="text-red-600">Erro de Conexão: Ocorreu um erro ao conectar-se à API após várias tentativas.</span>';
+                        isWaitingForResponse = false;
+                        userInput.disabled = false;
+                        sendButton.disabled = false;
+                        scrollToBottom();
+                        return;
+                    }
+
+                    const delay = Math.pow(2, i) * 1000 + Math.random() * 500;
+                    await new Promise(resolve => setTimeout(resolve, delay));
                 }
             }
-        }
+
+            // Processamento do Stream
+            if (response && response.body) {
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder('utf-8');
+                let rawChunk = '';
+
+                // Adiciona um cursor de digitação
+                const cursor = document.createElement('span');
+                cursor.className = 'blinking-cursor';
+                streamingContentEl.appendChild(cursor);
+
+                try {
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+
+                        rawChunk += decoder.decode(value, { stream: true });
+
+                        const lines = rawChunk.split('\n');
+                        rawChunk = lines.pop(); 
+
+                        for (const line of lines) {
+                            if (line.trim().startsWith('data:')) {
+                                const data = line.trim().substring(5).trim();
+                                if (data === '[DONE]') continue;
+
+                                try {
+                                    const chunk = JSON.parse(data);
+                                    const delta = chunk.choices?.[0]?.delta?.content;
+
+                                    if (delta) {
+                                        fullResponseText += delta;
+                                        streamingContentEl.removeChild(cursor);
+                                        streamingContentEl.innerHTML = formatMarkdown(fullResponseText);
+                                        streamingContentEl.appendChild(cursor);
+                                        scrollToBottom();
+                                    }
+                                } catch (e) {
+                                    // Ignora erros de parsing JSON
+                                }
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('Streaming error:', error);
+                    fullResponseText += '\n\n**[Erro de Streaming, a conexão foi perdida.]**';
+                } finally {
+                    // 6. Finaliza a resposta
+                    isWaitingForResponse = false;
+                    userInput.disabled = false;
+                    sendButton.disabled = false;
+                    
+                    // Remove o cursor final
+                    const finalCursor = streamingContentEl.querySelector('.blinking-cursor');
+                    if (finalCursor) finalCursor.remove();
+
+                    // Aplica o formato final ao texto completo
+                    streamingContentEl.innerHTML = formatMarkdown(fullResponseText);
+                    streamingContentEl.removeAttribute('id'); 
+
+                    // 7. Adiciona a resposta completa ao histórico e SALVA
+                    if (fullResponseText) {
+                        conversationHistory.push({ role: 'assistant', content: fullResponseText });
+                    }
+                    saveChat(); 
+                    scrollToBottom();
+                }
+            }
+        });
+
+        // Efeito inicial: Carregar chat e aplicar modo escuro
+        window.addEventListener('load', () => {
+            loadChat(); 
+            autoExpand(userInput);
+        });
+
     </script>
 </body>
 </html>
