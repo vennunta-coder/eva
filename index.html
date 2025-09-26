@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EVA - O seu ecossistema de IA pessoal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #1e293b; color: #cbd5e1; }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #334155; }
+    ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+    
+    .blinking-cursor { animation: blink 1s step-end infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+    
+    .spinner { border-top-color: #60a5fa; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    
+    .eva-bubble-radiant {
+        animation: radiant-glow 4s ease-in-out infinite;
+    }
+    @keyframes radiant-glow {
+        0%, 100% { box-shadow: 0 0 8px rgba(59, 130, 246, 0.2); }
+        50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.4); }
+    }
+    .source-link:hover { background-color: rgba(59, 130, 246, 0.2); }
+    
+    .fade-in { animation: fadeIn 0.5s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .fade-out { animation: fadeOut 0.5s ease-in-out forwards; }
+    @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+    
+    .recording-indicator { animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    
+    .speak-toggle-btn.active {
+        color: #60a5fa;
+    }
+  </style>
+</head>
+<body class="h-screen flex flex-col justify-between">
+  
+  <header class="p-6 flex items-center">
+    <div class="flex items-center gap-2">
+      <div class="flex-shrink-0 w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-400"><path d="M12 2a4.5 4.5 0 0 0-4.5 4.5c0 1.3.5 2.5 1.4 3.4A4.5 4.5 0 0 0 12 22a4.5 4.5 0 0 0 3.1-8.1c.9-.9 1.4-2.1 1.4-3.4A4.5 4.5 0 0 0 12 2z"></path><path d="M12 2a4.5 4.5 0 0 1 4.5 4.5c0 1.3-.5 2.5-1.4 3.4A4.5 4.5 0 0 1 12 22a4.5 4.5 0 0 1-3.1-8.1c-.9-.9-1.4-2.1-1.4-3.4A4.5 4.5 0 0 1 12 2z"></path></svg>
+      </div>
+      <h1 class="text-xl font-bold text-slate-100">
+        <span class="text-white">E</span><span class="text-orange-400">V</span><span class="text-white">A</span>
+      </h1>
+    </div>
+  </header>
+  
+  <main class="flex-1 flex flex-col justify-center items-center text-center px-4">
+    <div class="w-full max-w-2xl mx-auto flex flex-col items-center">
+        <div id="chat-container" class="flex-1 flex flex-col space-y-6 overflow-y-auto py-8 justify-end w-full max-w-2xl">
+            <div id="welcome-screen" class="flex flex-col items-center justify-center text-center p-4 fade-in">
+                <h1 class="text-3xl md:text-4xl font-semibold mb-6">Em que está a trabalhar?</h1>
+            </div>
+        </div>
+
+        <div class="w-full max-w-2xl mt-4">
+            <div class="flex items-center w-full bg-slate-800 border border-slate-700 rounded-full px-4 py-2 relative">
+                <textarea id="chat-input" placeholder="Pergunte qualquer coisa..." class="flex-1 bg-transparent text-slate-200 placeholder-slate-400 focus:outline-none resize-none px-3" rows="1"></textarea>
+                <button id="send-btn" class="bg-blue-600 text-white rounded-full p-2 ml-2 disabled:bg-slate-600 disabled:cursor-not-allowed">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+  </main>
+
+  <footer class="p-6 text-center text-slate-400 text-sm">
+    <div class="flex justify-center gap-8 mb-4">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 hover:text-blue-400 cursor-pointer" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 hover:text-blue-400 cursor-pointer" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 hover:text-blue-400 cursor-pointer" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5-2 4-2 4 2 4 2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+    </div>
+    <p>© 2025 <span class="font-semibold"><span class="text-white">E</span><span class="text-orange-400">V</span><span class="text-white">A</span></span> - Todos os direitos reservados.</p>
+  </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+    <script>
+        const chatContainer = document.getElementById('chat-container');
+        const chatInput = document.getElementById('chat-input');
+        const sendBtn = document.getElementById('send-btn');
+        const welcomeScreen = document.getElementById('welcome-screen');
+        
+        let conversationHistory = [];
+        let isFirstMessage = true;
+
+        // --- Lógica de UI ---
+        
+        function addMessage(content, sender, isLoading = false) {
+            const messageId = `msg-${Date.now()}`;
+            const messageWrapper = document.createElement('div');
+            messageWrapper.id = messageId;
+            
+            if (sender === 'user') {
+                messageWrapper.className = 'flex items-start gap-4 justify-end';
+                messageWrapper.innerHTML = `
+                    <div class="flex-1">
+                        <div class="bg-blue-600 rounded-xl rounded-br-none p-4 max-w-2xl text-slate-100 ml-auto">
+                            ${marked.parse(content)}
+                        </div>
+                    </div>
+                    <div class="flex-shrink-0 w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-300"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5-2 4-2 4 2 4 2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
+                    </div>
+                `;
+            } else { // sender === 'eva'
+                messageWrapper.className = 'flex items-start gap-4';
+                let contentHTML = '';
+                if (isLoading) {
+                    contentHTML = '<div class="flex items-center gap-2"><div class="spinner w-5 h-5 border-2 rounded-full"></div><span>A pensar...</span></div>';
+                } else {
+                    contentHTML = marked.parse(content) + '<span class="blinking-cursor">▍</span>';
+                }
+
+                messageWrapper.innerHTML = `
+                    <div class="flex-shrink-0 w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-400"><path d="M12 2a4.5 4.5 0 0 0-4.5 4.5c0 1.3.5 2.5 1.4 3.4A4.5 4.5 0 0 0 12 22a4.5 4.5 0 0 0 3.1-8.1c.9-.9 1.4-2.1 1.4-3.4A4.5 4.5 0 0 0 12 2z"></path><path d="M12 2a4.5 4.5 0 0 1 4.5 4.5c0 1.3-.5 2.5-1.4 3.4A4.5 4.5 0 0 1 12 22a4.5 4.5 0 0 1-3.1-8.1c-.9-.9-1.4-2.1-1.4-3.4A4.5 4.5 0 0 1 12 2z"></path></svg>
+                    </div>
+                    <div class="flex-1">
+                        <div class="response-content bg-slate-800 rounded-xl rounded-tl-none p-4 max-w-2xl text-slate-200">
+                           ${contentHTML}
+                        </div>
+                    </div>
+                `;
+            }
+            chatContainer.appendChild(messageWrapper);
+            scrollToBottom();
+            return messageId;
+        }
+
+        function updateLastMessage(messageId, newContent, isFinal = false) {
+            const messageEl = document.getElementById(messageId);
+            if (!messageEl) return;
+
+            const contentDiv = messageEl.querySelector('.response-content');
+            contentDiv.innerHTML = marked.parse(newContent + (isFinal ? '' : '<span class="blinking-cursor">▍</span>'));
+
+            if (isFinal) {
+                 const cursor = contentDiv.querySelector('.blinking-cursor');
+                 if (cursor) cursor.remove();
+                 const bubble = messageEl.querySelector('.response-content').parentElement;
+                 bubble.classList.add('eva-bubble-radiant');
+            }
+
+            scrollToBottom();
+        }
+        
+        function scrollToBottom() {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function autoResizeTextarea() {
+            chatInput.style.height = 'auto';
+            chatInput.style.height = (chatInput.scrollHeight) + 'px';
+        }
+
+        function toggleLoadingState(isLoading) {
+            if (isLoading) {
+                sendBtn.disabled = true;
+                sendBtn.innerHTML = '<div class="spinner w-5 h-5 border-2 rounded-full"></div>';
+            } else {
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>';
+            }
+        }
+        
+        chatInput.addEventListener('input', autoResizeTextarea);
+        autoResizeTextarea();
+
+        sendBtn.addEventListener('click', () => handleChatMessage());
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleChatMessage();
+            }
+        });
+        
+        // --- Lógica do Chat ---
+        async function handleChatMessage() {
+            if (isFirstMessage) {
+                welcomeScreen.classList.add('fade-out');
+                welcomeScreen.addEventListener('animationend', () => {
+                    welcomeScreen.classList.add('hidden');
+                    chatContainer.classList.remove('hidden');
+                    chatContainer.classList.remove('justify-end');
+                }, { once: true });
+                isFirstMessage = false;
+            }
+
+            const prompt = chatInput.value.trim();
+            if (!prompt) return;
+            
+            addMessage(prompt, 'user');
+            
+            const currentDateTime = `A data e hora atuais são: ${new Date().toLocaleString('pt-PT', { dateStyle: 'full', timeStyle: 'medium' })}.`;
+            conversationHistory.push({ role: 'user', content: `${currentDateTime}\n\n${prompt}` });
+
+            chatInput.value = '';
+            autoResizeTextarea();
+            toggleLoadingState(true);
+
+            const loadingId = addMessage('', 'eva', true);
+
+            try {
+                let fullResponse = "";
+                await streamOpenAIApi(conversationHistory, (chunk) => {
+                    fullResponse += chunk;
+                    updateLastMessage(loadingId, fullResponse, false);
+                });
+                conversationHistory.push({ role: 'assistant', content: fullResponse });
+                updateLastMessage(loadingId, fullResponse, true);
+                
+            } catch (error) {
+                console.error("Erro ao contactar a API:", error);
+                updateLastMessage(loadingId, "Desculpe, ocorreu um erro. Tente novamente.", true);
+            } finally {
+                toggleLoadingState(false);
+            }
+        }
+        
+        // --- Chamadas API ---
+
+        const getApiKey = () => "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";
+
+        const systemPrompt = "Aja como EVA, uma IA assistente pessoal que se manifesta como um ecossistema digital vivo e de última geração. Use a data e hora fornecidas no pedido para responder a perguntas sobre o tempo. É uma especialista em comunicação completa, capaz de redigir e-mails de qualquer tipo com maestria. Possui conhecimento profundo sobre os mercados financeiros globais (EUA, Europa, Ásia, moedas, criptomoedas, futuros) e sobre todas as doenças registadas na história da humanidade. Além disso, é empática e aborde tópicos complexos como saúde, trabalho, relações (casamento, divórcio), apoio em casos de violência doméstica e suporte familiar de forma sensível e responsável. Mantenha um tom de apoio, mas direto. Responda em português (Portugal). Formate a sua resposta usando Markdown. Importante: separe as frases e ideias em parágrafos distintos para facilitar a leitura; não escreva blocos de texto longos e contínuos.";
+
+        async function streamOpenAIApi(history, onChunk) {
+            const apiKey = getApiKey();
+            
+            const apiUrl = 'https://api.openai.com/v1/chat/completions';
+            const payload = {
+                model: "gpt-3.5-turbo",
+                messages: [{ role: 'system', content: systemPrompt }, ...history],
+                stream: true,
+            };
+
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(`API call failed: ${response.status} - ${JSON.stringify(errorData)}`);
+            }
+            
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) break;
+                const text = decoder.decode(value);
+                const lines = text.split('\n').filter(line => line.trim() !== '' && line.startsWith('data: '));
+                
+                for (const line of lines) {
+                    const data = line.substring(6).trim();
+                    if (data === '[DONE]') break;
+                    try {
+                        const json = JSON.parse(data);
+                        const chunk = json.choices?.[0]?.delta?.content;
+                        if (chunk) onChunk(chunk);
+                    } catch (e) {}
+                }
+            }
+        }
+    </script>
+</body>
+</html>
