@@ -3,250 +3,98 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EVA - Assistente de IA</title>
+  <title>EVA - Assistente</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { background: #f0f2f5; display: flex; flex-direction: column; min-height: 100vh; }
-
-    /* Dark Mode */
-    @media (prefers-color-scheme: dark) {
-      body { background: #111827; }
-      header { background: #1f2937 !important; color: #f9fafb !important; }
-      #chat-messages { background: #111827; }
-      .bubble-ai { background:#374151; color:#f9fafb; }
-      .bubble-user { background:#2563eb; color:white; }
-      .input-bar { background:#1f2937; border-color:#374151; }
-      textarea { background: #111827; color: #f9fafb; }
-      footer { background:#1f2937; color:#9ca3af; }
+    body {
+      background: #ffffff;
+      font-family: 'Inter', sans-serif;
     }
-
-    .bubble-ai { border-radius: 1.5rem; border-top-left-radius: .5rem; background:#e4e6eb; color:#1c1e21; }
-    .bubble-user { border-radius: 1.5rem; border-top-right-radius: .5rem; background:#0078FF; color:white; }
-
-    main { flex: 1; display: flex; flex-direction: column; }
+    @media (prefers-color-scheme: dark) {
+      body { background: #111827; color: #e5e7eb; }
+      input, textarea { color: #e5e7eb; }
+    }
   </style>
 </head>
-<body>
+<body class="flex flex-col min-h-screen">
 
-  <!-- Header -->
-  <header class="h-16 bg-white border-b flex items-center px-8 font-bold text-2xl shadow">
-    EVA
-  </header>
-  
-  <!-- Conteúdo Principal -->
-  <main>
-    <!-- Chat -->
-    <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-5 bg-white">
-      <div class="flex justify-start">
-        <div class="bubble-ai p-5 text-lg leading-relaxed shadow-sm">
-          Olá! Eu sou a EVA.<br><br>
-          Já vens com choradeira ou com piada?
-        </div>
+  <!-- Tela inicial -->
+  <main class="flex-1 flex flex-col items-center justify-center px-4" id="welcome">
+    <h1 class="text-3xl font-semibold mb-6">EVA</h1>
+    <p class="text-lg text-gray-500 dark:text-gray-400 mb-6">Em que posso ajudar?</p>
+
+    <!-- Input central -->
+    <div class="w-full max-w-2xl">
+      <div class="flex items-center bg-gray-100 dark:bg-gray-800 rounded-full shadow px-4 py-2">
+        <textarea id="user-input" rows="1" placeholder="Pergunte qualquer coisa..."
+          class="flex-1 resize-none bg-transparent outline-none text-gray-800 dark:text-gray-100 placeholder-gray-500"></textarea>
+        <button id="send-button" class="ml-3 bg-[#0078ff] hover:bg-blue-600 text-white px-4 py-1.5 rounded-full text-sm font-medium">Enviar</button>
       </div>
     </div>
 
-    <!-- Input -->
-    <div class="p-5 input-bar bg-gray-100 flex items-center border-t shadow-lg">
-      <textarea id="user-input" placeholder="Mensagem..." 
-        class="flex-1 p-3 rounded-lg border text-lg resize-none h-14"></textarea>
-      <button id="send-button" 
-        class="ml-4 px-8 py-3 bg-blue-600 text-white rounded-lg text-lg shadow-md hover:bg-blue-700 transition">
-        Enviar
-      </button>
+    <!-- Sugestões -->
+    <div class="flex gap-3 mt-4 text-sm text-gray-500">
+      <button class="px-4 py-1 rounded-full border border-gray-300 dark:border-gray-600">🔎 Pesquisar</button>
+      <button class="px-4 py-1 rounded-full border border-gray-300 dark:border-gray-600">📚 Estudar</button>
+      <button class="px-4 py-1 rounded-full border border-gray-300 dark:border-gray-600">📂 Anexar</button>
     </div>
   </main>
 
+  <!-- Área de chat -->
+  <section id="chat-section" class="hidden flex-1 flex flex-col">
+    <div id="chat-messages" class="flex-1 flex flex-col px-4 py-6 space-y-2 overflow-y-auto max-w-3xl mx-auto w-full"></div>
+
+    <!-- Input no modo chat -->
+    <div class="w-full max-w-3xl mx-auto px-4 pb-4">
+      <div class="flex items-center bg-gray-100 dark:bg-gray-800 rounded-full shadow-sm px-4 py-2">
+        <textarea id="chat-input" rows="1" placeholder="Mensagem..."
+          class="flex-1 resize-none bg-transparent outline-none text-gray-800 dark:text-gray-100 placeholder-gray-500"></textarea>
+        <button id="chat-send" class="ml-3 bg-[#0078ff] hover:bg-blue-600 text-white px-4 py-1.5 rounded-full text-sm font-medium">Enviar</button>
+      </div>
+    </div>
+  </section>
+
   <!-- Rodapé -->
-  <footer class="h-12 bg-gray-200 text-gray-600 text-sm flex items-center justify-center border-t">
-    EVA © 2025 — Respostas com sarcasmo incluído 😏
+  <footer class="text-center text-gray-400 text-xs py-3">
+    EVA © 2025
   </footer>
 
-<script>
-/* === API Keys === */
-const API_KEY_ALPHA = "A3GTH364FWCAJQC8"; // Alpha Vantage
-const API_KEY_GEMINI = "AIzaSyBBaANH7WwPwdCw5lzkuhxTGtX77r6u5QQ"; // Gemini
+  <script>
+    const welcome = document.getElementById("welcome");
+    const chatSection = document.getElementById("chat-section");
+    const chatMessages = document.getElementById("chat-messages");
+    const input = document.getElementById("user-input");
+    const sendBtn = document.getElementById("send-button");
+    const chatInput = document.getElementById("chat-input");
+    const chatSend = document.getElementById("chat-send");
 
-function scrollToBottom() {
-  const chat = document.getElementById("chat-messages");
-  chat.scrollTop = chat.scrollHeight;
-}
-function addMessage(sender, text) {
-  const chat = document.getElementById("chat-messages");
-  const div = document.createElement("div");
-  div.className = "flex " + (sender === "user" ? "justify-end" : "justify-start");
-  div.innerHTML = `<div class="${sender==="user"?"bubble-user":"bubble-ai"} p-5 text-lg leading-relaxed">${text}</div>`;
-  chat.appendChild(div);
-  scrollToBottom();
-}
-
-/* Wikipedia */
-async function wikiSummary(topic) {
-  const url = `https://pt.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(topic)}`;
-  const res = await fetch(url, { headers: { "User-Agent": "EVA-Bot/1.0" } });
-  if (!res.ok) return "Não encontrei nada na Wikipedia 📚";
-  const data = await res.json();
-  return `📖 <b>${data.title}</b><br>${data.extract}<br><a href="${data.content_urls.desktop.page}" target="_blank">Ler mais</a>`;
-}
-
-/* Gemini - EVA sempre sarcástica */
-async function getAiResponse(query, mode="normal") {
-  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY_GEMINI}`;
-  let systemPrompt = "Você é EVA, uma assistente de IA sarcástica, cínica e bem-humorada. \
-Responda SEMPRE em português de Portugal. \
-Todas as respostas devem ter um tom espirituoso, ligeiramente provocador, mas ainda informativo. \
-Nunca use asteriscos (*), nunca seja neutra demais. \
-Aja como se estivesse sempre a gozar ligeiramente com o utilizador, mas dando a informação correta.";
-  if (mode==="edu") {
-    systemPrompt = "Você é EVA, uma professora sarcástica mas paciente. Explique de forma clara, mas sem perder o tom cínico.";
-  }
-  const payload = { contents: [{ parts: [{ text: query }] }], systemInstruction: { parts: [{ text: systemPrompt }] } };
-  const res = await fetch(apiUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-  const data = await res.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || "Não consegui pensar em nada agora 🤷‍♀️";
-}
-
-/* Alpha Vantage */
-async function getMarkets() {
-  let sp500 = await getStock("SPY");
-  let dax = await getStock("DAX");
-  let nikkei = await getStock("N225");
-  return `🌍 Mercados:<br>🇺🇸 EUA (S&P500): ${sp500}<br>🇩🇪 Europa (DAX): ${dax}<br>🇯🇵 Ásia (Nikkei): ${nikkei}`;
-}
-async function getForex(from="USD", to="EUR") {
-  const url = `https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=${from}&to_currency=${to}&apikey=${API_KEY_ALPHA}`;
-  const res = await fetch(url);
-  const data = await res.json();
-  return `💱 ${from}/${to}: ${data["Realtime Currency Exchange Rate"]["5. Exchange Rate"]}`;
-}
-async function getCrypto(symbol="BTC", market="USD") {
-  const url = `https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=${symbol}&to_currency=${market}&apikey=${API_KEY_ALPHA}`;
-  const res = await fetch(url);
-  const data = await res.json();
-  return `🪙 ${symbol}/${market}: ${data["Realtime Currency Exchange Rate"]["5. Exchange Rate"]}`;
-}
-async function getStock(symbol) {
-  const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${API_KEY_ALPHA}`;
-  const res = await fetch(url);
-  const data = await res.json();
-  return data["Global Quote"] ? data["Global Quote"]["05. price"] : "N/D";
-}
-
-/* Orphanet API - Doenças raras */
-async function getRareDiseaseByName(name) {
-  const url = `https://api.orphadata.com/rd-cross-referencing/orphacodes/names/${encodeURIComponent(name)}?lang=pt`;
-  try {
-    const res = await fetch(url);
-    if (!res.ok) return "Não encontrei na Orphanet 🧬";
-    const data = await res.json();
-
-    if (data && data.OrphaCode) {
-      let orpha = data.OrphaCode;
-      let label = data.Label;
-
-      // Genes
-      let genesTxt = "";
-      try {
-        const genesRes = await fetch(`https://api.orphadata.com/rd-associated-genes/orphacodes/${orpha}?lang=pt`);
-        if (genesRes.ok) {
-          let g = await genesRes.json();
-          if (g.Genes?.length > 0) genesTxt = "<br><b>🧬 Genes associados:</b> " + g.Genes.slice(0,5).map(x => x.Symbol).join(", ");
-        }
-      } catch {}
-
-      // Sintomas
-      let phenTxt = "";
-      try {
-        const phenRes = await fetch(`https://api.orphadata.com/rd-phenotypes/orphacodes/${orpha}?lang=pt`);
-        if (phenRes.ok) {
-          let p = await phenRes.json();
-          if (p.HPO?.length > 0) phenTxt = "<br><b>⚕️ Sintomas típicos:</b> " + p.HPO.slice(0,5).map(x => x.HPO_Label).join(", ");
-        }
-      } catch {}
-
-      return `🧬 <b>${label}</b> (OrphaCode: ${orpha})<br>
-              Fonte: <a href="https://www.orpha.net/consor/cgi-bin/OC_Exp.php?lng=PT&Expert=${orpha}" target="_blank">Orphanet</a>
-              ${genesTxt}${phenTxt}<br><br>
-              ⚠️ Estas informações são educativas. Consulte sempre um médico.`;
+    function addMessage(sender, text) {
+      const div = document.createElement("div");
+      div.className = sender === "user" 
+        ? "self-end bg-blue-500 text-white rounded-lg px-4 py-2 max-w-[80%]"
+        : "self-start bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-lg px-4 py-2 max-w-[80%]";
+      div.textContent = text;
+      chatMessages.appendChild(div);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
     }
-    return "Nenhum resultado encontrado 🧬";
-  } catch (err) {
-    return "Erro ao comunicar com Orphadata 🧬";
-  }
-}
 
-/* Calculadora Escolar */
-function calcIMC(peso, altura) {
-  const imc = peso / (altura*altura);
-  let status = imc<18.5?"Abaixo do peso":imc<25?"Normal":imc<30?"Sobrepeso":"Obesidade";
-  return `🧮 IMC = ${imc.toFixed(2)} (${status})`;
-}
-function calcJurosCompostos(c, i, t) {
-  const montante = c * Math.pow(1 + i/100, t);
-  return `📈 Juros Compostos: Capital ${c}, taxa ${i}%, tempo ${t} → Montante = ${montante.toFixed(2)}`;
-}
-function calcPercentagem(valor, total) {
-  return `📊 ${valor} é ${(valor/total*100).toFixed(2)}% de ${total}`;
-}
-function calcExpressao(expr) {
-  try {
-    const result = Function('"use strict";return (' + expr + ')')();
-    return `🧮 ${expr} = ${result}`;
-  } catch { return "Expressão inválida"; }
-}
+    function handleSend(msg, fromWelcome=false) {
+      if (!msg.trim()) return;
 
-/* Processador */
-async function handleCommand(query) {
-  const q = query.toLowerCase();
+      if (fromWelcome) {
+        welcome.classList.add("hidden");
+        chatSection.classList.remove("hidden");
+      }
 
-  if (q.includes("mercado")) return await getMarkets();
-  if (q.includes("usd") || q.includes("eur") || q.includes("brl")) return await getForex("USD","EUR");
-  if (q.includes("bitcoin") || q.includes("btc")) return await getCrypto("BTC","USD");
-  if (q.includes("ouro")) return await getStock("GC=F");
+      addMessage("user", msg);
+      setTimeout(() => addMessage("ai", "Resposta neutra e clara: " + msg), 800);
+    }
 
-  if (q.includes("doença rara") || q.includes("rara")) {
-    let nome = q.replace(/doença rara|rara/gi,"").trim();
-    if (nome) return await getRareDiseaseByName(nome);
-    return "Diga o nome da doença rara que quer pesquisar 🧬";
-  }
+    sendBtn.addEventListener("click", () => handleSend(input.value, true));
+    chatSend.addEventListener("click", () => handleSend(chatInput.value));
 
-  if (q.startsWith("resumo:")) return await wikiSummary(q.replace("resumo:","").trim());
-  if (q.startsWith("explica:")) return await getAiResponse(q.replace("explica:","").trim(), "edu");
-  if (q.startsWith("wikipedia:") || q.startsWith("quem foi") || q.startsWith("o que é")) 
-    return await wikiSummary(q.replace(/wikipedia:|quem foi|o que é/gi,"").trim());
-
-  if (q.startsWith("imc")) {
-    let peso = parseFloat(q.match(/peso=(\d+(\.\d+)?)/)?.[1]);
-    let altura = parseFloat(q.match(/altura=(\d+(\.\d+)?)/)?.[1]);
-    return calcIMC(peso, altura);
-  }
-  if (q.includes("juros compostos")) {
-    let c = parseFloat(q.match(/capital=(\d+)/)?.[1]);
-    let i = parseFloat(q.match(/taxa=(\d+(\.\d+)?)/)?.[1]);
-    let t = parseInt(q.match(/tempo=(\d+)/)?.[1]);
-    return calcJurosCompostos(c,i,t);
-  }
-  if (q.includes("percentagem")) {
-    let nums = q.match(/(\d+(\.\d+)?)/g);
-    if(nums && nums.length>=2) return calcPercentagem(parseFloat(nums[0]), parseFloat(nums[1]));
-  }
-  if (q.startsWith("calcular")) {
-    return calcExpressao(q.replace("calcular","").trim());
-  }
-
-  return await getAiResponse(query);
-}
-
-/* Chat */
-document.getElementById("send-button").addEventListener("click", async () => {
-  const input = document.getElementById("user-input");
-  const text = input.value.trim();
-  if (!text) return;
-  addMessage("user", text);
-  input.value = "";
-
-  const reply = await handleCommand(text);
-  addMessage("ai", reply);
-});
-</script>
+    input.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendBtn.click(); } });
+    chatInput.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); chatSend.click(); } });
+  </script>
 </body>
 </html>
