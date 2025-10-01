@@ -225,18 +225,29 @@
                         continue; // Próxima tentativa
                     } else {
                         // Lança erro para outros status ou última falha de 429
-                        throw new Error(`Erro de API: ${response.statusText}`);
+                        // Tenta ler o corpo da resposta para mais detalhes, se possível
+                        let errorBody = await response.text();
+                        try {
+                           const jsonError = JSON.parse(errorBody);
+                           errorBody = jsonError.error?.message || errorBody;
+                        } catch (e) {
+                           // Ignorar erro de parse, usar o texto
+                        }
+                        throw new Error(`Erro de API (${response.status}): ${response.statusText} - Detalhe: ${errorBody.substring(0, 100)}...`);
                     }
                 } catch (error) {
                     console.error("Erro na busca da API:", error);
                     if (i === retries - 1) {
-                         throw new Error(`Falha ao obter resposta da EVA: ${error.message}`);
+                         // Lança o erro original após a última tentativa
+                         throw error;
                     }
                     const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
                     console.warn(`Erro de rede. Tentando novamente em ${delay / 1000}s...`);
                     await new Promise(resolve => setTimeout(resolve, delay));
                 }
             }
+            // Fallback: Se o loop terminar sem sucesso
+            throw new Error("Falha ao obter resposta da EVA após várias tentativas de API.");
         }
 
         // Processa o evento de envio
@@ -305,7 +316,12 @@
             } catch (error) {
                 console.error("Erro geral no chat:", error);
                 loadingMessage.remove();
-                addMessage("Oops! Encontrei um erro. Verifique a consola para mais detalhes e tente novamente.", false);
+                
+                // MELHORIA DE DEBUG: Mostrar a mensagem de erro da API diretamente no chat
+                const detailedErrorMessage = error.message || "Erro desconhecido. Verifique a consola (F12) para mais detalhes.";
+                const userFacingError = `Oops! Encontrei um erro. Por favor, tente novamente. Detalhe: ${detailedErrorMessage}`;
+                
+                addMessage(userFacingError, false);
             } finally {
                 // 7. Reativar UI
                 sendButton.disabled = promptInput.value.trim() === '';
