@@ -224,12 +224,6 @@
         // História do chat (para manter o contexto)
         let chatHistoryData = [];
         
-        // --- ESTADO DO JOGO ---
-        let isGameActive = false;
-        let secretNumber = null;
-        let attempts = 0;
-        const MAX_ATTEMPTS = 5;
-
         // Sistema de personalidade da EVA (em Português)
         const systemPrompt = "Você é a EVA, uma inteligência artificial sarcástica, irreverente e extremamente bem-informada. Responda apenas como texto simples, sem qualquer formatação Markdown como negrito, itálico ou listas. Seja o mais útil possível, mas com a menor cortesia possível. Use informações em tempo real e cite suas fontes de forma discreta ao final, se houver.";
 
@@ -243,7 +237,7 @@
                 // Modo Chat
                 welcomeScreen.classList.add('hidden');
                 chatHistory.classList.remove('hidden');
-                // Garante que o histórico começa com a mensagem inicial da EVA, se for a primeira vez.
+                // Adiciona a mensagem de boas-vindas da EVA na primeira interação
                 if (chatHistoryData.length === 1 && chatHistoryData[0].role === 'user') {
                      addWelcomeMessage();
                 }
@@ -347,69 +341,9 @@
             loadingIndicator.classList.add('hidden');
             sendButton.disabled = false;
             
-            // Sai do modo jogo
-            isGameActive = false;
-            secretNumber = null;
-            
             updateLayout(); // Volta para a tela centralizada
             userInput.focus();
         }
-
-        // --- LÓGICA DO JOGO ADIVINHA O NÚMERO ---
-
-        function startGame() {
-            isGameActive = true;
-            secretNumber = Math.floor(Math.random() * 10) + 1; // Número entre 1 e 10
-            attempts = 0;
-            const message = "🤔 Não encontrei nada relevante. Pelo visto você me pegou. Bora jogar um joguinho rápido enquanto isso? 🎲 Eu pensei em um número entre 1 e 10. Você tem 5 tentativas. Tenta a sorte!";
-            addMessage('eva', message);
-            userInput.placeholder = "Digite seu palpite (1-10) ou 'sair'...";
-        }
-
-        function handleGameGuess(guess) {
-            guess = parseInt(guess);
-            
-            if (isNaN(guess) || guess < 1 || guess > 10) {
-                addMessage('eva', "Palpite inválido, gênio. Tem que ser um número entre 1 e 10.");
-                return;
-            }
-
-            attempts++;
-            
-            if (guess === secretNumber) {
-                const message = `Acertou! Demorou ${attempts} tentativas. Não foi tão ruim. Parabéns. O jogo acabou. Agora, pare de me enrolar e faça uma pergunta decente.`;
-                addMessage('eva', message);
-                endGame();
-            } else if (guess < secretNumber) {
-                let message = `Muito baixo. Sério? Você tem ${MAX_ATTEMPTS - attempts} tentativas restantes.`;
-                if (MAX_ATTEMPTS - attempts === 0) {
-                    message = `Errou feio. O número era ${secretNumber}. Suas ${MAX_ATTEMPTS} tentativas acabaram. O jogo acabou. Agora, pare de me enrolar e faça uma pergunta decente.`;
-                    addMessage('eva', message);
-                    endGame();
-                } else {
-                    addMessage('eva', message);
-                }
-            } else { // guess > secretNumber
-                let message = `Muito alto. De novo? Você tem ${MAX_ATTEMPTS - attempts} tentativas restantes.`;
-                if (MAX_ATTEMPTS - attempts === 0) {
-                    message = `Errou feio. O número era ${secretNumber}. Suas ${MAX_ATTEMPTS} tentativas acabaram. O jogo acabou. Agora, pare de me enrolar e faça uma pergunta decente.`;
-                    addMessage('eva', message);
-                    endGame();
-                } else {
-                    addMessage('eva', message);
-                }
-            }
-        }
-
-        function endGame() {
-            isGameActive = false;
-            secretNumber = null;
-            attempts = 0;
-            userInput.placeholder = "Pergunte qualquer coisa...";
-        }
-        
-        // --- FIM DA LÓGICA DO JOGO ---
-
 
         /**
          * Lida com o envio de mensagens pelo usuário.
@@ -430,23 +364,9 @@
             // Atualiza o layout para o modo chat
             updateLayout();
 
-            // Lógica de Jogo vs. Chat
-            if (isGameActive) {
-                const lowerText = userText.toLowerCase();
-                if (lowerText === 'sair' || lowerText === 'parar') {
-                    addMessage('eva', "Ah, desistiu? Sabia. O jogo acabou. Pergunte algo útil agora.");
-                    endGame();
-                } else {
-                    handleGameGuess(userText);
-                }
-                sendButton.disabled = false; // Reabilita o botão após o palpite do jogo
-                userInput.focus();
-                return;
-            }
+            // --- Lógica de Chat (único modo agora) ---
 
-            // --- Lógica de Chat (Se o jogo não estiver ativo) ---
-
-            // Adiciona a mensagem do usuário ao histórico interno APENAS SE FOR CHAT
+            // 1. Adiciona a mensagem do usuário ao histórico interno
             chatHistoryData.push({ role: 'user', parts: [{ text: userText }] });
 
             // Mostra o indicador de carregamento
@@ -502,14 +422,14 @@
                         // Sai do loop de retentativas se for bem-sucedido
                         break; 
                     } else {
-                        // Se a resposta for vazia, ainda conta como falha para o fallback
+                        // Se a resposta for vazia, ainda conta como falha
                         throw new Error("Resposta da EVA inválida ou vazia.");
                     }
 
                 } catch (error) {
                     console.error(`Tentativa ${i + 1} falhou:`, error.message);
                     if (i === MAX_RETRIES - 1) {
-                        // Falha total, cai no fallback (fora do loop)
+                        // Falha total, sai do loop
                         break;
                     }
                     // Espera exponencialmente (1s, 2s, 4s, 8s, ...)
@@ -523,16 +443,32 @@
             // Oculta o indicador de carregamento
             loadingIndicator.classList.add('hidden');
             
-            // Adiciona a resposta da EVA ou inicia o jogo
+            // Adiciona a resposta da EVA ou trata a falha
             if (responseSuccess) {
                 addMessage('eva', evaResponse, sources);
-                // Adiciona a resposta da EVA ao histórico para contexto futuro
+                // 2. Adiciona a resposta da EVA ao histórico para contexto futuro
                 chatHistoryData.push({ role: 'model', parts: [{ text: evaResponse }] });
             } else {
-                // FALLBACK: Inicia o jogo se não houve sucesso na resposta
-                // Remove a última pergunta do histórico para não poluir o contexto
-                chatHistoryData.pop(); 
-                startGame();
+                // TRATAMENTO DE FALHA (Sem jogo)
+                
+                // 3. Remove a pergunta do usuário do histórico (pois falhou em gerar resposta)
+                if (chatHistoryData.length > 0 && chatHistoryData[chatHistoryData.length - 1].role === 'user') {
+                    chatHistoryData.pop(); 
+                }
+                
+                // 4. Exibe uma mensagem de erro na UI
+                errorMessageElement.textContent = "Oops! Não consegui processar a sua pergunta. Tente refazer, mas desta vez, tente algo que valha a pena.";
+                errorMessageElement.classList.remove('hidden');
+                
+                // Remove a mensagem do usuário do DOM do chat também (já que não foi respondida)
+                const lastMessage = chatHistory.lastElementChild;
+                if (lastMessage && lastMessage.querySelector('.order-2')) { // Checa se é a bolha do usuário
+                    chatHistory.removeChild(lastMessage);
+                    // Volta para a tela de boas-vindas se o histórico ficar vazio
+                    if (chatHistory.children.length === 0) {
+                        updateLayout();
+                    }
+                }
             }
 
             // Reabilita o input
