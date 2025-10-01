@@ -7,36 +7,32 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body {
-      background: #ffffff;
+      background: #fff;
       font-family: 'Inter', sans-serif;
     }
     @media (prefers-color-scheme: dark) {
       body { background: #111827; color: #e5e7eb; }
-      input, textarea { color: #e5e7eb; }
     }
   </style>
 </head>
 <body class="flex flex-col min-h-screen">
 
-  <!-- Tela inicial -->
+  <!-- Header -->
+  <header class="p-4 text-lg font-semibold">EVA</header>
+
+  <!-- Tela inicial estilo ChatGPT -->
   <main class="flex-1 flex flex-col items-center justify-center px-4" id="welcome">
-    <h1 class="text-3xl font-semibold mb-6">EVA</h1>
-    <p class="text-lg text-gray-500 dark:text-gray-400 mb-6">Em que posso ajudar?</p>
+    <h1 class="text-2xl font-semibold mb-6">Em que posso ajudar?</h1>
 
     <!-- Input central -->
     <div class="w-full max-w-2xl">
-      <div class="flex items-center bg-gray-100 dark:bg-gray-800 rounded-full shadow px-4 py-2">
-        <textarea id="user-input" rows="1" placeholder="Pergunte qualquer coisa..."
-          class="flex-1 resize-none bg-transparent outline-none text-gray-800 dark:text-gray-100 placeholder-gray-500"></textarea>
-        <button id="send-button" class="ml-3 bg-[#0078ff] hover:bg-blue-600 text-white px-4 py-1.5 rounded-full text-sm font-medium">Enviar</button>
+      <div class="flex items-center bg-gray-100 dark:bg-gray-800 rounded-full px-4 py-2 shadow">
+        <input id="user-input" type="text" placeholder="Pergunte qualquer coisa"
+          class="flex-1 bg-transparent outline-none text-gray-800 dark:text-gray-100 placeholder-gray-500" />
+        <button class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+          🎤
+        </button>
       </div>
-    </div>
-
-    <!-- Sugestões -->
-    <div class="flex gap-3 mt-4 text-sm text-gray-500">
-      <button class="px-4 py-1 rounded-full border border-gray-300 dark:border-gray-600">🔎 Pesquisar</button>
-      <button class="px-4 py-1 rounded-full border border-gray-300 dark:border-gray-600">📚 Estudar</button>
-      <button class="px-4 py-1 rounded-full border border-gray-300 dark:border-gray-600">📂 Anexar</button>
     </div>
   </main>
 
@@ -46,31 +42,30 @@
 
     <!-- Input no modo chat -->
     <div class="w-full max-w-3xl mx-auto px-4 pb-4">
-      <div class="flex items-center bg-gray-100 dark:bg-gray-800 rounded-full shadow-sm px-4 py-2">
-        <textarea id="chat-input" rows="1" placeholder="Mensagem..."
-          class="flex-1 resize-none bg-transparent outline-none text-gray-800 dark:text-gray-100 placeholder-gray-500"></textarea>
-        <button id="chat-send" class="ml-3 bg-[#0078ff] hover:bg-blue-600 text-white px-4 py-1.5 rounded-full text-sm font-medium">Enviar</button>
+      <div class="flex items-center bg-gray-100 dark:bg-gray-800 rounded-full shadow px-4 py-2">
+        <input id="chat-input" type="text" placeholder="Mensagem..."
+          class="flex-1 bg-transparent outline-none text-gray-800 dark:text-gray-100 placeholder-gray-500" />
+        <button id="chat-send" class="ml-3 bg-[#0078ff] hover:bg-blue-600 text-white px-4 py-1.5 rounded-full text-sm font-medium">
+          Enviar
+        </button>
       </div>
     </div>
   </section>
 
   <!-- Rodapé -->
-  <footer class="text-center text-gray-400 text-xs py-3">
-    EVA © 2025
-  </footer>
+  <footer class="text-center text-gray-400 text-xs py-3">EVA © 2025</footer>
 
   <script>
     const welcome = document.getElementById("welcome");
     const chatSection = document.getElementById("chat-section");
     const chatMessages = document.getElementById("chat-messages");
     const input = document.getElementById("user-input");
-    const sendBtn = document.getElementById("send-button");
     const chatInput = document.getElementById("chat-input");
     const chatSend = document.getElementById("chat-send");
 
     function addMessage(sender, text) {
       const div = document.createElement("div");
-      div.className = sender === "user" 
+      div.className = sender === "user"
         ? "self-end bg-blue-500 text-white rounded-lg px-4 py-2 max-w-[80%]"
         : "self-start bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-lg px-4 py-2 max-w-[80%]";
       div.textContent = text;
@@ -87,14 +82,27 @@
       }
 
       addMessage("user", msg);
-      setTimeout(() => addMessage("ai", "Resposta neutra e clara: " + msg), 800);
+      setTimeout(() => addMessage("ai", "Aqui está uma resposta clara e objetiva para: " + msg), 800);
     }
 
-    sendBtn.addEventListener("click", () => handleSend(input.value, true));
-    chatSend.addEventListener("click", () => handleSend(chatInput.value));
+    input.addEventListener("keydown", e => {
+      if (e.key === "Enter") {
+        handleSend(input.value, true);
+        input.value = "";
+      }
+    });
 
-    input.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendBtn.click(); } });
-    chatInput.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); chatSend.click(); } });
+    chatInput.addEventListener("keydown", e => {
+      if (e.key === "Enter") {
+        handleSend(chatInput.value);
+        chatInput.value = "";
+      }
+    });
+
+    chatSend.addEventListener("click", () => {
+      handleSend(chatInput.value);
+      chatInput.value = "";
+    });
   </script>
 </body>
 </html>
