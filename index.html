@@ -1,172 +1,149 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EVA - Assistente</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EVA</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body {
-      background: #fff;
-      font-family: 'Inter', sans-serif;
+    body { font-family: 'Inter', sans-serif; }
+    .chat-bubble { max-width: 75%; word-wrap: break-word; }
+    .fade-in-up { animation: fadeInUp 0.8s ease-out; }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
-    header {
-      font-size: 26px;
-    }
-    .chat-bubble {
-      font-size: 23px;
-      line-height: 1.4;
-    }
-    footer {
-      font-size: 23px;
-    }
-    input, textarea {
-      font-size: 18px;
-    }
-    button {
-      font-size: 18px;
-      font-weight: bold;
-    }
-    @media (prefers-color-scheme: dark) {
-      body { background: #111827; color: #e5e7eb; }
-    }
-    /* Animação para o splash */
-    .fade-out {
-      opacity: 0;
-      transition: opacity 1s ease;
+    .logo-animate { animation: pulse 2s infinite; }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
     }
   </style>
 </head>
-<body class="flex flex-col min-h-screen">
+<body class="bg-white text-gray-900 flex flex-col min-h-screen">
 
-  <!-- SPLASH SCREEN -->
-  <section id="splash" class="flex flex-col items-center justify-center h-screen text-center space-y-6">
-    <img src="EVA.png" alt="EVA Logo" class="w-28 h-28 rounded-full border shadow" />
-    <h1 class="text-5xl font-extrabold">EVA</h1>
-    <p class="max-w-md">EVA é uma assistente virtual simples, direta e confiável, pronta para responder a qualquer pergunta.</p>
-    <p class="text-gray-500">🔒 Encriptada ponto a ponto</p>
-  </section>
+  <!-- Splash Screen -->
+  <div id="splash" class="flex flex-col items-center justify-center min-h-screen space-y-6">
+    <img src="evalogo.png" alt="EVA Logo" 
+         class="w-32 h-32 rounded-full shadow-lg fade-in-up logo-animate" />
+    <h1 class="text-4xl font-bold fade-in-up">
+      <span class="text-black">E</span><span class="text-orange-500">V</span><span class="text-black">A</span>
+    </h1>
+    <p class="text-gray-600 fade-in-up">Assistente virtual pronta para responder a qualquer pergunta.</p>
+    <button id="enter-btn" 
+      class="px-6 py-2 bg-orange-500 text-white rounded-full shadow hover:bg-orange-600 transition">
+      👉 Clique para começar
+    </button>
+  </div>
 
-  <!-- APLICAÇÃO DO CHAT -->
-  <section id="chat-app" class="hidden flex flex-col min-h-screen">
+  <!-- Chat App -->
+  <div id="app" class="hidden flex flex-col flex-1">
     <!-- Header -->
-    <header class="p-4 font-semibold">EVA</header>
+    <header class="p-4 flex items-center space-x-3 border-b">
+      <img src="evalogo.png" alt="EVA Logo" class="w-8 h-8 rounded-full shadow" />
+      <span class="font-semibold text-lg">
+        <span class="text-black">E</span><span class="text-orange-500">V</span><span class="text-black">A</span>
+      </span>
+    </header>
 
-    <!-- Área do chat -->
-    <section class="flex-1 flex flex-col">
-      <div id="chat-messages" class="flex-1 flex flex-col px-4 py-6 space-y-2 overflow-y-auto max-w-3xl mx-auto w-full"></div>
+    <!-- Chat messages -->
+    <main id="chat-messages" class="flex-1 p-4 space-y-4 overflow-y-auto"></main>
 
-      <!-- Input chat -->
-      <div class="w-full max-w-3xl mx-auto px-4 pb-4">
-        <div class="flex items-center bg-gray-100 dark:bg-gray-800 rounded-full shadow px-4 py-2">
-          <input id="chat-input" type="text" placeholder="Mensagem..."
-            class="flex-1 bg-transparent outline-none text-gray-800 dark:text-gray-100 placeholder-gray-500" />
-          <button id="chat-send" class="ml-3 bg-[#0078ff] hover:bg-blue-600 text-white px-4 py-1.5 rounded-full">
-            Enviar
-          </button>
-        </div>
-      </div>
-    </section>
+    <!-- Input -->
+    <footer class="p-4 border-t flex space-x-2">
+      <input id="user-input" type="text" placeholder="Mensagem..." 
+        class="flex-1 border rounded-full px-4 py-2 focus:outline-none focus:ring focus:border-orange-500" />
+      <button id="send-btn" 
+        class="px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition">Enviar</button>
+    </footer>
 
-    <!-- Rodapé -->
-    <footer class="text-center text-gray-400 py-3">EVA © 2025</footer>
-  </section>
+    <!-- Footer -->
+    <div class="text-center text-sm text-gray-500 py-2">EVA © 2025</div>
+  </div>
 
   <script>
-    // Controle da splash screen
     const splash = document.getElementById("splash");
-    const chatApp = document.getElementById("chat-app");
-
-    setTimeout(() => {
-      splash.classList.add("fade-out");
-      setTimeout(() => {
-        splash.classList.add("hidden");
-        chatApp.classList.remove("hidden");
-      }, 1000); // tempo da animação
-    }, 2500); // tempo que fica visível (2,5s)
-
-    // Chat
+    const app = document.getElementById("app");
+    const enterBtn = document.getElementById("enter-btn");
+    const sendBtn = document.getElementById("send-btn");
+    const userInput = document.getElementById("user-input");
     const chatMessages = document.getElementById("chat-messages");
-    const chatInput = document.getElementById("chat-input");
-    const chatSend = document.getElementById("chat-send");
 
+    // Entrar no app
+    enterBtn.addEventListener("click", () => {
+      splash.classList.add("hidden");
+      app.classList.remove("hidden");
+
+      // Mensagem automática da EVA
+      setTimeout(() => {
+        addMessage("ai", "Olá! Em que posso ajudar?");
+      }, 500);
+    });
+
+    // Adicionar mensagens
     function addMessage(sender, text) {
       const div = document.createElement("div");
-      div.className = sender === "user"
-        ? "self-end bg-blue-500 text-white rounded-lg px-4 py-2 max-w-[80%] chat-bubble"
-        : "self-start bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-lg px-4 py-2 max-w-[80%] chat-bubble";
-      div.textContent = text;
+
+      if (sender === "user") {
+        div.className = "flex justify-end";
+        div.innerHTML = `
+          <div class="bg-blue-500 text-white rounded-lg px-4 py-2 chat-bubble">
+            ${text}
+          </div>`;
+      } else {
+        div.className = "flex items-start space-x-2";
+        div.innerHTML = `
+          <img src="evalogo.png" alt="EVA" class="w-8 h-8 rounded-full shadow mt-1" />
+          <div class="bg-gray-100 text-gray-800 rounded-lg px-4 py-2 chat-bubble">
+            ${text}
+          </div>`;
+      }
+
       chatMessages.appendChild(div);
       chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    async function handleQuestion(msg) {
+    // Responder
+    function evaReply(msg) {
       msg = msg.toLowerCase();
 
-      // 📅 Calendário
-      if (msg.includes("ano estamos")) {
+      // Saudações
+      if (msg.includes("ola") || msg.includes("olá") || msg.includes("oi")) {
+        return "Olá! Estou aqui para ajudar no que precisar. 🚀";
+      }
+
+      // Perguntar data
+      if (msg.includes("que dia") || msg.includes("data de hoje")) {
+        const hoje = new Date();
+        return `Hoje é ${hoje.toLocaleDateString("pt-PT", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}.`;
+      }
+
+      // Perguntar ano
+      if (msg.includes("ano estamos") || msg.includes("ano é este")) {
         return `Estamos no ano de ${new Date().getFullYear()}.`;
       }
-      if (msg.includes("dia de hoje") || msg.includes("data de hoje")) {
-        return `Hoje é ${new Date().toLocaleDateString("pt-PT", { weekday:"long", day:"numeric", month:"long", year:"numeric" })}.`;
-      }
-      if (msg.includes("hora")) {
-        return `Agora são ${new Date().toLocaleTimeString("pt-PT")}.`;
-      }
 
-      // 🧮 Calculadora
-      if (/[\d\+\-\*\/]/.test(msg)) {
-        try {
-          let result = eval(msg.replace(",", "."));
-          return `O resultado é: ${result}`;
-        } catch {
-          return "Não consegui calcular isso.";
-        }
-      }
-
-      // 📚 Wikipedia
-      if (msg.includes("quem é") || msg.includes("o que é") || msg.includes("wikipedia")) {
-        let query = msg.replace("quem é", "").replace("o que é", "").replace("wikipedia", "").trim();
-        let res = await fetch(`https://pt.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`);
-        if (res.ok) {
-          let data = await res.json();
-          if (data.extract) return data.extract;
-        }
-        return "Não encontrei nada na Wikipedia.";
-      }
-
-      // 🩺 Orphadata
-      if (msg.includes("doença rara") || msg.includes("orpha")) {
-        let res = await fetch(`https://api.orphadata.com/rd-cross-referencing/orphacodes`);
-        if (res.ok) {
-          return "Consultei a base Orphadata: existem milhares de doenças raras catalogadas. Pode especificar o nome da doença?";
-        }
-        return "Não consegui aceder à base de doenças raras agora.";
-      }
-
-      // 🔄 Fallback
-      return "Ainda não tenho dados específicos para isso, mas posso tentar explicar de outra forma se quiser.";
+      // Fallback
+      return "Posso não ter uma resposta exata, mas estou aqui para tentar ajudar da melhor forma. 😉";
     }
 
-    function handleSend(msg) {
-      if (!msg.trim()) return;
-      addMessage("user", msg);
-      setTimeout(async () => {
-        let reply = await handleQuestion(msg);
+    // Enviar mensagem
+    function sendMessage() {
+      const text = userInput.value.trim();
+      if (!text) return;
+
+      addMessage("user", text);
+      userInput.value = "";
+
+      setTimeout(() => {
+        const reply = evaReply(text);
         addMessage("ai", reply);
       }, 600);
     }
 
-    chatInput.addEventListener("keydown", e => {
-      if (e.key === "Enter") {
-        handleSend(chatInput.value);
-        chatInput.value = "";
-      }
-    });
-
-    chatSend.addEventListener("click", () => {
-      handleSend(chatInput.value);
-      chatInput.value = "";
+    sendBtn.addEventListener("click", sendMessage);
+    userInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") sendMessage();
     });
   </script>
 </body>
