@@ -121,8 +121,11 @@
         const loadingDots = document.getElementById('loadingDots');
         const sendIcon = document.getElementById('sendIcon');
         
-        const apiKey = ""; // Chave de API deixada vazia para preenchimento automático
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+        // CORREÇÃO DE AUTENTICAÇÃO:
+        // A API Key é injetada automaticamente no fetch pelo ambiente Canvas. 
+        // Não é necessário adicioná-la manualmente à URL ou como header.
+        // A URL será apenas o endpoint base, sem a chave.
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent`;
 
         // Utility para scrollar automaticamente para o fundo
         function scrollToBottom() {
@@ -225,15 +228,17 @@
                         continue; // Próxima tentativa
                     } else {
                         // Lança erro para outros status ou última falha de 429
-                        // Tenta ler o corpo da resposta para mais detalhes, se possível
                         let errorBody = await response.text();
                         try {
                            const jsonError = JSON.parse(errorBody);
+                           // Tenta obter a mensagem de erro detalhada da API
                            errorBody = jsonError.error?.message || errorBody;
                         } catch (e) {
                            // Ignorar erro de parse, usar o texto
                         }
-                        throw new Error(`Erro de API (${response.status}): ${response.statusText} - Detalhe: ${errorBody.substring(0, 100)}...`);
+                        // Limita o detalhe para não poluir demasiado o chat
+                        const detail = errorBody.substring(0, 100).replace(/\s+/g, ' ').trim(); 
+                        throw new Error(`Erro de API (${response.status}): ${response.statusText} - Detalhe: ${detail}...`);
                     }
                 } catch (error) {
                     console.error("Erro na busca da API:", error);
@@ -317,7 +322,7 @@
                 console.error("Erro geral no chat:", error);
                 loadingMessage.remove();
                 
-                // MELHORIA DE DEBUG: Mostrar a mensagem de erro da API diretamente no chat
+                // Melhoria de Debug: Mostrar a mensagem de erro da API diretamente no chat
                 const detailedErrorMessage = error.message || "Erro desconhecido. Verifique a consola (F12) para mais detalhes.";
                 const userFacingError = `Oops! Encontrei um erro. Por favor, tente novamente. Detalhe: ${detailedErrorMessage}`;
                 
