@@ -5,77 +5,46 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EVA - Assistente de IA</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <style>
     body { background: #f0f2f5; }
-    .bubble-ai { border-radius: 1.5rem; border-top-left-radius: 0.5rem; background: #e4e6eb; color: #1c1e21; }
-    .bubble-user { border-radius: 1.5rem; border-top-right-radius: 0.5rem; background: #0078FF; color: white; }
+    .bubble-ai { border-radius: 1.5rem; border-top-left-radius: .5rem; background:#e4e6eb; color:#1c1e21; }
+    .bubble-user { border-radius: 1.5rem; border-top-right-radius: .5rem; background:#0078FF; color:white; }
   </style>
 </head>
 <body class="flex justify-center items-center min-h-screen">
-  <div class="w-full max-w-3xl h-screen md:h-[90vh] bg-white rounded-none md:rounded-3xl shadow-xl flex flex-col overflow-hidden">
-    
-    <!-- Header -->
-    <header class="h-16 bg-white border-b border-gray-200 flex items-center px-4 shadow-sm">
-      <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center text-white">
-          EVA
-        </div>
-        <span class="font-bold text-lg">Assistente EVA</span>
-      </div>
-    </header>
 
-    <!-- Chat -->
-    <div id="chat-messages" class="flex-1 overflow-y-auto p-6 flex flex-col space-y-3">
+  <div class="w-full max-w-lg h-screen bg-white flex flex-col shadow-xl">
+    <header class="h-14 bg-white border-b flex items-center px-4 font-bold text-lg">EVA</header>
+    
+    <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-3">
       <div class="flex justify-start">
-        <div class="max-w-[85%] p-3 bubble-ai">
-          <p>Olá. Sou a EVA 🎭. Já vens com choradeira ou com piada?</p>
+        <div class="bubble-ai p-3">
+          Olá! Sou a EVA 🎭. Pergunta-me sobre <b>mercados</b>, <b>moedas</b>, <b>criptomoedas</b>, <b>futuros</b>, <b>escola</b> ou pede cálculos.
         </div>
       </div>
     </div>
 
-    <!-- Input -->
-    <div class="p-3 bg-white border-t border-gray-200 flex items-center space-x-2">
-      <textarea id="user-input" class="flex-1 resize-none bg-gray-100 rounded-full px-4 py-2 h-10" placeholder="Mensagem..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage();}"></textarea>
-      <button id="send-button" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-full">Enviar</button>
+    <div class="p-3 bg-gray-100 flex items-center border-t">
+      <textarea id="user-input" placeholder="Mensagem..." class="flex-1 p-2 rounded-lg border"></textarea>
+      <button id="send-button" class="ml-2 px-4 py-2 bg-blue-600 text-white rounded-lg">Enviar</button>
     </div>
   </div>
 
 <script>
-/* ===========================
-   Configuração Spotify
-=========================== */
-const SPOTIFY_CLIENT_ID = "09a366bc19514cd89621fd065766f6e5";
-const SPOTIFY_CLIENT_SECRET = "e50cba0478f543bb938dbf4bed99ec16";
-let spotifyToken = null;
+const API_KEY_ALPHA = "A3GTH364FWCAJQC8"; // Alpha Vantage
+const API_KEY_GEMINI = "AIzaSyBBaANH7WwPwdCw5lzkuhxTGtX77r6u5QQ"; // Gemini
 
-async function getSpotifyToken() {
-  if (spotifyToken) return spotifyToken;
-  const result = await fetch("https://accounts.spotify.com/api/token", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      "Authorization": "Basic " + btoa(SPOTIFY_CLIENT_ID + ":" + SPOTIFY_CLIENT_SECRET),
-    },
-    body: "grant_type=client_credentials"
-  });
-  const data = await result.json();
-  spotifyToken = data.access_token;
-  setTimeout(() => spotifyToken = null, (data.expires_in - 60) * 1000);
-  return spotifyToken;
+function scrollToBottom() {
+  const chat = document.getElementById("chat-messages");
+  chat.scrollTop = chat.scrollHeight;
 }
-
-async function searchSpotifyTrack(query) {
-  const token = await getSpotifyToken();
-  const res = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=1`, {
-    headers: { "Authorization": "Bearer " + token }
-  });
-  const data = await res.json();
-  if (!data.tracks || data.tracks.items.length === 0) return "Não encontrei nada no Spotify 🎶";
-  const track = data.tracks.items[0];
-  return `🎵 ${track.name} - ${track.artists.map(a => a.name).join(", ")}<br>
-  🔗 <a href="${track.external_urls.spotify}" target="_blank">Ouvir no Spotify</a><br>
-  ${track.preview_url ? "▶️ Preview: <a href='" + track.preview_url + "' target='_blank'>link</a>" : "Sem preview disponível"}`;
+function addMessage(sender, text) {
+  const chat = document.getElementById("chat-messages");
+  const div = document.createElement("div");
+  div.className = "flex " + (sender === "user" ? "justify-end" : "justify-start");
+  div.innerHTML = `<div class="${sender==="user"?"bubble-user":"bubble-ai"} p-3">${text}</div>`;
+  chat.appendChild(div);
+  scrollToBottom();
 }
 
 /* ===========================
@@ -83,55 +52,130 @@ async function searchSpotifyTrack(query) {
 =========================== */
 async function wikiSummary(topic) {
   const url = `https://pt.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(topic)}`;
-  const res = await fetch(url, { headers: { "User-Agent": "EVA-Bot/1.0 (https://vennuta-coder.github.io/eva/)" } });
+  const res = await fetch(url, { headers: { "User-Agent": "EVA-Bot/1.0" } });
   if (!res.ok) return "Não encontrei nada na Wikipedia 📚";
   const data = await res.json();
-  return `📖 <b>${data.title}</b><br>${data.extract}<br>🔗 <a href="${data.content_urls.desktop.page}" target="_blank">Ler mais</a>`;
+  return `📖 <b>${data.title}</b><br>${data.extract}<br><a href="${data.content_urls.desktop.page}" target="_blank">Ler mais</a>`;
+}
+
+/* ===========================
+   Gemini
+=========================== */
+async function getAiResponse(query, mode="normal") {
+  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY_GEMINI}`;
+  let systemPrompt = "Você é EVA, uma assistente sarcástica e bem-humorada. Responda em português de Portugal.";
+  if (mode==="edu") systemPrompt = "Você é EVA, uma professora paciente. Explique o assunto de forma simples e clara.";
+  const payload = { contents: [{ parts: [{ text: query }] }], systemInstruction: { parts: [{ text: systemPrompt }] } };
+  const res = await fetch(apiUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+  const data = await res.json();
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || "Não consegui pensar em nada agora 🤷‍♀️";
+}
+
+/* ===========================
+   Alpha Vantage - Finanças
+=========================== */
+async function getMarkets() {
+  let sp500 = await getStock("SPY");
+  let dax = await getStock("DAX");
+  let nikkei = await getStock("N225");
+  return `🌍 Mercados:<br>🇺🇸 EUA (S&P500): ${sp500}<br>🇩🇪 Europa (DAX): ${dax}<br>🇯🇵 Ásia (Nikkei): ${nikkei}`;
+}
+async function getForex(from="USD", to="EUR") {
+  const url = `https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=${from}&to_currency=${to}&apikey=${API_KEY_ALPHA}`;
+  const res = await fetch(url);
+  const data = await res.json();
+  return `💱 ${from}/${to}: ${data["Realtime Currency Exchange Rate"]["5. Exchange Rate"]}`;
+}
+async function getCrypto(symbol="BTC", market="USD") {
+  const url = `https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=${symbol}&to_currency=${market}&apikey=${API_KEY_ALPHA}`;
+  const res = await fetch(url);
+  const data = await res.json();
+  return `🪙 ${symbol}/${market}: ${data["Realtime Currency Exchange Rate"]["5. Exchange Rate"]}`;
+}
+async function getStock(symbol) {
+  const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${API_KEY_ALPHA}`;
+  const res = await fetch(url);
+  const data = await res.json();
+  return data["Global Quote"] ? data["Global Quote"]["05. price"] : "N/D";
+}
+
+/* ===========================
+   Calculadora Escolar
+=========================== */
+function calcIMC(peso, altura) {
+  const imc = peso / (altura*altura);
+  let status = imc<18.5?"Abaixo do peso":imc<25?"Normal":imc<30?"Sobrepeso":"Obesidade";
+  return `🧮 IMC = ${imc.toFixed(2)} (${status})`;
+}
+function calcJurosCompostos(c, i, t) {
+  const montante = c * Math.pow(1 + i/100, t);
+  return `📈 Juros Compostos: Capital ${c}, taxa ${i}%, tempo ${t} → Montante = ${montante.toFixed(2)}`;
+}
+function calcPercentagem(valor, total) {
+  return `📊 ${valor} é ${(valor/total*100).toFixed(2)}% de ${total}`;
+}
+function calcExpressao(expr) {
+  try {
+    const result = Function('"use strict";return (' + expr + ')')();
+    return `🧮 ${expr} = ${result}`;
+  } catch { return "Expressão inválida"; }
+}
+
+/* ===========================
+   Processar comandos
+=========================== */
+async function handleCommand(query) {
+  const q = query.toLowerCase();
+
+  // Finanças
+  if (q.includes("mercado")) return await getMarkets();
+  if (q.includes("usd") || q.includes("eur") || q.includes("brl")) return await getForex("USD","EUR");
+  if (q.includes("bitcoin") || q.includes("btc")) return await getCrypto("BTC","USD");
+  if (q.includes("ouro")) return await getStock("GC=F");
+
+  // Escolar: Wikipedia e explicações
+  if (q.startsWith("resumo:")) return await wikiSummary(q.replace("resumo:","").trim());
+  if (q.startsWith("explica:")) return await getAiResponse(q.replace("explica:","").trim(), "edu");
+  if (q.startsWith("wikipedia:") || q.startsWith("quem foi") || q.startsWith("o que é")) 
+    return await wikiSummary(q.replace(/wikipedia:|quem foi|o que é/gi,"").trim());
+
+  // Calculadora escolar
+  if (q.startsWith("imc")) {
+    let peso = parseFloat(q.match(/peso=(\d+(\.\d+)?)/)?.[1]);
+    let altura = parseFloat(q.match(/altura=(\d+(\.\d+)?)/)?.[1]);
+    return calcIMC(peso, altura);
+  }
+  if (q.includes("juros compostos")) {
+    let c = parseFloat(q.match(/capital=(\d+)/)?.[1]);
+    let i = parseFloat(q.match(/taxa=(\d+(\.\d+)?)/)?.[1]);
+    let t = parseInt(q.match(/tempo=(\d+)/)?.[1]);
+    return calcJurosCompostos(c,i,t);
+  }
+  if (q.includes("percentagem")) {
+    let nums = q.match(/(\d+(\.\d+)?)/g);
+    if(nums && nums.length>=2) return calcPercentagem(parseFloat(nums[0]), parseFloat(nums[1]));
+  }
+  if (q.startsWith("calcular")) {
+    return calcExpressao(q.replace("calcular","").trim());
+  }
+
+  // Geral (Gemini)
+  return await getAiResponse(query);
 }
 
 /* ===========================
    Chat
 =========================== */
-function createMessageHtml(sender, text) {
-  const alignment = sender === "user" ? "justify-end" : "justify-start";
-  const bubbleClass = sender === "user" ? "bubble-user" : "bubble-ai";
-  return `<div class="flex ${alignment}">
-      <div class="max-w-[85%] p-3 ${bubbleClass}">
-        <p>${text}</p>
-      </div>
-    </div>`;
-}
-
-async function sendMessage() {
+document.getElementById("send-button").addEventListener("click", async () => {
   const input = document.getElementById("user-input");
   const text = input.value.trim();
   if (!text) return;
+  addMessage("user", text);
   input.value = "";
 
-  const chat = document.getElementById("chat-messages");
-  chat.innerHTML += createMessageHtml("user", text);
-
-  let response = null;
-
-  // Wikipedia
-  if (text.toLowerCase().startsWith("wikipedia:") || text.toLowerCase().startsWith("quem foi") || text.toLowerCase().startsWith("o que é")) {
-    const topic = text.replace(/wikipedia:|quem foi|o que é/gi, "").trim();
-    response = await wikiSummary(topic);
-  }
-  // Spotify
-  else if (text.toLowerCase().startsWith("procura música") || text.toLowerCase().startsWith("spotify")) {
-    const song = text.replace(/procura música|spotify/gi, "").trim();
-    response = await searchSpotifyTrack(song);
-  }
-  else {
-    response = "Ainda não aprendi isso 🤖. Tenta pedir uma música ou 'Wikipedia: ...'";
-  }
-
-  chat.innerHTML += createMessageHtml("ai", response);
-  chat.scrollTop = chat.scrollHeight;
-}
-
-document.getElementById("send-button").addEventListener("click", sendMessage);
+  const reply = await handleCommand(text);
+  addMessage("ai", reply);
+});
 </script>
 </body>
 </html>
