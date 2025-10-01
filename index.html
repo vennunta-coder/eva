@@ -3,74 +3,79 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EVA - Assistente</title>
+  <title>EVA</title>
   <style>
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: linear-gradient(180deg, #4B0082, #2C003E);
+      background: linear-gradient(180deg, #3d007a, #2c0054);
       color: white;
       display: flex;
       flex-direction: column;
       height: 100vh;
-      font-size: 22px;
     }
 
-    #chat {
+    .chat-container {
       flex: 1;
-      overflow-y: auto;
-      padding: 20px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      justify-content: space-between;
     }
 
-    .bubble-eva {
-      align-self: flex-start;
-      background: #6A0DAD;
-      color: white;
-      padding: 12px 18px;
+    .chat-box {
+      padding: 15px;
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .message {
+      max-width: 85%;
+      padding: 12px 16px;
       border-radius: 20px;
-      border-top-left-radius: 8px;
-      max-width: 75%;
+      margin: 6px 0;
+      font-size: 22px;
+      line-height: 1.4em;
+      word-wrap: break-word;
     }
 
-    .bubble-user {
+    .user {
+      background: linear-gradient(90deg, #ff9800, #ff5722);
       align-self: flex-end;
-      background: linear-gradient(90deg, #FF8008, #FFC837);
-      color: white;
-      padding: 12px 18px;
-      border-radius: 20px;
-      border-top-right-radius: 8px;
-      max-width: 75%;
+      border-bottom-right-radius: 5px;
+      color: #fff;
     }
 
-    .input-bar {
+    .eva {
+      background: #7a1fd3;
+      align-self: flex-start;
+      border-bottom-left-radius: 5px;
+      color: #fff;
+    }
+
+    .chat-form {
       display: flex;
       padding: 10px;
-      background: rgba(255,255,255,0.05);
-      border-top: 1px solid rgba(255,255,255,0.2);
+      background: #2c0054;
     }
 
-    .input-bar textarea {
+    .chat-form input {
       flex: 1;
-      resize: none;
-      border: 1px solid rgba(255,255,255,0.3);
-      border-radius: 25px;
-      padding: 10px 15px;
+      padding: 14px;
       font-size: 22px;
-      background: transparent;
-      color: white;
+      border: none;
+      border-radius: 25px;
       outline: none;
     }
 
-    .input-bar button {
+    .chat-form button {
       margin-left: 10px;
-      background: #FF1493;
+      padding: 14px 20px;
+      font-size: 22px;
       border: none;
       border-radius: 25px;
-      padding: 0 20px;
-      font-size: 18px;
+      background: #ff2ea6;
       color: white;
       cursor: pointer;
     }
@@ -78,113 +83,77 @@
     footer {
       text-align: center;
       font-size: 20px;
-      padding: 8px;
-      color: rgba(255,255,255,0.7);
+      padding: 10px;
+      background: #21003a;
     }
   </style>
 </head>
 <body>
-
-  <div id="chat">
-    <div class="bubble-eva">Olá! Eu sou a EVA.</div>
-    <div class="bubble-eva">Estou aqui para te ajudar.</div>
+  <div class="chat-container">
+    <div id="chat-box" class="chat-box"></div>
+    <form id="chat-form" class="chat-form">
+      <input id="chat-input" type="text" placeholder="Escreve..." autocomplete="off">
+      <button type="submit">Enviar</button>
+    </form>
   </div>
+  <footer>EVA © 2025</footer>
 
-  <div class="input-bar">
-    <textarea id="user-input" placeholder="Escreve uma mensagem..."></textarea>
-    <button id="send">Enviar</button>
-  </div>
+  <script>
+    // --- Core Variables ---
+    const API_KEY = ""; // <- mete aqui a tua chave Gemini
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent`;
 
-  <footer>
-    EVA © 2025
-  </footer>
+    const chatBox = document.getElementById("chat-box");
+    const form = document.getElementById("chat-form");
+    const input = document.getElementById("chat-input");
 
-<script>
-  const chat = document.getElementById("chat");
-  const input = document.getElementById("user-input");
-  const sendBtn = document.getElementById("send");
-
-  async function responder(msg) {
-    let resposta = "";
-    const lower = msg.toLowerCase();
-    const now = new Date();
-
-    // 📅 Calendário
-    if (lower.includes("hora")) {
-      return "⏰ Agora são " + now.toLocaleTimeString("pt-PT",{hour:'2-digit',minute:'2-digit'});
-    }
-    if (lower.includes("dia")) {
-      return "📅 Hoje é " + now.toLocaleDateString("pt-PT",{weekday:"long", day:"numeric", month:"long", year:"numeric"});
-    }
-    if (lower.includes("ano")) {
-      return "Estamos em " + now.getFullYear() + ".";
+    function addMessage(text, sender) {
+      const message = document.createElement("div");
+      message.classList.add("message", sender);
+      message.textContent = text;
+      chatBox.appendChild(message);
+      chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    // 🧮 Calculadora simples
-    if (lower.includes("imc")) {
-      return "Para calcular o IMC: IMC = peso / (altura * altura). Dá-me os valores para calcular.";
-    }
-    if (lower.includes("juros")) {
-      return "Juros compostos = Capital × (1 + taxa)^tempo.";
-    }
-    if (lower.match(/\d+[\+\-\*\/]\d+/)) {
+    async function getAiResponse(userMessage) {
       try {
-        return "🧮 Resultado: " + eval(lower);
-      } catch {
-        return "Não consegui calcular.";
+        const response = await fetch(`${apiUrl}?key=${API_KEY}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ role: "user", parts: [{ text: userMessage }] }]
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.candidates && data.candidates.length > 0) {
+          return data.candidates[0].content.parts[0].text;
+        } else {
+          return "Não percebi bem, podes repetir?";
+        }
+
+      } catch (err) {
+        console.error(err);
+        return "Ups... houve um erro a falar com a minha IA.";
       }
     }
 
-    // 📊 Finanças (Alpha Vantage)
-    if (lower.includes("mercado") || lower.includes("bolsa")) {
-      return "📊 Podes pedir: EUA, Europa, Ásia, Moedas, Criptomoedas ou Futuros.";
-    }
+    // --- Evento Enviar ---
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const userMessage = input.value.trim();
+      if (!userMessage) return;
 
-    // 🎓 Escola
-    if (lower.includes("explica")) {
-      return "📚 Diz-me o tema escolar que queres e eu explico de forma simples.";
-    }
+      addMessage(userMessage, "user");
+      input.value = "";
 
-    // 💕 Amor / relações
-    if (lower.includes("amo") || lower.includes("namoro") || lower.includes("coração")) {
-      return "💕 O amor é complexo, mas também a maior força que temos. Queres um conselho?";
-    }
+      const evaResponse = await getAiResponse(userMessage);
+      addMessage(evaResponse, "eva");
+    });
 
-    // 🚗 Carros
-    if (lower.includes("carro")) {
-      return "🚗 Posso falar de motores, carros elétricos ou manutenção. O que preferes?";
-    }
-
-    // 🌍 Resposta geral (fallback IA)
-    const alternativas = [
-      "Ainda estou a aprender, mas posso tentar ajudar-te.",
-      "Não tenho a resposta certa, mas posso procurar contigo.",
-      "Boa pergunta! Dá-me mais detalhes.",
-      "Hmm... não tenho certeza, mas vamos descobrir juntos."
-    ];
-    resposta = alternativas[Math.floor(Math.random() * alternativas.length)];
-    return resposta;
-  }
-
-  sendBtn.addEventListener("click", async () => {
-    const text = input.value.trim();
-    if (!text) return;
-
-    const userBubble = document.createElement("div");
-    userBubble.className = "bubble-user";
-    userBubble.textContent = text;
-    chat.appendChild(userBubble);
-
-    const evaBubble = document.createElement("div");
-    evaBubble.className = "bubble-eva";
-    evaBubble.textContent = await responder(text);
-    chat.appendChild(evaBubble);
-
-    input.value = "";
-    chat.scrollTop = chat.scrollHeight;
-  });
-</script>
-
+    // Mensagem inicial
+    addMessage("Olá! Eu sou a EVA.", "eva");
+  </script>
 </body>
 </html>
-
