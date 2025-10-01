@@ -6,7 +6,7 @@
   <title>EVA - Assistente de IA</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { background: #f0f2f5; display: flex; flex-direction: column; min-height: 100vh; font-size: 22px; }
+    body { background: #f0f2f5; display: flex; flex-direction: column; min-height: 100vh; font-size: 25px; }
 
     @media (prefers-color-scheme: dark) {
       body { background: #111827; }
@@ -16,20 +16,21 @@
       .bubble-user { background:#2563eb; color:white; }
       .input-bar { background:#1f2937; border-color:#374151; }
       textarea { background: #111827; color: #f9fafb; }
-      footer { background:#1f2937; color:#9ca3af; }
+      footer { background:#1f2937; color:#9ca3af; font-size:20px !important; }
     }
 
-    .bubble-ai { border-radius: 1.5rem; border-top-left-radius: .5rem; background:#e4e6eb; color:#1c1e21; font-size:22px; }
-    .bubble-user { border-radius: 1.5rem; border-top-right-radius: .5rem; background:#0078FF; color:white; font-size:22px; }
+    .bubble-ai { border-radius: 1.5rem; border-top-left-radius: .5rem; background:#e4e6eb; color:#1c1e21; font-size:25px; }
+    .bubble-user { border-radius: 1.5rem; border-top-right-radius: .5rem; background:#0078FF; color:white; font-size:25px; }
 
     main { flex: 1; display: flex; flex-direction: column; }
-    textarea, button, header, footer { font-size: 22px !important; }
+    textarea, button, header { font-size: 25px !important; }
+    footer { font-size: 20px !important; }
   </style>
 </head>
 <body>
 
   <!-- Header -->
-  <header class="h-16 bg-white border-b flex items-center px-8 font-bold text-2xl shadow">
+  <header class="h-16 bg-white border-b flex items-center px-8 font-bold shadow">
     EVA
   </header>
   
@@ -56,8 +57,8 @@
   </main>
 
   <!-- Rodapé -->
-  <footer class="h-12 bg-gray-200 text-gray-600 text-sm flex items-center justify-center border-t">
-    EVA © 2025 — Respostas com sarcasmo incluído 😏
+  <footer class="h-12 bg-gray-200 text-gray-600 flex items-center justify-center border-t">
+    EVA © 2025
   </footer>
 
 <script>
@@ -88,7 +89,7 @@ async function wikiSummary(topic) {
 /* === Gemini === */
 async function getAiResponse(query) {
   const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY_GEMINI}`;
-  let systemPrompt = "Você é EVA, uma assistente de IA sarcástica e bem-humorada. Responda SEMPRE em português de Portugal.";
+  let systemPrompt = "Você é EVA, uma assistente de IA sarcástica, bem-humorada e ligeiramente cínica. Responda SEMPRE em português de Portugal.";
   const payload = { contents: [{ parts: [{ text: query }] }], systemInstruction: { parts: [{ text: systemPrompt }] } };
   const res = await fetch(apiUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
   const data = await res.json();
@@ -99,7 +100,7 @@ async function getAiResponse(query) {
 async function handleCommand(query) {
   const q = query.toLowerCase();
 
-  // 📅 Calendário local expandido (dias, semanas, meses, anos, horas, minutos)
+  // 📅 Calendário local expandido
   if (q.includes("hora") || q.includes("horas")) {
     const agora = new Date();
     return `⏰ Agora são ${agora.toLocaleTimeString("pt-PT", {hour:"2-digit", minute:"2-digit"})}`;
@@ -206,6 +207,7 @@ async function handleCommand(query) {
     return await wikiSummary(q.replace(/wikipedia:|resumo:|quem foi|o que é/gi,"").trim());
   }
 
+  // Gemini
   return await getAiResponse(query);
 }
 
