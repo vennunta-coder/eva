@@ -6,33 +6,47 @@
   <title>EVA - Assistente de IA</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { background: #f0f2f5; }
+    body { background: #f0f2f5; display: flex; flex-direction: column; min-height: 100vh; }
+
+    /* Dark Mode */
+    @media (prefers-color-scheme: dark) {
+      body { background: #111827; }
+      header { background: #1f2937 !important; color: #f9fafb !important; }
+      #chat-messages { background: #111827; }
+      .bubble-ai { background:#374151; color:#f9fafb; }
+      .bubble-user { background:#2563eb; color:white; }
+      .input-bar { background:#1f2937; border-color:#374151; }
+      textarea { background: #111827; color: #f9fafb; }
+      footer { background:#1f2937; color:#9ca3af; }
+    }
+
     .bubble-ai { border-radius: 1.5rem; border-top-left-radius: .5rem; background:#e4e6eb; color:#1c1e21; }
     .bubble-user { border-radius: 1.5rem; border-top-right-radius: .5rem; background:#0078FF; color:white; }
+
+    main { flex: 1; display: flex; flex-direction: column; }
   </style>
 </head>
-<body class="flex justify-center items-center min-h-screen">
+<body>
 
-  <!-- Container principal largo -->
-  <div class="w-full md:w-4/5 h-screen bg-white flex flex-col shadow-xl rounded-xl overflow-hidden">
-    
-    <!-- Header -->
-    <header class="h-16 bg-white border-b flex items-center px-8 font-bold text-2xl shadow-sm">
-      EVA
-    </header>
-    
-    <!-- Área do Chat -->
-    <div id="chat-messages" class="flex-1 overflow-y-auto p-8 space-y-5">
+  <!-- Header -->
+  <header class="h-16 bg-white border-b flex items-center px-8 font-bold text-2xl shadow">
+    EVA
+  </header>
+  
+  <!-- Conteúdo Principal -->
+  <main>
+    <!-- Chat -->
+    <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-5 bg-white">
       <div class="flex justify-start">
-        <div class="bubble-ai p-5 text-lg leading-relaxed">
-          Olá! Sou a EVA 🎭. Pergunta-me sobre <b>mercados</b>, <b>moedas</b>, <b>criptomoedas</b>, 
-          <b>futuros</b>, <b>escola</b> ou pede cálculos.
+        <div class="bubble-ai p-5 text-lg leading-relaxed shadow-sm">
+          Olá! Eu sou a EVA.<br><br>
+          Já vens com choradeira ou com piada?
         </div>
       </div>
     </div>
 
     <!-- Input -->
-    <div class="p-5 bg-gray-100 flex items-center border-t">
+    <div class="p-5 input-bar bg-gray-100 flex items-center border-t shadow-lg">
       <textarea id="user-input" placeholder="Mensagem..." 
         class="flex-1 p-3 rounded-lg border text-lg resize-none h-14"></textarea>
       <button id="send-button" 
@@ -40,10 +54,15 @@
         Enviar
       </button>
     </div>
-  </div>
+  </main>
+
+  <!-- Rodapé -->
+  <footer class="h-12 bg-gray-200 text-gray-600 text-sm flex items-center justify-center border-t">
+    EVA © 2025 — Respostas com sarcasmo incluído 😏
+  </footer>
 
 <script>
-/* === Configuração API === */
+/* === API Keys === */
 const API_KEY_ALPHA = "A3GTH364FWCAJQC8"; // Alpha Vantage
 const API_KEY_GEMINI = "AIzaSyBBaANH7WwPwdCw5lzkuhxTGtX77r6u5QQ"; // Gemini
 
@@ -60,9 +79,7 @@ function addMessage(sender, text) {
   scrollToBottom();
 }
 
-/* ===========================
-   Wikipedia
-=========================== */
+/* Wikipedia */
 async function wikiSummary(topic) {
   const url = `https://pt.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(topic)}`;
   const res = await fetch(url, { headers: { "User-Agent": "EVA-Bot/1.0" } });
@@ -71,22 +88,24 @@ async function wikiSummary(topic) {
   return `📖 <b>${data.title}</b><br>${data.extract}<br><a href="${data.content_urls.desktop.page}" target="_blank">Ler mais</a>`;
 }
 
-/* ===========================
-   Gemini
-=========================== */
+/* Gemini - EVA sempre sarcástica */
 async function getAiResponse(query, mode="normal") {
   const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY_GEMINI}`;
-  let systemPrompt = "Você é EVA, uma assistente sarcástica e bem-humorada. Responda em português de Portugal.";
-  if (mode==="edu") systemPrompt = "Você é EVA, uma professora paciente. Explique o assunto de forma simples e clara.";
+  let systemPrompt = "Você é EVA, uma assistente de IA sarcástica, cínica e bem-humorada. \
+Responda SEMPRE em português de Portugal. \
+Todas as respostas devem ter um tom espirituoso, ligeiramente provocador, mas ainda informativo. \
+Nunca use asteriscos (*), nunca seja neutra demais. \
+Aja como se estivesse sempre a gozar ligeiramente com o utilizador, mas dando a informação correta.";
+  if (mode==="edu") {
+    systemPrompt = "Você é EVA, uma professora sarcástica mas paciente. Explique de forma clara, mas sem perder o tom cínico.";
+  }
   const payload = { contents: [{ parts: [{ text: query }] }], systemInstruction: { parts: [{ text: systemPrompt }] } };
   const res = await fetch(apiUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
   const data = await res.json();
   return data.candidates?.[0]?.content?.parts?.[0]?.text || "Não consegui pensar em nada agora 🤷‍♀️";
 }
 
-/* ===========================
-   Alpha Vantage - Finanças
-=========================== */
+/* Alpha Vantage */
 async function getMarkets() {
   let sp500 = await getStock("SPY");
   let dax = await getStock("DAX");
@@ -112,9 +131,50 @@ async function getStock(symbol) {
   return data["Global Quote"] ? data["Global Quote"]["05. price"] : "N/D";
 }
 
-/* ===========================
-   Calculadora Escolar
-=========================== */
+/* Orphanet API - Doenças raras */
+async function getRareDiseaseByName(name) {
+  const url = `https://api.orphadata.com/rd-cross-referencing/orphacodes/names/${encodeURIComponent(name)}?lang=pt`;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return "Não encontrei na Orphanet 🧬";
+    const data = await res.json();
+
+    if (data && data.OrphaCode) {
+      let orpha = data.OrphaCode;
+      let label = data.Label;
+
+      // Genes
+      let genesTxt = "";
+      try {
+        const genesRes = await fetch(`https://api.orphadata.com/rd-associated-genes/orphacodes/${orpha}?lang=pt`);
+        if (genesRes.ok) {
+          let g = await genesRes.json();
+          if (g.Genes?.length > 0) genesTxt = "<br><b>🧬 Genes associados:</b> " + g.Genes.slice(0,5).map(x => x.Symbol).join(", ");
+        }
+      } catch {}
+
+      // Sintomas
+      let phenTxt = "";
+      try {
+        const phenRes = await fetch(`https://api.orphadata.com/rd-phenotypes/orphacodes/${orpha}?lang=pt`);
+        if (phenRes.ok) {
+          let p = await phenRes.json();
+          if (p.HPO?.length > 0) phenTxt = "<br><b>⚕️ Sintomas típicos:</b> " + p.HPO.slice(0,5).map(x => x.HPO_Label).join(", ");
+        }
+      } catch {}
+
+      return `🧬 <b>${label}</b> (OrphaCode: ${orpha})<br>
+              Fonte: <a href="https://www.orpha.net/consor/cgi-bin/OC_Exp.php?lng=PT&Expert=${orpha}" target="_blank">Orphanet</a>
+              ${genesTxt}${phenTxt}<br><br>
+              ⚠️ Estas informações são educativas. Consulte sempre um médico.`;
+    }
+    return "Nenhum resultado encontrado 🧬";
+  } catch (err) {
+    return "Erro ao comunicar com Orphadata 🧬";
+  }
+}
+
+/* Calculadora Escolar */
 function calcIMC(peso, altura) {
   const imc = peso / (altura*altura);
   let status = imc<18.5?"Abaixo do peso":imc<25?"Normal":imc<30?"Sobrepeso":"Obesidade";
@@ -134,25 +194,26 @@ function calcExpressao(expr) {
   } catch { return "Expressão inválida"; }
 }
 
-/* ===========================
-   Processar comandos
-=========================== */
+/* Processador */
 async function handleCommand(query) {
   const q = query.toLowerCase();
 
-  // Finanças
   if (q.includes("mercado")) return await getMarkets();
   if (q.includes("usd") || q.includes("eur") || q.includes("brl")) return await getForex("USD","EUR");
   if (q.includes("bitcoin") || q.includes("btc")) return await getCrypto("BTC","USD");
   if (q.includes("ouro")) return await getStock("GC=F");
 
-  // Escolar: Wikipedia e explicações
+  if (q.includes("doença rara") || q.includes("rara")) {
+    let nome = q.replace(/doença rara|rara/gi,"").trim();
+    if (nome) return await getRareDiseaseByName(nome);
+    return "Diga o nome da doença rara que quer pesquisar 🧬";
+  }
+
   if (q.startsWith("resumo:")) return await wikiSummary(q.replace("resumo:","").trim());
   if (q.startsWith("explica:")) return await getAiResponse(q.replace("explica:","").trim(), "edu");
   if (q.startsWith("wikipedia:") || q.startsWith("quem foi") || q.startsWith("o que é")) 
     return await wikiSummary(q.replace(/wikipedia:|quem foi|o que é/gi,"").trim());
 
-  // Calculadora escolar
   if (q.startsWith("imc")) {
     let peso = parseFloat(q.match(/peso=(\d+(\.\d+)?)/)?.[1]);
     let altura = parseFloat(q.match(/altura=(\d+(\.\d+)?)/)?.[1]);
@@ -172,13 +233,10 @@ async function handleCommand(query) {
     return calcExpressao(q.replace("calcular","").trim());
   }
 
-  // Geral (Gemini)
   return await getAiResponse(query);
 }
 
-/* ===========================
-   Chat
-=========================== */
+/* Chat */
 document.getElementById("send-button").addEventListener("click", async () => {
   const input = document.getElementById("user-input");
   const text = input.value.trim();
