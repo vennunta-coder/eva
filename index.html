@@ -121,16 +121,47 @@
         const loadingDots = document.getElementById('loadingDots');
         const sendIcon = document.getElementById('sendIcon');
         
-        // CORREÇÃO DE AUTENTICAÇÃO:
-        // A API Key é injetada automaticamente no fetch pelo ambiente Canvas. 
-        // Não é necessário adicioná-la manualmente à URL ou como header.
-        // A URL será apenas o endpoint base, sem a chave.
+        // A API Key é injetada automaticamente. Usamos apenas a URL base.
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent`;
 
         // Utility para scrollar automaticamente para o fundo
         function scrollToBottom() {
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
+
+        // --- FUNCIONALIDADE DE COPIAR ---
+        /**
+         * Copia o texto para a área de transferência usando document.execCommand('copy').
+         * @param {string} text - O texto a ser copiado.
+         * @param {HTMLElement} buttonElement - O botão que acionou a cópia para feedback visual.
+         */
+        function copyTextToClipboard(text, buttonElement) {
+            const originalIcon = buttonElement.innerHTML;
+            const tempTextArea = document.createElement('textarea');
+            // Remove espaços em branco em excesso no início/fim
+            tempTextArea.value = text.trim(); 
+            tempTextArea.style.position = 'fixed';
+            tempTextArea.style.opacity = '0';
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            
+            try {
+                // Utiliza execCommand('copy') por compatibilidade em alguns ambientes iframe
+                const successful = document.execCommand('copy'); 
+                if (successful) {
+                    // Feedback visual: Mudar para ícone de checkmark
+                    buttonElement.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="green" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+                    setTimeout(() => {
+                        // Voltar ao ícone original
+                        buttonElement.innerHTML = originalIcon;
+                    }, 1500);
+                }
+            } catch (err) {
+                console.error('Falha ao copiar:', err);
+            }
+            document.body.removeChild(tempTextArea);
+        }
+        // ---------------------------------
 
         // Habilita/Desabilita o botão de envio
         promptInput.addEventListener('input', () => {
@@ -156,11 +187,17 @@
                 // Mensagem da EVA (alinhada à esquerda)
                 messageDiv.className = 'flex justify-start';
                 messageDiv.innerHTML = `
-                    <div class="bg-[#1c1c24] p-4 rounded-xl shadow-lg max-w-3xl">
+                    <div class="bg-[#1c1c24] p-4 rounded-xl shadow-lg max-w-3xl relative">
                         <div class="flex items-center space-x-2 mb-2">
                             <span class="text-xl font-bold" style="color: var(--primary-color);">EVA</span>
                         </div>
-                        <p class="ai-text whitespace-pre-wrap">${text}</p>
+                        <!-- Texto principal da resposta -->
+                        <p class="ai-text whitespace-pre-wrap main-response-text">${text}</p>
+                        
+                        <!-- Botão de Copiar -->
+                        <button class="copy-btn absolute top-2 right-2 text-gray-500 hover:text-white p-1 rounded-md transition-colors" aria-label="Copiar resposta">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 002-2h2a2 2 0 002 2"></path></svg>
+                        </button>
                     </div>
                 `;
             }
@@ -231,19 +268,16 @@
                         let errorBody = await response.text();
                         try {
                            const jsonError = JSON.parse(errorBody);
-                           // Tenta obter a mensagem de erro detalhada da API
                            errorBody = jsonError.error?.message || errorBody;
                         } catch (e) {
                            // Ignorar erro de parse, usar o texto
                         }
-                        // Limita o detalhe para não poluir demasiado o chat
                         const detail = errorBody.substring(0, 100).replace(/\s+/g, ' ').trim(); 
                         throw new Error(`Erro de API (${response.status}): ${response.statusText} - Detalhe: ${detail}...`);
                     }
                 } catch (error) {
                     console.error("Erro na busca da API:", error);
                     if (i === retries - 1) {
-                         // Lança o erro original após a última tentativa
                          throw error;
                     }
                     const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
@@ -251,7 +285,6 @@
                     await new Promise(resolve => setTimeout(resolve, delay));
                 }
             }
-            // Fallback: Se o loop terminar sem sucesso
             throw new Error("Falha ao obter resposta da EVA após várias tentativas de API.");
         }
 
@@ -283,9 +316,9 @@
                     aiText = candidate.content.parts[0].text;
                     
                     // Extrair fontes de fundamentação (grounding)
-                    const groundingMetadata = candidate.groundingMetadata;
-                    if (groundingMetadata && groundingMetadata.groundingAttributions) {
-                        sources = groundingMetadata.groundingAttributions
+                    const groundingMetadata = candidate.groundingAttributions;
+                    if (groundingMetadata) {
+                        sources = groundingMetadata
                             .map(attribution => ({
                                 uri: attribution.web?.uri,
                                 title: attribution.web?.title,
@@ -299,6 +332,19 @@
 
                 // 5. Adicionar a resposta da EVA
                 const aiResponseDiv = addMessage(aiText, false);
+
+                // --- Adicionar funcionalidade de Copiar (attach listener) ---
+                const copyButton = aiResponseDiv.querySelector('.copy-btn');
+                const responseTextElement = aiResponseDiv.querySelector('.main-response-text');
+
+                if (copyButton && responseTextElement) {
+                    copyButton.addEventListener('click', () => {
+                        // O texto a copiar é o texto puro dentro da tag <p>
+                        const textToCopy = responseTextElement.textContent; 
+                        copyTextToClipboard(textToCopy, copyButton);
+                    });
+                }
+                // ----------------------------------------------------------
 
                 // 6. Adicionar fontes de citação se existirem
                 if (sources.length > 0) {
@@ -322,7 +368,6 @@
                 console.error("Erro geral no chat:", error);
                 loadingMessage.remove();
                 
-                // Melhoria de Debug: Mostrar a mensagem de erro da API diretamente no chat
                 const detailedErrorMessage = error.message || "Erro desconhecido. Verifique a consola (F12) para mais detalhes.";
                 const userFacingError = `Oops! Encontrei um erro. Por favor, tente novamente. Detalhe: ${detailedErrorMessage}`;
                 
