@@ -6,222 +6,174 @@
   <title>EVA - Assistente de IA</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { background: #f0f2f5; display: flex; flex-direction: column; min-height: 100vh; font-size: 25px; }
-
-    @media (prefers-color-scheme: dark) {
-      body { background: #111827; }
-      header { background: #1f2937 !important; color: #f9fafb !important; }
-      #chat-messages { background: #111827; }
-      .bubble-ai { background:#374151; color:#f9fafb; }
-      .bubble-user { background:#2563eb; color:white; }
-      .input-bar { background:#1f2937; border-color:#374151; }
-      textarea { background: #111827; color: #f9fafb; }
-      footer { background:#1f2937; color:#9ca3af; font-size:20px !important; }
+    body {
+      background: #f9fafb;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      font-size: 25px;
     }
 
-    .bubble-ai { border-radius: 1.5rem; border-top-left-radius: .5rem; background:#e4e6eb; color:#1c1e21; font-size:25px; }
-    .bubble-user { border-radius: 1.5rem; border-top-right-radius: .5rem; background:#0078FF; color:white; font-size:25px; }
+    /* Header degradê amarelo */
+    header {
+      background: linear-gradient(90deg, #FFD43B, #FFAA00);
+      color: #111;
+      font-weight: bold;
+    }
 
-    main { flex: 1; display: flex; flex-direction: column; }
-    textarea, button, header { font-size: 25px !important; }
-    footer { font-size: 20px !important; }
+    /* Balões */
+    .bubble-ai {
+      border-radius: 1.5rem;
+      border-top-left-radius: .5rem;
+      background: #f1f1f1;
+      color: #111;
+      padding: 1rem 1.5rem;
+      max-width: 80%;
+    }
+    .bubble-user {
+      border-radius: 1.5rem;
+      border-top-right-radius: .5rem;
+      background: #FFB800;
+      color: #111;
+      padding: 1rem 1.5rem;
+      max-width: 80%;
+    }
+
+    /* Botões arredondados */
+    .eva-btn {
+      background: white;
+      color: #111;
+      border-radius: 9999px;
+      padding: .5rem 1rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      margin-right: .5rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      transition: transform .2s;
+    }
+    .eva-btn:hover {
+      transform: scale(1.05);
+    }
+
+    /* Input */
+    .input-bar {
+      background: white;
+      border-top: 1px solid #e5e7eb;
+      padding: .75rem;
+      display: flex;
+      align-items: center;
+    }
+    .input-bar textarea {
+      flex: 1;
+      resize: none;
+      border-radius: 2rem;
+      border: 1px solid #ddd;
+      padding: .75rem 1rem;
+      font-size: 25px;
+      outline: none;
+    }
+    .input-bar button {
+      margin-left: .75rem;
+      width: 3rem;
+      height: 3rem;
+      border-radius: 9999px;
+      background: #111;
+      color: white;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Rodapé */
+    footer {
+      font-size: 20px !important;
+      color: #555;
+      text-align: center;
+      padding: 1rem;
+      background: #fff;
+      border-top: 1px solid #e5e7eb;
+    }
   </style>
 </head>
 <body>
 
   <!-- Header -->
-  <header class="h-16 bg-white border-b flex items-center px-8 font-bold shadow">
-    EVA
+  <header class="h-24 flex flex-col justify-center px-6 shadow">
+    <h1 class="text-3xl">Olá! Eu sou a EVA.</h1>
+    <p class="text-lg">Já vens com choradeira ou com piada?</p>
+    <div class="mt-3">
+      <button class="eva-btn">☀️ Obter clima</button>
+      <button class="eva-btn">🌐 Pesquisar WIK</button>
+    </div>
   </header>
-  
-  <!-- Conteúdo Principal -->
-  <main>
-    <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-5 bg-white">
+
+  <!-- Chat -->
+  <main class="flex-1 flex flex-col">
+    <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-4">
+      <div class="flex justify-end">
+        <div class="bubble-user">Que idade tem a Lua?</div>
+      </div>
       <div class="flex justify-start">
-        <div class="bubble-ai p-5 leading-relaxed shadow-sm">
-          Olá! Eu sou a EVA.<br><br>
-          Já vens com choradeira ou com piada?
-        </div>
+        <div class="bubble-ai">A Lua tem cerca de 4,5 mil milhões de anos. Impressionante como ela ainda não explodiu!</div>
       </div>
     </div>
 
     <!-- Input -->
-    <div class="p-5 input-bar bg-gray-100 flex items-center border-t shadow-lg">
-      <textarea id="user-input" placeholder="Mensagem..." 
-        class="flex-1 p-3 rounded-lg border resize-none h-14"></textarea>
-      <button id="send-button" 
-        class="ml-4 px-8 py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition">
-        Enviar
-      </button>
+    <div class="input-bar">
+      <textarea id="user-input" placeholder="Digite uma mensagem..."></textarea>
+      <button id="send-button">➤</button>
     </div>
   </main>
 
   <!-- Rodapé -->
-  <footer class="h-12 bg-gray-200 text-gray-600 flex items-center justify-center border-t">
+  <footer>
     EVA © 2025
   </footer>
 
 <script>
-const API_KEY_GEMINI = "AIzaSyBBaANH7WwPwdCw5lzkuhxTGtX77r6u5QQ"; 
+  // --- Exemplo simples de resposta sarcástica com calendário ---
+  function handleCommand(query) {
+    const q = query.toLowerCase();
+    let now = new Date();
 
-function scrollToBottom() {
-  const chat = document.getElementById("chat-messages");
-  chat.scrollTop = chat.scrollHeight;
-}
-function addMessage(sender, text) {
-  const chat = document.getElementById("chat-messages");
-  const div = document.createElement("div");
-  div.className = "flex " + (sender === "user" ? "justify-end" : "justify-start");
-  div.innerHTML = `<div class="${sender==="user"?"bubble-user":"bubble-ai"} p-5 leading-relaxed">${text}</div>`;
-  chat.appendChild(div);
-  scrollToBottom();
-}
-
-/* === Wikipedia === */
-async function wikiSummary(topic) {
-  const url = `https://pt.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(topic)}`;
-  const res = await fetch(url);
-  if (!res.ok) return "Não encontrei nada na Wikipedia 📚";
-  const data = await res.json();
-  return `📖 <b>${data.title}</b><br>${data.extract}<br><a href="${data.content_urls.desktop.page}" target="_blank">Ler mais</a>`;
-}
-
-/* === Gemini === */
-async function getAiResponse(query) {
-  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY_GEMINI}`;
-  let systemPrompt = "Você é EVA, uma assistente de IA sarcástica, bem-humorada e ligeiramente cínica. Responda SEMPRE em português de Portugal.";
-  const payload = { contents: [{ parts: [{ text: query }] }], systemInstruction: { parts: [{ text: systemPrompt }] } };
-  const res = await fetch(apiUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-  const data = await res.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || "Não consegui pensar em nada agora 🤷‍♀️";
-}
-
-/* === Comandos EVA === */
-async function handleCommand(query) {
-  const q = query.toLowerCase();
-
-  // 📅 Calendário local expandido
-  if (q.includes("hora") || q.includes("horas")) {
-    const agora = new Date();
-    return `⏰ Agora são ${agora.toLocaleTimeString("pt-PT", {hour:"2-digit", minute:"2-digit"})}`;
-  }
-  if (q.includes("data") || q.includes("dia de hoje") || q.includes("hoje")) {
-    const agora = new Date();
-    return `📅 Hoje é ${agora.toLocaleDateString("pt-PT", {weekday:"long", day:"2-digit", month:"long", year:"numeric"})}`;
-  }
-  if (q.includes("ano")) {
-    const ano = new Date().getFullYear();
-    return `📆 Estamos no ano de ${ano}`;
+    if (q.includes("hora")) {
+      return "⏰ Agora são " + now.toLocaleTimeString("pt-PT", {hour:'2-digit',minute:'2-digit'});
+    }
+    if (q.includes("dia")) {
+      return "📅 Hoje é " + now.toLocaleDateString("pt-PT", {weekday:"long", day:"numeric", month:"long", year:"numeric"});
+    }
+    if (q.includes("ano")) {
+      return "Estamos em " + now.getFullYear() + ". Acredita? Ainda não me desligaram!";
+    }
+    return "Não sei, mas tenho a certeza que consegues descobrir no Google, preguiçoso 😏";
   }
 
-  // FUTURO
-  let matchDiasFuturo = q.match(/daqui a (\d+) dia/);
-  if (matchDiasFuturo) {
-    const dias = parseInt(matchDiasFuturo[1]);
-    let data = new Date();
-    data.setDate(data.getDate() + dias);
-    return `📅 Daqui a ${dias} dias será ${data.toLocaleDateString("pt-PT",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})}`;
-  }
-  let matchSemanasFuturo = q.match(/daqui a (\d+) semana/);
-  if (matchSemanasFuturo) {
-    const semanas = parseInt(matchSemanasFuturo[1]);
-    let data = new Date();
-    data.setDate(data.getDate() + (semanas * 7));
-    return `📅 Daqui a ${semanas} semana${semanas>1?"s":""} será ${data.toLocaleDateString("pt-PT",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})}`;
-  }
-  let matchMesesFuturo = q.match(/daqui a (\d+) mes/);
-  if (matchMesesFuturo) {
-    const meses = parseInt(matchMesesFuturo[1]);
-    let data = new Date();
-    data.setMonth(data.getMonth() + meses);
-    return `📅 Daqui a ${meses} meses será ${data.toLocaleDateString("pt-PT",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})}`;
-  }
-  let matchAnosFuturo = q.match(/daqui a (\d+) ano/);
-  if (matchAnosFuturo) {
-    const anos = parseInt(matchAnosFuturo[1]);
-    let data = new Date();
-    data.setFullYear(data.getFullYear() + anos);
-    return `📅 Daqui a ${anos} anos será ${data.toLocaleDateString("pt-PT",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})}`;
-  }
-  let matchHorasFuturo = q.match(/daqui a (\d+) hora/);
-  if (matchHorasFuturo) {
-    const horas = parseInt(matchHorasFuturo[1]);
-    let data = new Date();
-    data.setHours(data.getHours() + horas);
-    return `⏰ Daqui a ${horas} hora${horas>1?"s":""} será ${data.toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"})} (${data.toLocaleDateString("pt-PT",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})})`;
-  }
-  let matchMinFuturo = q.match(/daqui a (\d+) minuto/);
-  if (matchMinFuturo) {
-    const mins = parseInt(matchMinFuturo[1]);
-    let data = new Date();
-    data.setMinutes(data.getMinutes() + mins);
-    return `⏰ Daqui a ${mins} minuto${mins>1?"s":""} será ${data.toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"})}`;
-  }
+  const sendBtn = document.getElementById("send-button");
+  sendBtn.addEventListener("click", () => {
+    const input = document.getElementById("user-input");
+    const text = input.value.trim();
+    if (!text) return;
 
-  // PASSADO
-  let matchDiasPassado = q.match(/há (\d+) dia/);
-  if (matchDiasPassado) {
-    const dias = parseInt(matchDiasPassado[1]);
-    let data = new Date();
-    data.setDate(data.getDate() - dias);
-    return `📅 Há ${dias} dias atrás foi ${data.toLocaleDateString("pt-PT",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})}`;
-  }
-  let matchSemanasPassado = q.match(/há (\d+) semana/);
-  if (matchSemanasPassado) {
-    const semanas = parseInt(matchSemanasPassado[1]);
-    let data = new Date();
-    data.setDate(data.getDate() - (semanas * 7));
-    return `📅 Há ${semanas} semana${semanas>1?"s":""} atrás foi ${data.toLocaleDateString("pt-PT",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})}`;
-  }
-  let matchMesesPassado = q.match(/há (\d+) mes/);
-  if (matchMesesPassado) {
-    const meses = parseInt(matchMesesPassado[1]);
-    let data = new Date();
-    data.setMonth(data.getMonth() - meses);
-    return `📅 Há ${meses} meses atrás foi ${data.toLocaleDateString("pt-PT",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})}`;
-  }
-  let matchAnosPassado = q.match(/há (\d+) ano/);
-  if (matchAnosPassado) {
-    const anos = parseInt(matchAnosPassado[1]);
-    let data = new Date();
-    data.setFullYear(data.getFullYear() - anos);
-    return `📅 Há ${anos} anos atrás foi ${data.toLocaleDateString("pt-PT",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})}`;
-  }
-  let matchHorasPassado = q.match(/há (\d+) hora/);
-  if (matchHorasPassado) {
-    const horas = parseInt(matchHorasPassado[1]);
-    let data = new Date();
-    data.setHours(data.getHours() - horas);
-    return `⏰ Há ${horas} hora${horas>1?"s":""} atrás foi ${data.toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"})} (${data.toLocaleDateString("pt-PT",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})})`;
-  }
-  let matchMinPassado = q.match(/há (\d+) minuto/);
-  if (matchMinPassado) {
-    const mins = parseInt(matchMinPassado[1]);
-    let data = new Date();
-    data.setMinutes(data.getMinutes() - mins);
-    return `⏰ Há ${mins} minuto${mins>1?"s":""} atrás foi ${data.toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"})}`;
-  }
+    const chat = document.getElementById("chat-messages");
 
-  // Wikipedia
-  if (q.startsWith("wikipedia:") || q.startsWith("resumo:") || q.includes("quem foi") || q.includes("o que é")) {
-    return await wikiSummary(q.replace(/wikipedia:|resumo:|quem foi|o que é/gi,"").trim());
-  }
+    // Mostrar mensagem do utilizador
+    let userMsg = document.createElement("div");
+    userMsg.className = "flex justify-end";
+    userMsg.innerHTML = `<div class="bubble-user">${text}</div>`;
+    chat.appendChild(userMsg);
 
-  // Gemini
-  return await getAiResponse(query);
-}
+    // Resposta da EVA
+    let evaMsg = document.createElement("div");
+    evaMsg.className = "flex justify-start mt-2";
+    evaMsg.innerHTML = `<div class="bubble-ai">${handleCommand(text)}</div>`;
+    chat.appendChild(evaMsg);
 
-/* === Chat === */
-document.getElementById("send-button").addEventListener("click", async () => {
-  const input = document.getElementById("user-input");
-  const text = input.value.trim();
-  if (!text) return;
-  addMessage("user", text);
-  input.value = "";
-
-  const reply = await handleCommand(text);
-  addMessage("ai", reply);
-});
+    input.value = "";
+    chat.scrollTop = chat.scrollHeight;
+  });
 </script>
+
 </body>
 </html>
