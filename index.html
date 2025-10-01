@@ -4,83 +4,108 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EVA</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
+    /* Estilos base (Mantenho os seus estilos e adiciono Tailwind para responsividade e visual) */
     body {
       font-family: Arial, sans-serif;
-      background: #fff;
+      background: #f7f7f7; /* Cor de fundo mais clara */
       margin: 0;
       display: flex;
       flex-direction: column;
       height: 100vh;
+      color: #333;
     }
     header {
-      font-size: 23px;
-      font-weight: bold;
-      padding: 15px;
-      color: black;
+      font-size: 24px;
+      font-weight: 700; /* Bold */
+      padding: 15px 20px;
+      background: #fff;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      color: #1a73e8; /* Cor principal */
     }
-    header span.v { color: orange; }
+    header span.v { color: #f90; } /* Laranja */
     main {
       flex: 1;
       padding: 20px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 15px;
+      gap: 12px;
     }
+    /* Estilos das mensagens */
     .mensagem {
-      max-width: 70%;
-      padding: 10px 15px;
-      border-radius: 10px;
-      line-height: 1.5;
+      max-width: 85%; /* Aumenta um pouco para dispositivos móveis */
+      padding: 12px 16px;
+      border-radius: 18px; /* Cantos mais arredondados */
+      line-height: 1.4;
       display: flex;
       align-items: flex-start;
       gap: 10px;
+      word-wrap: break-word;
     }
     .usuario {
       background: #1a73e8;
       color: white;
       margin-left: auto;
-      border-radius: 10px;
+      border-bottom-right-radius: 4px; /* Ponta da bolha */
     }
     .eva {
-      background: #f1f1f1;
-      color: black;
+      background: #eef1f5;
+      color: #333;
       margin-right: auto;
-      border-radius: 10px;
+      border-bottom-left-radius: 4px; /* Ponta da bolha */
     }
     .eva .avatar {
-      width: 35px;
-      height: 35px;
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
+      flex-shrink: 0;
+      background: #ddd; /* Fundo se a imagem falhar */
     }
     footer {
       text-align: center;
       padding: 10px;
-      font-size: 14px;
+      font-size: 13px;
+      color: #888;
     }
-    footer span.v { color: orange; }
     .entrada {
       display: flex;
       padding: 10px;
-      border-top: 1px solid #ccc;
+      background: #fff;
+      border-top: 1px solid #eee;
+      align-items: center;
     }
     .entrada input {
       flex: 1;
-      padding: 10px;
+      padding: 12px 18px;
       font-size: 16px;
-      border: 1px solid #ccc;
-      border-radius: 20px;
+      border: 1px solid #ddd;
+      border-radius: 25px;
       outline: none;
+      transition: border-color 0.3s;
+    }
+    .entrada input:focus {
+      border-color: #1a73e8;
     }
     .entrada button {
-      margin-left: 10px;
-      padding: 10px 20px;
+      margin-left: 8px;
+      padding: 12px 18px;
       border: none;
       background: #1a73e8;
       color: white;
-      border-radius: 20px;
+      border-radius: 25px;
       cursor: pointer;
+      transition: background 0.3s;
+    }
+    .entrada button:hover {
+      background: #155cb8;
+    }
+    .loading-indicator {
+      display: none;
+      color: #888;
+      font-style: italic;
+      padding-left: 42px; /* Alinha com o texto EVA */
     }
   </style>
 </head>
@@ -89,20 +114,66 @@
 
   <main id="chat">
     <div class="mensagem eva">
-      <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/evalogo.png" class="avatar">
-      <div><b><span>E</span><span class="v">V</span><span>A</span>:</b> Olá! Em que posso ajudar?</div>
+      <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/evalogo.png" class="avatar" alt="EVA Avatar">
+      <div><b><span>E</span><span class="v">V</span><span>A</span>:</b> Olá! Eu sou a EVA, sua assistente de IA. Pergunte-me qualquer coisa sobre o tempo, curiosidades, ou qualquer outra coisa que precisar!</div>
     </div>
   </main>
 
   <div class="entrada">
-    <input type="text" id="pergunta" placeholder="Mensagem...">
+    <input type="text" id="pergunta" placeholder="Mensagem..." onkeypress="if(event.keyCode===13) enviarMensagem()">
     <button onclick="enviarMensagem()">Enviar</button>
   </div>
+  <div id="loading" class="loading-indicator">EVA está a pensar...</div>
 
   <footer><span>E</span><span class="v">V</span><span>A</span> © 2025</footer>
 
   <script>
     const OPENWEATHER_API_KEY = "7db838cde261492656dc201d1d17e4aa";
+    // A chave da API Gemini será fornecida automaticamente pelo ambiente
+    const apiKey = ""; 
+
+    // Função: API Gemini (para perguntas gerais)
+    async function getGeminiResponse(query) {
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+      const systemPrompt = "Você é EVA, uma assistente virtual prestativa, concisa e amigável. Responda à pergunta do usuário de forma direta e em português. Use apenas informações que você possa confirmar e use formatação Markdown para listas ou negrito se for útil.";
+
+      const payload = {
+        contents: [{ parts: [{ text: query }] }],
+        // Usar Google Search para respostas factuais e atualizadas
+        tools: [{ "google_search": {} }],
+        systemInstruction: {
+          parts: [{ text: systemPrompt }]
+        },
+      };
+
+      try {
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          console.error('Gemini API HTTP Error:', response.status, response.statusText);
+          return "❌ Ocorreu um erro ao tentar conectar com a minha inteligência (Erro HTTP). Por favor, tente novamente.";
+        }
+
+        const result = await response.json();
+        const candidate = result.candidates?.[0];
+
+        if (candidate && candidate.content?.parts?.[0]?.text) {
+          // A resposta da IA
+          return candidate.content.parts[0].text;
+        } else {
+          // Se a resposta estiver vazia ou inválida
+          return "😕 Não consegui gerar uma resposta para isso. Tente refazer a pergunta ou tente mais tarde.";
+        }
+      } catch (error) {
+        console.error('Gemini API Fetch Error:', error);
+        return "⚠️ Ocorreu um erro de rede. Verifique sua conexão ou tente mais tarde.";
+      }
+    }
 
     // Função: Clima
     async function getWeather(city) {
@@ -111,20 +182,27 @@
         const response = await fetch(url);
         const data = await response.json();
         if (data.cod === 200) {
-          return `🌤️ Clima em ${data.name}: ${data.weather[0].description}, ${data.main.temp}°C (sensação ${data.main.feels_like}°C), humidade ${data.main.humidity}%, vento ${data.wind.speed} km/h.`;
+          return `🌤️ Clima em ${data.name}: ${data.weather[0].description}, **${Math.round(data.main.temp)}°C** (sensação ${Math.round(data.main.feels_like)}°C), humidade ${data.main.humidity}%, vento ${data.wind.speed} km/h.`;
         } else {
-          return "❌ Não consegui obter o clima agora, tente outro local.";
+          // Para evitar o fallback para o Google em caso de erro 404 de cidade
+          return "❌ Não consegui encontrar informações sobre o clima para essa cidade.";
         }
       } catch {
-        return "⚠️ Erro ao conectar ao serviço do tempo.";
+        return "⚠️ Erro ao conectar ao serviço do tempo. Tente novamente.";
       }
     }
 
     // Função: Processar pergunta
     async function processarPergunta(pergunta) {
-      pergunta = pergunta.toLowerCase();
+      pergunta = pergunta.toLowerCase().trim();
 
-      // Clima
+      // 1. Ano Atual
+      if (pergunta.includes("que ano") || pergunta.includes("em que ano estamos") || pergunta.includes("ano atual")) {
+        const anoAtual = new Date().getFullYear();
+        return `📅 Estamos no ano de **${anoAtual}**.`;
+      }
+
+      // 2. Clima (Usa a função de terceiros, pois é mais rápida para o clima)
       if (pergunta.includes("tempo em") || pergunta.includes("clima em") || pergunta.includes("vai chover")) {
         let cidade = pergunta.replace("tempo em", "")
                              .replace("clima em", "")
@@ -137,54 +215,46 @@
         }
       }
 
-      // Wikipedia
-      if (pergunta.startsWith("quem é") || pergunta.startsWith("o que é") || pergunta.startsWith("onde fica")) {
-        try {
-          const termo = encodeURIComponent(pergunta.replace("quem é", "")
-                                                   .replace("o que é", "")
-                                                   .replace("onde fica", "").trim());
-          const url = `https://pt.wikipedia.org/api/rest_v1/page/summary/${termo}`;
-          const response = await fetch(url);
-          const data = await response.json();
-          if (data.extract) {
-            return data.extract;
-          } else {
-            return "Não encontrei nada na Wikipédia sobre isso.";
-          }
-        } catch {
-          return "Erro ao aceder à Wikipédia.";
-        }
-      }
-
-      // Fallback → Google
-      return `🤔 Não tenho a resposta exata, mas pode procurar no Google: https://www.google.com/search?q=${encodeURIComponent(pergunta)}`;
+      // 3. Fallback inteligente (Agora usando o Gemini para tudo o resto)
+      return await getGeminiResponse(pergunta);
     }
 
     // Enviar mensagem
     async function enviarMensagem() {
       const input = document.getElementById("pergunta");
+      const loading = document.getElementById("loading");
       const pergunta = input.value.trim();
       if (!pergunta) return;
 
       const chat = document.getElementById("chat");
 
-      // Usuário
+      // Mensagem do Usuário
       const divUser = document.createElement("div");
       divUser.className = "mensagem usuario";
       divUser.innerText = pergunta;
       chat.appendChild(divUser);
 
       input.value = "";
+      input.disabled = true; // Desabilita o input durante o processamento
+      loading.style.display = 'block'; // Mostra o indicador de loading
+      chat.scrollTop = chat.scrollHeight;
 
       // EVA resposta
       const resposta = await processarPergunta(pergunta);
+      
+      loading.style.display = 'none'; // Esconde o indicador de loading
+      input.disabled = false; // Reabilita o input
+
       const divEva = document.createElement("div");
       divEva.className = "mensagem eva";
-      divEva.innerHTML = `<img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/evalogo.png" class="avatar"><div><b><span>E</span><span class="v">V</span><span>A</span>:</b> ${resposta}</div>`;
+      // O innerHTML é usado para renderizar o Markdown da resposta do LLM
+      divEva.innerHTML = `<img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/evalogo.png" class="avatar" alt="EVA Avatar"><div><b><span>E</span><span class="v">V</span><span>A</span>:</b> ${resposta}</div>`;
       chat.appendChild(divEva);
 
       chat.scrollTop = chat.scrollHeight;
+      input.focus(); // Coloca o foco de volta na caixa de texto
     }
   </script>
 </body>
 </html>
+
