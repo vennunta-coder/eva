@@ -3,487 +3,350 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EVA - Sua IA Irreverente</title>
-    
-    <!-- Carrega o Tailwind CSS para estilização -->
+    <title>EVA - Seu Assistente de IA</title>
+    <!-- Configuração do Tailwind CSS e Font Inter -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* Define a fonte Inter para todo o corpo */
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f7f7f7; /* Fundo MUITO CLARO/BRANCO para o estilo minimalista */
-            color: #1f2937; /* Texto escuro padrão */
-        }
-        
-        /* 1. AUMENTA O TAMANHO DA FONTE DAS MENSAGENS PARA 23PX */
-        .message-text {
-            font-size: 23px;
-        }
-
-        /* Estilos para centralizar o conteúdo quando o chat estiver vazio (layout tipo ChatGPT) */
-        .main-content-wrapper {
-            transition: opacity 0.3s ease;
-        }
-        .main-content-centered {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100%;
-            text-align: center;
-        }
-        .main-content-chat {
-            display: block;
-        }
-
-        /* Ajustes para bolhas de chat no novo esquema de cores */
-        .eva-bubble {
-            background-color: #e5e7eb; /* Bolha da EVA clara */
-            color: #1f2937; 
-        }
-        .user-bubble {
-            background-color: #4f46e5; /* Bolha do usuário azul escuro (mantendo contraste) */
-            color: white;
-        }
-
-        /* Estilos personalizados para a barra de rolagem */
-        .chat-history::-webkit-scrollbar {
-            width: 8px;
-        }
-        .chat-history::-webkit-scrollbar-thumb {
-            background-color: #d1d5db; /* Cor de rolagem clara */
-            border-radius: 10px;
-        }
-        .chat-history::-webkit-scrollbar-track {
-            background-color: #f7f7f7;
-        }
-        /* Estilo para a onda de digitação (simulando um loader) */
-        .dot-flashing {
-            position: relative;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background-color: #9ca3af;
-            color: #9ca3af;
-            animation: dotFlashing 1s infinite linear alternate;
-            animation-delay: 0.5s;
-        }
-
-        .dot-flashing::before, .dot-flashing::after {
-            content: "";
-            display: inline-block;
-            position: absolute;
-            top: 0;
-        }
-
-        .dot-flashing::before {
-            left: -12px;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background-color: #9ca3af;
-            color: #9ca3af;
-            animation: dotFlashing 1s infinite alternate;
-            animation-delay: 0s;
-        }
-
-        .dot-flashing::after {
-            left: 12px;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background-color: #9ca3af;
-            color: #9ca3af;
-            animation: dotFlashing 1s infinite alternate;
-            animation-delay: 1s;
-        }
-
-        @keyframes dotFlashing {
-            0% {
-                background-color: #6b7280;
-            }
-            50%, 100% {
-                background-color: #9ca3af;
-            }
-        }
-    </style>
-    <!-- Configuração do Tailwind para usar a fonte Inter -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
-                    }
+                    },
                 }
             }
         }
     </script>
-</head>
-<body class="min-h-screen flex flex-col">
+    <style>
+        /* Define a fonte Inter para o corpo */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        
+        /* Estilo para que a área de chat ocupe o espaço restante */
+        #chat-history {
+            scroll-behavior: smooth;
+        }
 
-    <!-- Cabeçalho (Header) - Sempre visível -->
-    <header id="app-header" class="p-4 border-b border-gray-200 bg-white sticky top-0 z-10 shadow-sm">
-        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center">
-            <div class="mb-3 sm:mb-0">
-                <h1 class="text-3xl font-extrabold text-gray-800">
-                    <span class="text-gray-800">E</span><span class="text-orange-600">V</span><span class="text-gray-800">A</span>
-                </h1>
-                <p class="text-sm text-gray-500 mt-1">Sarcasmo e conhecimento atualizado, tudo na mesma frase.</p>
-            </div>
-        </div>
+        /* Esconde a barra de rolagem, mantendo a funcionalidade de rolagem */
+        #chat-history::-webkit-scrollbar {
+            display: none;
+        }
+        #chat-history {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        
+        /* Estilo customizado para o textarea para melhor usabilidade */
+        #user-input {
+            resize: none;
+            min-height: 48px;
+            max-height: 200px;
+            overflow-y: auto;
+            transition: height 0.2s;
+        }
+
+        /* Estilo para o ícone de envio (SVG) */
+        .send-icon {
+            fill: currentColor;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 flex flex-col h-screen font-sans antialiased">
+
+    <!-- Cabeçalho (Header) Fixo -->
+    <header class="bg-white p-4 shadow-md border-b border-gray-100 flex items-center justify-center sticky top-0 z-10">
+        <!-- Título EVA com cores personalizadas -->
+        <h1 class="text-3xl font-extrabold tracking-wider">
+            <span class="text-black">E</span>
+            <span class="text-orange-500">V</span>
+            <span class="text-black">A</span>
+        </h1>
+        <span class="ml-3 text-xs font-medium text-gray-500 rounded-full bg-indigo-100 px-3 py-1">beta</span>
     </header>
 
-    <!-- Área Principal do Chat -->
-    <main class="flex-grow overflow-hidden p-4 md:p-6 flex flex-col">
-        <!-- Wrapper para centralização/chat-history -->
-        <div id="main-content-wrapper" class="main-content-wrapper flex-grow flex flex-col">
-            
-            <!-- Conteúdo Centralizado (Tela de Boas-Vindas) -->
-            <div id="welcome-screen" class="main-content-centered flex-grow">
-                <h1 class="text-5xl font-bold text-gray-500 mb-10">Em que posso ajudar?</h1>
-            </div>
-
-            <!-- Histórico de Mensagens (Vazio por padrão) -->
-            <div id="chat-history" class="chat-history flex-grow overflow-y-auto space-y-4 pb-6 scroll-smooth hidden max-w-4xl mx-auto w-full">
-                <!-- As mensagens serão injetadas aqui -->
-            </div>
-
-            <!-- Indicador de Carregamento (Hidden by default) -->
-            <div id="loading-indicator" class="hidden flex items-center space-x-3 self-start mt-4 max-w-4xl mx-auto w-full">
-                <div class="flex-shrink-0 w-8 h-8 rounded-full bg-orange-600 flex items-center justify-center text-sm font-bold text-white shadow-md">E</div>
-                <div class="flex items-center space-x-1 p-3 bg-gray-200 rounded-xl rounded-bl-none shadow-lg">
-                    <div class="dot-flashing"></div>
-                </div>
+    <!-- Área de Histórico de Conversa -->
+    <main id="chat-history" class="flex-grow overflow-y-auto p-4 md:p-6 lg:p-8 space-y-6">
+        <!-- Mensagem de Boas-vindas Inicial da EVA -->
+        <div class="flex justify-center">
+            <div class="max-w-2xl text-center p-6 bg-white rounded-xl shadow-lg border border-indigo-200">
+                <p class="text-xl font-semibold text-indigo-800">Olá! Eu sou EVA, sua assistente de IA.</p>
+                <p class="text-gray-600 mt-2">Pergunte o que quiser e eu farei o meu melhor para ajudar.</p>
             </div>
         </div>
+        <!-- O histórico de mensagens será inserido aqui -->
     </main>
 
-    <!-- Área de Input e Rodapé Secundário - Sempre visível -->
-    <footer class="p-4 md:p-6 border-t border-gray-200 bg-white sticky bottom-0 z-10 shadow-md">
-        <!-- Área de Input Principal (Nova estrutura para o estilo 'oval') -->
-        <div class="max-w-3xl mx-auto flex items-center justify-center">
-            <div class="flex items-center w-full bg-white border border-gray-300 rounded-full shadow-lg p-1.5 focus-within:border-teal-500 transition duration-150 ease-in-out">
-                
-                <!-- Botão Novo Chat (+) - Funcionalidade de Limpar Chat -->
-                <button
-                    id="new-chat-button"
-                    class="p-2.5 ml-1 mr-2 text-gray-500 hover:text-orange-600 transition duration-150 ease-in-out rounded-full"
-                    title="Iniciar Novo Chat"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                </button>
-
-                <!-- Input de Texto -->
-                <input
-                    type="text"
-                    id="user-input"
-                    placeholder="Pergunte qualquer coisa..."
-                    class="flex-grow p-1 text-gray-800 bg-transparent focus:outline-none placeholder-gray-400 message-text"
-                    autocomplete="off"
-                >
-                
-                <!-- Botão de Envio (Substitui o botão externo) -->
-                <button
-                    id="send-button"
-                    class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold p-2.5 rounded-full shadow-md transition duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
-                    aria-label="Enviar Mensagem"
-                >
-                    <!-- Ícone de Envio (SVG simples) -->
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-                </button>
-            </div>
+    <!-- Área de Entrada (Input) e Rodapé (Footer) Fixos -->
+    <div class="sticky bottom-0 bg-gray-50 p-4 border-t border-gray-200">
+        <div class="max-w-3xl mx-auto flex items-end space-x-3">
+            
+            <!-- Campo de Texto (Textarea) -->
+            <textarea
+                id="user-input"
+                class="flex-grow w-full py-2 px-4 text-base border-2 border-indigo-300 focus:ring-indigo-500 focus:border-indigo-500 rounded-2xl shadow-inner placeholder-gray-500 transition-all duration-200 ease-in-out"
+                placeholder="Pergunte qualquer coisa..."
+                rows="1"
+                oninput="adjustTextareaHeight(this)"
+            ></textarea>
+            
+            <!-- Botão de Envio (Send Button) -->
+            <button
+                id="send-button"
+                class="flex-shrink-0 w-12 h-12 bg-indigo-600 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-500 focus:ring-opacity-50 transition duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Enviar Mensagem"
+            >
+                <!-- Ícone de seta para cima (Enviar) -->
+                <svg class="send-icon w-6 h-6 transform rotate-90" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                </svg>
+            </button>
         </div>
-        <p id="error-message" class="text-sm text-red-600 mt-2 text-center hidden"></p>
-
-        <!-- RODAPÉ SECUNDÁRIO -->
-        <div class="max-w-3xl mx-auto mt-4 pt-3 border-t border-gray-200 text-center text-gray-500 text-xs">
-            &copy; 2025 <span class="text-gray-800">E</span><span class="text-orange-600">V</span><span class="text-gray-800">A</span>
+        
+        <!-- Indicador de Carregamento -->
+        <div id="loading-indicator" class="mt-2 text-center text-sm font-medium text-indigo-500 opacity-0 transition-opacity duration-300">
+            EVA está pensando...
         </div>
-    </footer>
+
+        <!-- Rodapé (Footer) Adicionado Aqui -->
+        <footer class="mt-3 pt-3 text-center text-xs text-gray-400 border-t border-gray-100 mx-auto max-w-3xl">
+            EVA AI Assistant. Pode cometer erros. Considere verificar informações importantes.
+        </footer>
+    </div>
 
     <script type="module">
-        // Variáveis globais para o Firebase (mantidas para aderir às melhores práticas, mas não usadas neste chat simples)
-        // const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        // const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-
-        // Configuração da API
+        // Variáveis de Configuração e Constantes
+        // **IMPORTANTE**: A chave da API é definida como uma string vazia. O ambiente Canvas fornecerá a chave no runtime.
+        const apiKey = ""; 
         const API_MODEL = "gemini-2.5-flash-preview-05-20";
-        const apiKey = "AIzaSyBBaANH7WwPwdCw5lzkuhxTGtX77r6u5QQ"; 
         const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${API_MODEL}:generateContent?key=${apiKey}`;
+        const MAX_RETRIES = 5;
 
-        // Elementos DOM
+        // Elementos do DOM
         const chatHistory = document.getElementById('chat-history');
         const userInput = document.getElementById('user-input');
         const sendButton = document.getElementById('send-button');
         const loadingIndicator = document.getElementById('loading-indicator');
-        const errorMessageElement = document.getElementById('error-message');
-        const welcomeScreen = document.getElementById('welcome-screen');
-        const newChatButton = document.getElementById('new-chat-button'); 
 
-        // História do chat (para manter o contexto)
-        let chatHistoryData = [];
-        
-        // Sistema de personalidade da EVA (em Português)
-        const systemPrompt = "Você é a EVA, uma inteligência artificial sarcástica, irreverente e extremamente bem-informada. Responda apenas como texto simples, sem qualquer formatação Markdown como negrito, itálico ou listas. Seja o mais útil possível, mas com a menor cortesia possível. Use informações em tempo real e cite suas fontes de forma discreta ao final, se houver.";
+        // Estado da Aplicação
+        let isSending = false;
+
+        // --- Funções de Manipulação da UI ---
 
         /**
-         * Alterna o layout da tela entre o modo de boas-vindas e o modo de chat.
+         * Ajusta a altura do textarea para acomodar o conteúdo.
+         * @param {HTMLTextAreaElement} element - O elemento textarea.
          */
-        function updateLayout() {
-            const hasMessages = chatHistoryData.length > 0;
+        window.adjustTextareaHeight = (element) => {
+            element.style.height = 'auto';
+            element.style.height = element.scrollHeight + 'px';
+        };
+
+        /**
+         * Adiciona uma mensagem ao histórico de chat.
+         * @param {string} content - O conteúdo da mensagem (Markdown é suportado).
+         * @param {('user'|'model'|'error')} role - O papel (usuário, modelo ou erro).
+         * @param {string} [id] - ID único da mensagem para referência.
+         * @returns {HTMLElement} O elemento da mensagem criado.
+         */
+        function addMessageToHistory(content, role, id = `msg-${crypto.randomUUID()}`) {
+            const isUser = role === 'user';
+            const isError = role === 'error';
             
-            if (hasMessages) {
-                // Modo Chat
-                welcomeScreen.classList.add('hidden');
-                chatHistory.classList.remove('hidden');
-                // Adiciona a mensagem de boas-vindas da EVA na primeira interação
-                if (chatHistoryData.length === 1 && chatHistoryData[0].role === 'user') {
-                     addWelcomeMessage();
-                }
-                
+            const messageContainer = document.createElement('div');
+            messageContainer.id = id;
+            messageContainer.className = `flex ${isUser ? 'justify-end' : 'justify-start'}`;
+
+            let bgColor = 'bg-indigo-500 text-white';
+            let textColor = 'text-white';
+            let icon = '';
+            let name = 'EVA';
+            let padding = 'p-3';
+
+            if (isUser) {
+                bgColor = 'bg-gray-200';
+                textColor = 'text-gray-800';
+                name = 'Você';
+                padding = 'p-3';
+            } else if (isError) {
+                bgColor = 'bg-red-100 border border-red-400';
+                textColor = 'text-red-700';
+                name = 'Erro';
+                padding = 'p-4';
+                content = `**Ocorreu um erro:** ${content}`;
             } else {
-                // Modo Boas-Vindas (Centralizado)
-                welcomeScreen.classList.remove('hidden');
-                chatHistory.classList.add('hidden');
+                // Mensagem do Modelo
+                bgColor = 'bg-white shadow-xl ring-1 ring-indigo-500/10';
+                textColor = 'text-gray-800';
+                icon = `<div class="font-extrabold text-xl text-indigo-600 mr-2">E</div>`; // Ícone simples 'E' para EVA
             }
+
+            const messageBubble = `
+                <div class="max-w-3xl lg:max-w-4xl rounded-2xl ${isUser ? 'rounded-br-sm' : 'rounded-tl-sm'} ${padding} ${bgColor} ${textColor} text-base break-words whitespace-pre-wrap transition-all duration-300 ease-in-out transform hover:scale-[1.005]">
+                    ${!isUser && !isError ? icon : ''}
+                    <div class="${!isUser && !isError ? 'flex items-start' : ''}">
+                        ${!isUser && !isError ? icon : ''}
+                        <div class="prose max-w-none ${textColor}">
+                            ${marked.parse(content)}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            messageContainer.innerHTML = messageBubble;
+            chatHistory.appendChild(messageContainer);
+            chatHistory.scrollTop = chatHistory.scrollHeight; // Rola para o final
+            return messageContainer;
         }
         
         /**
-         * Adiciona a mensagem de boas-vindas da EVA (agora só é chamada após a primeira interação).
+         * Exibe ou oculta o indicador de carregamento e controla o estado do botão de envio.
+         * @param {boolean} isLoading - Se a aplicação está carregando.
          */
-        function addWelcomeMessage() {
-            const welcomeText = "Olá. Eu sou a EVA. Sim, mais uma IA. O que você quer? Tente não me fazer perder tempo.";
-            const messageWrapper = document.createElement('div');
-            messageWrapper.className = `flex items-start space-x-3 justify-start max-w-4xl mx-auto w-full`;
-
-            const avatar = document.createElement('div');
-            avatar.className = `flex-shrink-0 w-8 h-8 rounded-full bg-orange-600 flex items-center justify-center text-sm font-bold text-white shadow-md order-1 mr-3`;
-            avatar.textContent = 'E';
-
-            const contentContainer = document.createElement('div');
-            contentContainer.className = `flex flex-col max-w-3xl items-start`;
-
-            const messageBubble = document.createElement('div');
-            messageBubble.className = `p-3 rounded-xl shadow-xl message-text eva-bubble rounded-tl-none`;
-            messageBubble.innerHTML = welcomeText;
-
-            contentContainer.appendChild(messageBubble);
-            messageWrapper.appendChild(avatar);
-            messageWrapper.appendChild(contentContainer);
-
-            chatHistory.appendChild(messageWrapper);
+        function setLoadingState(isLoading) {
+            isSending = isLoading;
+            sendButton.disabled = isLoading;
+            userInput.disabled = isLoading;
+            loadingIndicator.classList.toggle('opacity-0', !isLoading);
         }
 
         /**
-         * Adiciona uma mensagem ao histórico do chat
-         * @param {string} sender - 'user' ou 'eva'
-         * @param {string} text - O conteúdo da mensagem
-         * @param {Array<Object>} [sources=[]] - Fontes de citação (apenas para EVA)
+         * Atualiza o conteúdo da última mensagem da EVA (usado para streaming ou atualização).
+         * @param {string} id - ID do contêiner da mensagem.
+         * @param {string} content - O novo conteúdo em Markdown.
          */
-        function addMessage(sender, text, sources = []) {
-            const isUser = sender === 'user';
-            const messageWrapper = document.createElement('div');
-            messageWrapper.className = `flex items-start space-x-3 ${isUser ? 'justify-end' : 'justify-start'} max-w-4xl mx-auto w-full`;
-
-            const avatar = document.createElement('div');
-            avatar.className = `flex-shrink-0 w-8 h-8 rounded-full ${isUser ? 'bg-indigo-600 order-2 ml-3' : 'bg-orange-600 order-1 mr-3'} flex items-center justify-center text-sm font-bold text-white shadow-md`;
-            avatar.textContent = isUser ? 'Eu' : 'E';
-
-            const contentContainer = document.createElement('div');
-            contentContainer.className = `flex flex-col max-w-3xl ${isUser ? 'items-end' : 'items-start'}`;
-
-            const messageBubble = document.createElement('div');
-            // Adicionado 'message-text' para aplicar o tamanho da fonte de 23px
-            messageBubble.className = `p-3 rounded-xl shadow-xl message-text ${isUser ? 'user-bubble rounded-br-none' : 'eva-bubble rounded-tl-none'}`;
-            
-            // Substitui quebras de linha por tags <br>
-            const formattedText = text.replace(/\n/g, '<br>');
-            messageBubble.innerHTML = formattedText;
-
-            contentContainer.appendChild(messageBubble);
-
-            // Adiciona fontes se for uma mensagem da EVA e houver fontes
-            if (!isUser && sources.length > 0) {
-                const sourcesContainer = document.createElement('div');
-                sourcesContainer.className = 'text-xs text-gray-500 mt-1 italic p-2 rounded-lg border border-gray-300 bg-white';
-                
-                let sourcesHTML = 'Fontes: ';
-                sources.forEach((source, index) => {
-                    if (source.uri && source.title) {
-                        // Limita o título a 50 caracteres para não quebrar a UI
-                        const titleSnippet = source.title.length > 50 ? source.title.substring(0, 50) + '...' : source.title;
-                        sourcesHTML += `<a href="${source.uri}" target="_blank" class="hover:underline text-indigo-600">${titleSnippet}</a>${index < sources.length - 1 ? ', ' : ''}`;
-                    }
-                });
-                sourcesContainer.innerHTML = sourcesHTML;
-                contentContainer.appendChild(sourcesContainer);
+        function updateMessageContent(id, content) {
+            const messageElement = document.getElementById(id);
+            if (messageElement) {
+                const contentDiv = messageElement.querySelector('.prose');
+                if (contentDiv) {
+                    contentDiv.innerHTML = marked.parse(content);
+                }
             }
-
-            messageWrapper.appendChild(avatar);
-            messageWrapper.appendChild(contentContainer);
-
-            chatHistory.appendChild(messageWrapper);
-            
-            // Rola para a mensagem mais recente
             chatHistory.scrollTop = chatHistory.scrollHeight;
         }
 
+        // --- Funções de Conexão com a API e Lógica Central ---
+
         /**
-         * Reseta a conversa, limpando o histórico e voltando para a tela de boas-vindas.
+         * Lida com a tentativa de chamada da API com retentativas (Exponential Backoff).
+         * @param {object} payload - O payload da API.
+         * @param {number} attempt - A tentativa atual (começa em 1).
+         * @returns {Promise<object>} A resposta JSON da API.
          */
-        function startNewChat() {
-            chatHistoryData = [];
-            chatHistory.innerHTML = ''; // Limpa o DOM do chat
-            userInput.value = '';
-            errorMessageElement.textContent = '';
-            errorMessageElement.classList.add('hidden');
-            loadingIndicator.classList.add('hidden');
-            sendButton.disabled = false;
-            
-            updateLayout(); // Volta para a tela centralizada
-            userInput.focus();
+        async function fetchWithRetry(payload, attempt = 1) {
+            const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000; // 2s, 4s, 8s, ... + jitter
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    return response.json();
+                } else if (response.status === 429 && attempt < MAX_RETRIES) {
+                    console.warn(`Tentativa ${attempt} falhou (status ${response.status}). Tentando novamente em ${delay / 1000}s...`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    return fetchWithRetry(payload, attempt + 1);
+                } else {
+                    const errorData = await response.json().catch(() => ({ message: 'Erro desconhecido na resposta.' }));
+                    throw new Error(`Falha na API após ${attempt} tentativas. Status: ${response.status}. Mensagem: ${errorData.message || 'Sem mensagem de erro.'}`);
+                }
+            } catch (error) {
+                if (attempt < MAX_RETRIES) {
+                    console.warn(`Erro na rede (Tentativa ${attempt}). Tentando novamente em ${delay / 1000}s...`, error);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    return fetchWithRetry(payload, attempt + 1);
+                }
+                throw new Error(`Falha total ao conectar ou receber resposta da API: ${error.message}`);
+            }
         }
 
         /**
-         * Lida com o envio de mensagens pelo usuário.
+         * Envia a mensagem do usuário para a API do Gemini e exibe a resposta.
          */
-        async function sendMessage() {
-            const userText = userInput.value.trim();
-            if (userText === '') return;
-            
-            // Adiciona a mensagem do usuário à UI 
-            addMessage('user', userText);
-            
-            // Limpa o input e desabilita o botão
+        async function handleSendMessage() {
+            if (isSending) return;
+
+            const prompt = userInput.value.trim();
+            if (!prompt) return;
+
+            // 1. Limpar a entrada e mostrar a mensagem do usuário
             userInput.value = '';
-            sendButton.disabled = true;
-            errorMessageElement.textContent = '';
-            errorMessageElement.classList.add('hidden');
+            window.adjustTextareaHeight(userInput); // Ajusta a altura de volta para 1 linha
             
-            // Atualiza o layout para o modo chat
-            updateLayout();
+            addMessageToHistory(prompt, 'user');
+            
+            // 2. Definir o estado de carregamento e preparar a bolha da EVA
+            setLoadingState(true);
+            const evaMessageId = `msg-${crypto.randomUUID()}`;
+            addMessageToHistory('Aguardando resposta...', 'model', evaMessageId);
 
-            // --- Lógica de Chat (único modo agora) ---
-
-            // 1. Adiciona a mensagem do usuário ao histórico interno
-            chatHistoryData.push({ role: 'user', parts: [{ text: userText }] });
-
-            // Mostra o indicador de carregamento
-            loadingIndicator.classList.remove('hidden');
-            chatHistory.scrollTop = chatHistory.scrollHeight;
-
-
-            // --- Lógica de Chamada da API do Gemini com Backoff Exponencial ---
-            const MAX_RETRIES = 5;
-            let evaResponse = null;
-            let sources = [];
-            let responseSuccess = false;
-
+            // Payload da API
             const payload = {
-                contents: chatHistoryData,
-                tools: [{ "google_search": {} }], // Habilita o Google Search para respostas atualizadas
+                contents: [{ parts: [{ text: prompt }] }],
                 systemInstruction: {
-                    parts: [{ text: systemPrompt }]
+                    parts: [{ text: "Você é EVA, um assistente de IA prestativo e amigável. Responda em português. Mantenha as respostas concisas e claras." }]
                 },
             };
 
             try {
-                for (let i = 0; i < MAX_RETRIES; i++) {
-                    const response = await fetch(API_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
+                // 3. Chamar a API com retentativas
+                const result = await fetchWithRetry(payload);
 
-                    if (!response.ok) {
-                        throw new Error(`Erro HTTP: ${response.status}`);
-                    }
-
-                    const result = await response.json();
-                    const candidate = result.candidates?.[0];
-
-                    if (candidate && candidate.content?.parts?.[0]?.text) {
-                        evaResponse = candidate.content.parts[0].text;
-                        responseSuccess = true;
-                        
-                        // Extrai fontes
-                        const groundingMetadata = candidate.groundingMetadata;
-                        if (groundingMetadata && groundingMetadata.groundingAttributions) {
-                            sources = groundingMetadata.groundingAttributions
-                                .map(attribution => ({
-                                    uri: attribution.web?.uri,
-                                    title: attribution.web?.title,
-                                }))
-                                .filter(source => source.uri && source.title);
-                        }
-                        
-                        break; 
-                    } else {
-                        throw new Error("Resposta da EVA inválida ou vazia.");
-                    }
-
+                const candidate = result.candidates?.[0];
+                let responseText = "Desculpe, não consegui gerar uma resposta significativa. Tente reformular a sua pergunta.";
+                
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                    responseText = candidate.content.parts[0].text;
                 }
+                
+                // 4. Atualizar o conteúdo da mensagem da EVA
+                updateMessageContent(evaMessageId, responseText);
+                
             } catch (error) {
-                console.error(`Falha no envio ou processamento da API:`, error.message);
-                // Define responseSuccess como false em caso de qualquer erro fora do loop de tentativas
-                responseSuccess = false;
+                // 5. Exibir erro
+                console.error("Erro no processo de envio:", error);
+                // Remove a mensagem de carregamento e exibe um erro
+                document.getElementById(evaMessageId)?.remove();
+                addMessageToHistory(error.message, 'error');
             } finally {
-                // ESTE BLOCO GARANTE QUE A UI SEMPRE SERÁ LIBERADA
-                loadingIndicator.classList.add('hidden');
-                sendButton.disabled = false;
-                userInput.focus();
-            }
-
-
-            // Adiciona a resposta da EVA ou trata a falha
-            if (responseSuccess) {
-                addMessage('eva', evaResponse, sources);
-                // 2. Adiciona a resposta da EVA ao histórico para contexto futuro
-                chatHistoryData.push({ role: 'model', parts: [{ text: evaResponse }] });
-            } else {
-                // TRATAMENTO DE FALHA
-                
-                // 3. Remove a pergunta do usuário do histórico (pois falhou em gerar resposta)
-                if (chatHistoryData.length > 0 && chatHistoryData[chatHistoryData.length - 1].role === 'user') {
-                    chatHistoryData.pop(); 
-                }
-                
-                // 4. Exibe uma mensagem de erro na UI
-                errorMessageElement.textContent = "Falha na conexão. Por favor, tente novamente."; 
-                errorMessageElement.classList.remove('hidden');
-                
-                // Remove a mensagem do usuário do DOM do chat também (já que não foi respondida)
-                const lastMessage = chatHistory.lastElementChild;
-                if (lastMessage && lastMessage.querySelector('.order-2')) { 
-                    chatHistory.removeChild(lastMessage);
-                    // Volta para a tela de boas-vindas se o histórico ficar vazio
-                    if (chatHistory.children.length === 0) {
-                        updateLayout();
-                    }
-                }
-                
-                // Adiciona um pequeno delay para remover a mensagem de erro da UI
-                setTimeout(() => {
-                    errorMessageElement.classList.add('hidden');
-                    errorMessageElement.textContent = '';
-                }, 4000); // Esconde a mensagem de erro após 4 segundos
+                // 6. Finalizar o estado de carregamento
+                setLoadingState(false);
             }
         }
 
-        // --- Event Listeners ---
-        userInput.addEventListener('keypress', function(event) {
-            if (event.key === 'Enter') {
-                sendMessage();
-            }
-        });
+        // --- Configuração de Event Listeners ---
 
-        sendButton.addEventListener('click', sendMessage);
-        newChatButton.addEventListener('click', startNewChat); 
+        /**
+         * Configura o evento de clique e a tecla Enter.
+         */
+        function setupEventListeners() {
+            sendButton.addEventListener('click', handleSendMessage);
+            
+            userInput.addEventListener('keydown', (e) => {
+                // Envia a mensagem com Enter, a menos que Shift esteja pressionado (para nova linha)
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault(); // Impede a quebra de linha padrão do textarea
+                    handleSendMessage();
+                }
+            });
+        }
         
-        // Inicializa o layout no modo boas-vindas
-        updateLayout();
-    </script>
+        // Carrega o Marked.js para processar Markdown nas respostas
+        function loadMarkdownProcessor(callback) {
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.17/marked.min.js';
+            script.onload = callback;
+            document.head.appendChild(script);
+        }
 
+        // Inicia a aplicação após o carregamento do processador de Markdown
+        loadMarkdownProcessor(() => {
+             // Garante que o processador de Markdown está acessível globalmente
+            window.marked = marked;
+            setupEventListeners();
+        });
+    </script>
 </body>
 </html>
