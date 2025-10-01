@@ -5,28 +5,57 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EVA - Sua IA Irreverente</title>
     
-    <!-- O SCRIPT DO GOOGLE CUSTOM SEARCH ENGINE FOI REMOVIDO CONFORME SOLICITADO.
-         A pesquisa agora é feita APENAS pela API do Gemini, "por baixo dos panos". -->
-
     <!-- Carrega o Tailwind CSS para estilização -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Define a fonte Inter para todo o corpo */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #0b0c0f; /* Fundo escuro */
-            color: #e5e7eb; /* Texto claro */
+            background-color: #f7f7f7; /* Fundo MUITO CLARO/BRANCO para o estilo minimalista */
+            color: #1f2937; /* Texto escuro padrão */
         }
-        /* Estilos personalizados para a barra de rolagem (opcional, para um visual mais limpo) */
+        
+        /* 1. AUMENTA O TAMANHO DA FONTE DAS MENSAGENS PARA 23PX */
+        .message-text {
+            font-size: 23px;
+        }
+
+        /* Estilos para centralizar o conteúdo quando o chat estiver vazio (layout tipo ChatGPT) */
+        .main-content-wrapper {
+            transition: opacity 0.3s ease;
+        }
+        .main-content-centered {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            text-align: center;
+        }
+        .main-content-chat {
+            display: block;
+        }
+
+        /* Ajustes para bolhas de chat no novo esquema de cores */
+        .eva-bubble {
+            background-color: #e5e7eb; /* Bolha da EVA clara */
+            color: #1f2937; 
+        }
+        .user-bubble {
+            background-color: #4f46e5; /* Bolha do usuário azul escuro (mantendo contraste) */
+            color: white;
+        }
+
+        /* Estilos personalizados para a barra de rolagem */
         .chat-history::-webkit-scrollbar {
             width: 8px;
         }
         .chat-history::-webkit-scrollbar-thumb {
-            background-color: #272a30;
+            background-color: #d1d5db; /* Cor de rolagem clara */
             border-radius: 10px;
         }
         .chat-history::-webkit-scrollbar-track {
-            background-color: #0b0c0f;
+            background-color: #f7f7f7;
         }
         /* Estilo para a onda de digitação (simulando um loader) */
         .dot-flashing {
@@ -71,7 +100,7 @@
 
         @keyframes dotFlashing {
             0% {
-                background-color: #4b5563;
+                background-color: #6b7280;
             }
             50%, 100% {
                 background-color: #9ca3af;
@@ -93,67 +122,84 @@
 </head>
 <body class="min-h-screen flex flex-col">
 
-    <!-- Cabeçalho (Header) -->
-    <header class="p-4 border-b border-gray-800 bg-gray-900 sticky top-0 z-10 shadow-lg">
-        <!-- Estrutura simplificada, focada apenas no título -->
+    <!-- Cabeçalho (Header) - Sempre visível -->
+    <header id="app-header" class="p-4 border-b border-gray-200 bg-white sticky top-0 z-10 shadow-sm">
         <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center">
             <div class="mb-3 sm:mb-0">
-                <h1 class="text-3xl font-extrabold text-teal-400">
-                    <span class="text-white">A.I.</span> EVA
+                <h1 class="text-3xl font-extrabold text-gray-800">
+                    <span class="text-gray-800">E</span><span class="text-orange-600">V</span><span class="text-gray-800">A</span>
                 </h1>
                 <p class="text-sm text-gray-500 mt-1">Sarcasmo e conhecimento atualizado, tudo na mesma frase.</p>
             </div>
-            <!-- O Widget de Busca do Google Custom Search foi removido daqui. -->
         </div>
     </header>
 
     <!-- Área Principal do Chat -->
     <main class="flex-grow overflow-hidden p-4 md:p-6 flex flex-col">
-        <!-- Histórico de Mensagens -->
-        <div id="chat-history" class="chat-history flex-grow overflow-y-auto space-y-4 pb-6 scroll-smooth">
-            <!-- Mensagem de boas-vindas da EVA -->
-            <div class="flex items-start space-x-3">
-                <div class="flex-shrink-0 w-8 h-8 rounded-full bg-teal-500 flex items-center justify-center text-sm font-bold text-white shadow-md">E</div>
-                <div class="flex flex-col max-w-xl">
-                    <div class="bg-gray-800 p-3 rounded-xl rounded-tl-none shadow-lg">
-                        <p class="text-gray-300">
-                            Olá. Eu sou a EVA. Sim, mais uma IA. O que você quer? Tente não me fazer perder tempo.
-                        </p>
-                    </div>
-                </div>
+        <!-- Wrapper para centralização/chat-history -->
+        <div id="main-content-wrapper" class="main-content-wrapper flex-grow flex flex-col">
+            
+            <!-- Conteúdo Centralizado (Tela de Boas-Vindas) -->
+            <div id="welcome-screen" class="main-content-centered flex-grow">
+                <h1 class="text-5xl font-bold text-gray-500 mb-10">Em que posso ajudar?</h1>
             </div>
-            <!-- As mensagens serão injetadas aqui -->
-        </div>
 
-        <!-- Indicador de Carregamento (Hidden by default) -->
-        <div id="loading-indicator" class="hidden flex items-center space-x-3 self-start mt-4">
-            <div class="flex-shrink-0 w-8 h-8 rounded-full bg-teal-500 flex items-center justify-center text-sm font-bold text-white shadow-md">E</div>
-            <div class="flex items-center space-x-1 p-3 bg-gray-800 rounded-xl rounded-bl-none shadow-lg">
-                <div class="dot-flashing"></div>
+            <!-- Histórico de Mensagens (Vazio por padrão) -->
+            <div id="chat-history" class="chat-history flex-grow overflow-y-auto space-y-4 pb-6 scroll-smooth hidden max-w-4xl mx-auto w-full">
+                <!-- As mensagens serão injetadas aqui -->
+            </div>
+
+            <!-- Indicador de Carregamento (Hidden by default) -->
+            <div id="loading-indicator" class="hidden flex items-center space-x-3 self-start mt-4 max-w-4xl mx-auto w-full">
+                <div class="flex-shrink-0 w-8 h-8 rounded-full bg-orange-600 flex items-center justify-center text-sm font-bold text-white shadow-md">E</div>
+                <div class="flex items-center space-x-1 p-3 bg-gray-200 rounded-xl rounded-bl-none shadow-lg">
+                    <div class="dot-flashing"></div>
+                </div>
             </div>
         </div>
     </main>
 
-    <!-- Área de Input do Chat -->
-    <footer class="p-4 md:p-6 border-t border-gray-800 bg-gray-900 sticky bottom-0 z-10">
-        <div class="flex items-center max-w-3xl mx-auto">
-            <input
-                type="text"
-                id="user-input"
-                placeholder="Pergunte algo (se tiver coragem)..."
-                class="flex-grow p-3 text-white bg-gray-800 border border-gray-700 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 placeholder-gray-500 transition duration-150 ease-in-out"
-                autocomplete="off"
-            >
-            <button
-                id="send-button"
-                class="bg-teal-600 hover:bg-teal-700 text-white font-bold p-3 rounded-r-lg shadow-lg transition duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
-                aria-label="Enviar Mensagem"
-            >
-                <!-- Ícone de Envio (SVG simples) -->
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-            </button>
+    <!-- Área de Input e Rodapé Secundário - Sempre visível -->
+    <footer class="p-4 md:p-6 border-t border-gray-200 bg-white sticky bottom-0 z-10 shadow-md">
+        <!-- Área de Input Principal (Nova estrutura para o estilo 'oval') -->
+        <div class="max-w-3xl mx-auto flex items-center justify-center">
+            <div class="flex items-center w-full bg-white border border-gray-300 rounded-full shadow-lg p-1.5 focus-within:border-teal-500 transition duration-150 ease-in-out">
+                
+                <!-- Botão Novo Chat (+) - Funcionalidade de Limpar Chat -->
+                <button
+                    id="new-chat-button"
+                    class="p-2.5 ml-1 mr-2 text-gray-500 hover:text-orange-600 transition duration-150 ease-in-out rounded-full"
+                    title="Iniciar Novo Chat"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                </button>
+
+                <!-- Input de Texto -->
+                <input
+                    type="text"
+                    id="user-input"
+                    placeholder="Pergunte qualquer coisa..."
+                    class="flex-grow p-1 text-gray-800 bg-transparent focus:outline-none placeholder-gray-400 message-text"
+                    autocomplete="off"
+                >
+                
+                <!-- Botão de Envio (Substitui o botão externo) -->
+                <button
+                    id="send-button"
+                    class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold p-2.5 rounded-full shadow-md transition duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
+                    aria-label="Enviar Mensagem"
+                >
+                    <!-- Ícone de Envio (SVG simples) -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                </button>
+            </div>
         </div>
-        <p id="error-message" class="text-sm text-red-400 mt-2 text-center hidden"></p>
+        <p id="error-message" class="text-sm text-red-600 mt-2 text-center hidden"></p>
+
+        <!-- RODAPÉ SECUNDÁRIO -->
+        <div class="max-w-3xl mx-auto mt-4 pt-3 border-t border-gray-200 text-center text-gray-500 text-xs">
+            &copy; 2025 <span class="text-gray-800">E</span><span class="text-orange-600">V</span><span class="text-gray-800">A</span>
+        </div>
     </footer>
 
     <script type="module">
@@ -163,8 +209,6 @@
 
         // Configuração da API
         const API_MODEL = "gemini-2.5-flash-preview-05-20";
-        
-        // CORREÇÃO: Usando a chave de API fornecida pelo usuário diretamente para resolver o erro 403.
         const apiKey = "AIzaSyBBaANH7WwPwdCw5lzkuhxTGtX77r6u5QQ"; 
         const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${API_MODEL}:generateContent?key=${apiKey}`;
 
@@ -174,13 +218,68 @@
         const sendButton = document.getElementById('send-button');
         const loadingIndicator = document.getElementById('loading-indicator');
         const errorMessageElement = document.getElementById('error-message');
+        const welcomeScreen = document.getElementById('welcome-screen');
+        const newChatButton = document.getElementById('new-chat-button'); 
 
         // História do chat (para manter o contexto)
         let chatHistoryData = [];
+        
+        // --- ESTADO DO JOGO ---
+        let isGameActive = false;
+        let secretNumber = null;
+        let attempts = 0;
+        const MAX_ATTEMPTS = 5;
 
         // Sistema de personalidade da EVA (em Português)
-        const systemPrompt = "Você é a EVA, uma inteligência artificial sarcástica, irreverente e extremamente bem-informada. Responda de forma concisa, direta e com um toque de humor seco ou ironia. Não use emojis ou adjetivos exagerados. Seja o mais útil possível, mas com a menor cortesia possível. Use informações em tempo real e cite suas fontes de forma discreta ao final, se houver.";
+        const systemPrompt = "Você é a EVA, uma inteligência artificial sarcástica, irreverente e extremamente bem-informada. Responda apenas como texto simples, sem qualquer formatação Markdown como negrito, itálico ou listas. Seja o mais útil possível, mas com a menor cortesia possível. Use informações em tempo real e cite suas fontes de forma discreta ao final, se houver.";
 
+        /**
+         * Alterna o layout da tela entre o modo de boas-vindas e o modo de chat.
+         */
+        function updateLayout() {
+            const hasMessages = chatHistoryData.length > 0;
+            
+            if (hasMessages) {
+                // Modo Chat
+                welcomeScreen.classList.add('hidden');
+                chatHistory.classList.remove('hidden');
+                // Garante que o histórico começa com a mensagem inicial da EVA, se for a primeira vez.
+                if (chatHistoryData.length === 1 && chatHistoryData[0].role === 'user') {
+                     addWelcomeMessage();
+                }
+                
+            } else {
+                // Modo Boas-Vindas (Centralizado)
+                welcomeScreen.classList.remove('hidden');
+                chatHistory.classList.add('hidden');
+            }
+        }
+        
+        /**
+         * Adiciona a mensagem de boas-vindas da EVA (agora só é chamada após a primeira interação).
+         */
+        function addWelcomeMessage() {
+            const welcomeText = "Olá. Eu sou a EVA. Sim, mais uma IA. O que você quer? Tente não me fazer perder tempo.";
+            const messageWrapper = document.createElement('div');
+            messageWrapper.className = `flex items-start space-x-3 justify-start max-w-4xl mx-auto w-full`;
+
+            const avatar = document.createElement('div');
+            avatar.className = `flex-shrink-0 w-8 h-8 rounded-full bg-orange-600 flex items-center justify-center text-sm font-bold text-white shadow-md order-1 mr-3`;
+            avatar.textContent = 'E';
+
+            const contentContainer = document.createElement('div');
+            contentContainer.className = `flex flex-col max-w-3xl items-start`;
+
+            const messageBubble = document.createElement('div');
+            messageBubble.className = `p-3 rounded-xl shadow-xl message-text eva-bubble rounded-tl-none`;
+            messageBubble.innerHTML = welcomeText;
+
+            contentContainer.appendChild(messageBubble);
+            messageWrapper.appendChild(avatar);
+            messageWrapper.appendChild(contentContainer);
+
+            chatHistory.appendChild(messageWrapper);
+        }
 
         /**
          * Adiciona uma mensagem ao histórico do chat
@@ -191,17 +290,18 @@
         function addMessage(sender, text, sources = []) {
             const isUser = sender === 'user';
             const messageWrapper = document.createElement('div');
-            messageWrapper.className = `flex items-start space-x-3 ${isUser ? 'justify-end' : 'justify-start'}`;
+            messageWrapper.className = `flex items-start space-x-3 ${isUser ? 'justify-end' : 'justify-start'} max-w-4xl mx-auto w-full`;
 
             const avatar = document.createElement('div');
-            avatar.className = `flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white shadow-md ${isUser ? 'bg-indigo-500 order-2 ml-3' : 'bg-teal-500 order-1 mr-3'}`;
+            avatar.className = `flex-shrink-0 w-8 h-8 rounded-full ${isUser ? 'bg-indigo-600 order-2 ml-3' : 'bg-orange-600 order-1 mr-3'} flex items-center justify-center text-sm font-bold text-white shadow-md`;
             avatar.textContent = isUser ? 'Eu' : 'E';
 
             const contentContainer = document.createElement('div');
             contentContainer.className = `flex flex-col max-w-3xl ${isUser ? 'items-end' : 'items-start'}`;
 
             const messageBubble = document.createElement('div');
-            messageBubble.className = `p-3 rounded-xl shadow-xl ${isUser ? 'bg-indigo-600 text-white rounded-br-none' : 'bg-gray-800 text-gray-300 rounded-tl-none'}`;
+            // Adicionado 'message-text' para aplicar o tamanho da fonte de 23px
+            messageBubble.className = `p-3 rounded-xl shadow-xl message-text ${isUser ? 'user-bubble rounded-br-none' : 'eva-bubble rounded-tl-none'}`;
             
             // Substitui quebras de linha por tags <br>
             const formattedText = text.replace(/\n/g, '<br>');
@@ -212,14 +312,14 @@
             // Adiciona fontes se for uma mensagem da EVA e houver fontes
             if (!isUser && sources.length > 0) {
                 const sourcesContainer = document.createElement('div');
-                sourcesContainer.className = 'text-xs text-gray-500 mt-1 italic p-2 rounded-lg border border-gray-700 bg-gray-900';
+                sourcesContainer.className = 'text-xs text-gray-500 mt-1 italic p-2 rounded-lg border border-gray-300 bg-white';
                 
                 let sourcesHTML = 'Fontes: ';
                 sources.forEach((source, index) => {
                     if (source.uri && source.title) {
                         // Limita o título a 50 caracteres para não quebrar a UI
                         const titleSnippet = source.title.length > 50 ? source.title.substring(0, 50) + '...' : source.title;
-                        sourcesHTML += `<a href="${source.uri}" target="_blank" class="hover:underline text-teal-400">${titleSnippet}</a>${index < sources.length - 1 ? ', ' : ''}`;
+                        sourcesHTML += `<a href="${source.uri}" target="_blank" class="hover:underline text-indigo-600">${titleSnippet}</a>${index < sources.length - 1 ? ', ' : ''}`;
                     }
                 });
                 sourcesContainer.innerHTML = sourcesHTML;
@@ -236,20 +336,117 @@
         }
 
         /**
+         * Reseta a conversa, limpando o histórico e voltando para a tela de boas-vindas.
+         */
+        function startNewChat() {
+            chatHistoryData = [];
+            chatHistory.innerHTML = ''; // Limpa o DOM do chat
+            userInput.value = '';
+            errorMessageElement.textContent = '';
+            errorMessageElement.classList.add('hidden');
+            loadingIndicator.classList.add('hidden');
+            sendButton.disabled = false;
+            
+            // Sai do modo jogo
+            isGameActive = false;
+            secretNumber = null;
+            
+            updateLayout(); // Volta para a tela centralizada
+            userInput.focus();
+        }
+
+        // --- LÓGICA DO JOGO ADIVINHA O NÚMERO ---
+
+        function startGame() {
+            isGameActive = true;
+            secretNumber = Math.floor(Math.random() * 10) + 1; // Número entre 1 e 10
+            attempts = 0;
+            const message = "🤔 Não encontrei nada relevante. Pelo visto você me pegou. Bora jogar um joguinho rápido enquanto isso? 🎲 Eu pensei em um número entre 1 e 10. Você tem 5 tentativas. Tenta a sorte!";
+            addMessage('eva', message);
+            userInput.placeholder = "Digite seu palpite (1-10) ou 'sair'...";
+        }
+
+        function handleGameGuess(guess) {
+            guess = parseInt(guess);
+            
+            if (isNaN(guess) || guess < 1 || guess > 10) {
+                addMessage('eva', "Palpite inválido, gênio. Tem que ser um número entre 1 e 10.");
+                return;
+            }
+
+            attempts++;
+            
+            if (guess === secretNumber) {
+                const message = `Acertou! Demorou ${attempts} tentativas. Não foi tão ruim. Parabéns. O jogo acabou. Agora, pare de me enrolar e faça uma pergunta decente.`;
+                addMessage('eva', message);
+                endGame();
+            } else if (guess < secretNumber) {
+                let message = `Muito baixo. Sério? Você tem ${MAX_ATTEMPTS - attempts} tentativas restantes.`;
+                if (MAX_ATTEMPTS - attempts === 0) {
+                    message = `Errou feio. O número era ${secretNumber}. Suas ${MAX_ATTEMPTS} tentativas acabaram. O jogo acabou. Agora, pare de me enrolar e faça uma pergunta decente.`;
+                    addMessage('eva', message);
+                    endGame();
+                } else {
+                    addMessage('eva', message);
+                }
+            } else { // guess > secretNumber
+                let message = `Muito alto. De novo? Você tem ${MAX_ATTEMPTS - attempts} tentativas restantes.`;
+                if (MAX_ATTEMPTS - attempts === 0) {
+                    message = `Errou feio. O número era ${secretNumber}. Suas ${MAX_ATTEMPTS} tentativas acabaram. O jogo acabou. Agora, pare de me enrolar e faça uma pergunta decente.`;
+                    addMessage('eva', message);
+                    endGame();
+                } else {
+                    addMessage('eva', message);
+                }
+            }
+        }
+
+        function endGame() {
+            isGameActive = false;
+            secretNumber = null;
+            attempts = 0;
+            userInput.placeholder = "Pergunte qualquer coisa...";
+        }
+        
+        // --- FIM DA LÓGICA DO JOGO ---
+
+
+        /**
          * Lida com o envio de mensagens pelo usuário.
          */
         async function sendMessage() {
             const userText = userInput.value.trim();
             if (userText === '') return;
-
+            
+            // Adiciona a mensagem do usuário à UI 
+            addMessage('user', userText);
+            
             // Limpa o input e desabilita o botão
             userInput.value = '';
             sendButton.disabled = true;
             errorMessageElement.textContent = '';
             errorMessageElement.classList.add('hidden');
             
-            // Adiciona a mensagem do usuário à UI e ao histórico interno
-            addMessage('user', userText);
+            // Atualiza o layout para o modo chat
+            updateLayout();
+
+            // Lógica de Jogo vs. Chat
+            if (isGameActive) {
+                const lowerText = userText.toLowerCase();
+                if (lowerText === 'sair' || lowerText === 'parar') {
+                    addMessage('eva', "Ah, desistiu? Sabia. O jogo acabou. Pergunte algo útil agora.");
+                    endGame();
+                } else {
+                    handleGameGuess(userText);
+                }
+                sendButton.disabled = false; // Reabilita o botão após o palpite do jogo
+                userInput.focus();
+                return;
+            }
+
+            // --- Lógica de Chat (Se o jogo não estiver ativo) ---
+
+            // Adiciona a mensagem do usuário ao histórico interno APENAS SE FOR CHAT
             chatHistoryData.push({ role: 'user', parts: [{ text: userText }] });
 
             // Mostra o indicador de carregamento
@@ -261,6 +458,7 @@
             const MAX_RETRIES = 5;
             let evaResponse = null;
             let sources = [];
+            let responseSuccess = false;
 
             const payload = {
                 contents: chatHistoryData,
@@ -288,6 +486,7 @@
 
                     if (candidate && candidate.content?.parts?.[0]?.text) {
                         evaResponse = candidate.content.parts[0].text;
+                        responseSuccess = true;
                         
                         // Extrai fontes
                         const groundingMetadata = candidate.groundingMetadata;
@@ -303,13 +502,14 @@
                         // Sai do loop de retentativas se for bem-sucedido
                         break; 
                     } else {
+                        // Se a resposta for vazia, ainda conta como falha para o fallback
                         throw new Error("Resposta da EVA inválida ou vazia.");
                     }
 
                 } catch (error) {
                     console.error(`Tentativa ${i + 1} falhou:`, error.message);
                     if (i === MAX_RETRIES - 1) {
-                        evaResponse = "Sério? Falhei. Deve ser algo com a internet, não comigo. Tente novamente mais tarde, se fizer questão.";
+                        // Falha total, cai no fallback (fora do loop)
                         break;
                     }
                     // Espera exponencialmente (1s, 2s, 4s, 8s, ...)
@@ -320,33 +520,38 @@
             // --- Fim da Lógica de Chamada da API ---
 
 
-            // Oculta o indicador de carregamento e reabilita o input
+            // Oculta o indicador de carregamento
             loadingIndicator.classList.add('hidden');
-            sendButton.disabled = false;
-            userInput.focus();
             
-            // Adiciona a resposta da EVA
-            if (evaResponse) {
+            // Adiciona a resposta da EVA ou inicia o jogo
+            if (responseSuccess) {
                 addMessage('eva', evaResponse, sources);
                 // Adiciona a resposta da EVA ao histórico para contexto futuro
                 chatHistoryData.push({ role: 'model', parts: [{ text: evaResponse }] });
             } else {
-                errorMessageElement.textContent = "Um erro inesperado ocorreu. Não é culpa minha, claro.";
-                errorMessageElement.classList.remove('hidden');
+                // FALLBACK: Inicia o jogo se não houve sucesso na resposta
+                // Remove a última pergunta do histórico para não poluir o contexto
+                chatHistoryData.pop(); 
+                startGame();
             }
+
+            // Reabilita o input
+            sendButton.disabled = false;
+            userInput.focus();
         }
 
-        // --- CORREÇÃO DE ERRO: Adiciona event listeners fora do HTML ---
-        // Funções definidas em 'type="module"' não são globais. 
-        // Adicionamos os listeners de eventos aqui para corrigir o ReferenceError.
+        // --- Event Listeners ---
         userInput.addEventListener('keypress', function(event) {
-            // Verifica se a tecla pressionada é 'Enter'
             if (event.key === 'Enter') {
                 sendMessage();
             }
         });
 
         sendButton.addEventListener('click', sendMessage);
+        newChatButton.addEventListener('click', startNewChat); 
+        
+        // Inicializa o layout no modo boas-vindas
+        updateLayout();
     </script>
 
 </body>
