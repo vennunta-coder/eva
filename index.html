@@ -24,8 +24,8 @@
 
   <!-- Splash Screen -->
   <div id="splash" class="flex flex-col items-center justify-center min-h-screen space-y-6">
-    <img src="evalogo.png" alt="EVA Logo" 
-         class="w-32 h-32 rounded-full shadow-lg fade-in-up logo-animate" />
+    <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/evalogo.png" 
+         alt="EVA Logo" class="w-32 h-32 rounded-full shadow-lg fade-in-up logo-animate" />
     <h1 class="text-4xl font-bold fade-in-up">
       <span class="text-black">E</span><span class="text-orange-500">V</span><span class="text-black">A</span>
     </h1>
@@ -40,7 +40,8 @@
   <div id="app" class="hidden flex flex-col flex-1">
     <!-- Header -->
     <header class="p-4 flex items-center space-x-3 border-b">
-      <img src="evalogo.png" alt="EVA Logo" class="w-8 h-8 rounded-full shadow" />
+      <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/evalogo.png" 
+           alt="EVA Logo" class="w-8 h-8 rounded-full shadow" />
       <span class="font-semibold text-lg">
         <span class="text-black">E</span><span class="text-orange-500">V</span><span class="text-black">A</span>
       </span>
@@ -58,7 +59,9 @@
     </footer>
 
     <!-- Footer -->
-    <div class="text-center text-sm text-gray-500 py-2">EVA © 2025</div>
+    <div class="text-center text-sm text-gray-500 py-2">
+      <span class="text-black">E</span><span class="text-orange-500">V</span><span class="text-black">A</span> © 2025
+    </div>
   </div>
 
   <script>
@@ -74,9 +77,9 @@
       splash.classList.add("hidden");
       app.classList.remove("hidden");
 
-      // Mensagem automática da EVA
+      // Mensagem automática da EVA com nome colorido
       setTimeout(() => {
-        addMessage("ai", "Olá! Em que posso ajudar?");
+        addMessage("ai", `<span class="text-black">E</span><span class="text-orange-500">V</span><span class="text-black">A</span>: Olá! Em que posso ajudar?`);
       }, 500);
     });
 
@@ -93,7 +96,8 @@
       } else {
         div.className = "flex items-start space-x-2";
         div.innerHTML = `
-          <img src="evalogo.png" alt="EVA" class="w-8 h-8 rounded-full shadow mt-1" />
+          <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/evalogo.png" 
+               alt="EVA" class="w-8 h-8 rounded-full shadow mt-1" />
           <div class="bg-gray-100 text-gray-800 rounded-lg px-4 py-2 chat-bubble">
             ${text}
           </div>`;
@@ -109,22 +113,22 @@
 
       // Saudações
       if (msg.includes("ola") || msg.includes("olá") || msg.includes("oi")) {
-        return "Olá! Estou aqui para ajudar no que precisar. 🚀";
+        return `<span class="text-black">E</span><span class="text-orange-500">V</span><span class="text-black">A</span>: Olá! Estou aqui para ajudar no que precisar. 🚀`;
       }
 
       // Perguntar data
       if (msg.includes("que dia") || msg.includes("data de hoje")) {
         const hoje = new Date();
-        return `Hoje é ${hoje.toLocaleDateString("pt-PT", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}.`;
+        return `<span class="text-black">E</span><span class="text-orange-500">V</span><span class="text-black">A</span>: Hoje é ${hoje.toLocaleDateString("pt-PT", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}.`;
       }
 
       // Perguntar ano
       if (msg.includes("ano estamos") || msg.includes("ano é este")) {
-        return `Estamos no ano de ${new Date().getFullYear()}.`;
+        return `<span class="text-black">E</span><span class="text-orange-500">V</span><span class="text-black">A</span>: Estamos no ano de ${new Date().getFullYear()}.`;
       }
 
       // Fallback
-      return "Posso não ter uma resposta exata, mas estou aqui para tentar ajudar da melhor forma. 😉";
+      return `<span class="text-black">E</span><span class="text-orange-500">V</span><span class="text-black">A</span>: Posso não ter uma resposta exata, mas estou aqui para tentar ajudar da melhor forma. 😉`;
     }
 
     // Enviar mensagem
