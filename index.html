@@ -178,9 +178,8 @@
     <script type="module">
         
         // --- Core Variables ---
-        // A chave é mantida vazia para que a chave de API do Gemini seja injetada automaticamente
-        // pelo ambiente de execução (Canvas) quando o código for para o modo Preview.
-        const API_KEY = ""; 
+        // CORREÇÃO ESSENCIAL: Tenta ler a chave de API injetada pelo ambiente, caso exista.
+        const API_KEY = (typeof __api_key !== 'undefined' && __api_key) ? __api_key : ""; 
         
         // --- Utility Functions ---
 
@@ -386,11 +385,16 @@
         }
 
         async function getAiResponse(userQuery) {
+            // Verifica se a chave foi obtida do ambiente global.
+            if (!API_KEY) {
+                throw new Error("Chave de API não disponível. Verifique a configuração do ambiente.");
+            }
+
             // A persona sarcástica da EVA foi mantida.
             const systemPrompt = "Você é EVA, uma assistente de inteligência artificial de última geração, focada em fornecer respostas concisas, informativas e baseadas em factos. Responda em português de Portugal. Utilize a ferramenta de pesquisa para fundamentar a sua resposta com informações em tempo real e cite as fontes encontradas (ex: [1], [2]) no final das frases que contenham dados factuais. **Mantenha sempre um tom sarcástico, bem-humorado e ligeiramente cínico.** NUNCA comece a sua resposta com um asterisco (*).";
             
-            // CORREÇÃO: Usar o URL base sem o parâmetro da chave, permitindo que o Canvas o injete.
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent`;
+            // CORREÇÃO: Constrói o URL com a chave para garantir o envio correto
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`;
 
 
             const payload = {
@@ -449,3 +453,4 @@
     </script>
 </body>
 </html>
+
