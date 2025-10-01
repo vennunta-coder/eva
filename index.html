@@ -2,241 +2,211 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EVA</title>
   <style>
     body {
       font-family: Arial, sans-serif;
+      background: #fff;
       margin: 0;
       padding: 0;
       display: flex;
       flex-direction: column;
       height: 100vh;
-      background: #fff;
-      color: #000;
     }
     header {
-      padding: 10px 20px;
-      font-size: 24px;
+      font-size: 28px;
       font-weight: bold;
-      display: flex;
-      align-items: center;
+      padding: 15px;
+      background: #fff;
+      border-bottom: 1px solid #ddd;
     }
-    header img {
+    header span:nth-child(1) { color: black; }
+    header span:nth-child(2) { color: orange; }
+    header span:nth-child(3) { color: black; }
+
+    #chat {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    .msg {
+      margin: 10px 0;
+      display: flex;
+      align-items: flex-start;
+    }
+    .user {
+      justify-content: flex-end;
+    }
+    .bubble {
+      padding: 10px 15px;
+      border-radius: 15px;
+      max-width: 60%;
+    }
+    .user .bubble {
+      background: #1976d2;
+      color: #fff;
+      border-bottom-right-radius: 0;
+    }
+    .eva .bubble {
+      background: #f1f1f1;
+      color: #000;
+      border-bottom-left-radius: 0;
+    }
+    .eva img {
       width: 40px;
       height: 40px;
       border-radius: 50%;
       margin-right: 10px;
     }
-    main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-    #chat {
-      width: 100%;
-      max-width: 900px;
-      flex: 1;
-      overflow-y: auto;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-    }
-    .message {
-      max-width: 70%;
-      padding: 10px 15px;
-      margin: 5px 0;
-      border-radius: 12px;
-      font-size: 16px;
-    }
-    .user {
-      align-self: flex-end;
-      background: #007bff;
-      color: #fff;
-      border-bottom-right-radius: 0;
-    }
-    .eva {
-      align-self: flex-start;
-      background: #f1f1f1;
-      border-bottom-left-radius: 0;
-      display: flex;
-      align-items: center;
-    }
-    .eva img {
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      margin-right: 10px;
-    }
     footer {
-      padding: 15px;
-      text-align: center;
-      font-size: 14px;
       border-top: 1px solid #ddd;
-    }
-    .input-area {
-      display: flex;
-      width: 100%;
-      max-width: 900px;
-      margin: 0 auto;
       padding: 10px;
+      display: flex;
+      align-items: center;
     }
-    .input-area input {
+    footer input {
       flex: 1;
-      padding: 12px;
-      font-size: 16px;
+      padding: 10px;
       border: 1px solid #ccc;
       border-radius: 20px;
       outline: none;
     }
-    .input-area button {
+    footer button {
       margin-left: 10px;
-      padding: 12px 20px;
-      font-size: 16px;
-      background: #007bff;
-      color: white;
+      padding: 10px 20px;
+      background: #1976d2;
+      color: #fff;
       border: none;
       border-radius: 20px;
       cursor: pointer;
     }
-    .logo-text {
-      font-size: 28px;
-      font-weight: bold;
+    .rodape {
+      text-align: center;
+      padding: 8px;
+      font-size: 14px;
+      color: #333;
+      border-top: 1px solid #ddd;
     }
-    .logo-text span:nth-child(1) { color: black; }
-    .logo-text span:nth-child(2) { color: orange; }
-    .logo-text span:nth-child(3) { color: black; }
+    .rodape span:nth-child(1) { color: black; }
+    .rodape span:nth-child(2) { color: orange; }
+    .rodape span:nth-child(3) { color: black; }
   </style>
 </head>
 <body>
-  <header>
-    <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/evalogo.png" alt="EVA Logo">
-    <div class="logo-text"><span>E</span><span>V</span><span>A</span></div>
-  </header>
+  <header><span>E</span><span>V</span><span>A</span></header>
 
-  <main>
-    <div id="chat"></div>
-    <div class="input-area">
-      <input type="text" id="userInput" placeholder="Pergunte qualquer coisa">
-      <button onclick="sendMessage()">Enviar</button>
+  <div id="chat">
+    <div class="msg eva">
+      <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/evalogo.png" alt="EVA">
+      <div class="bubble"><b><span style="color:black;">E</span><span style="color:orange;">V</span><span style="color:black;">A</span>:</b> Olá! Em que posso ajudar?</div>
     </div>
-  </main>
+  </div>
 
   <footer>
-    <div class="logo-text"><span>E</span><span>V</span><span>A</span> © 2025</div>
+    <input type="text" id="userInput" placeholder="Escreva a sua mensagem...">
+    <button onclick="sendMessage()">Enviar</button>
   </footer>
 
-<script>
-  const chat = document.getElementById("chat");
+  <div class="rodape"><span>E</span><span>V</span><span>A</span> © 2025</div>
 
-  function addMessage(text, sender = "eva") {
-    const msg = document.createElement("div");
-    msg.classList.add("message", sender);
-    if (sender === "eva") {
-      msg.innerHTML = `<img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/evalogo.png"> 
-                       <b><span style="color:black">E</span><span style="color:orange">V</span><span style="color:black">A</span>:</b> ${text}`;
-    } else {
-      msg.textContent = text;
-    }
-    chat.appendChild(msg);
-    chat.scrollTop = chat.scrollHeight;
-  }
+  <script>
+    const chat = document.getElementById("chat");
+    const googleKey = "AIzaSyD3OOOrDwc5KtuiUAzg1Pq2dGGVaRJjU3s"; 
+    const cx = "81b1c6566b6be4ccf"; 
+    const weatherKey = "7db838cde261492656dc201d1d17e4aa"; 
+    const ytKey = "AIzaSyD3OOOrDwc5KtuiUAzg1Pq2dGGVaRJjU3s"; 
 
-  function sendMessage() {
-    const input = document.getElementById("userInput");
-    const text = input.value.trim();
-    if (!text) return;
-    addMessage(text, "user");
-    input.value = "";
+    function addMessage(text, sender="user") {
+      const msg = document.createElement("div");
+      msg.className = "msg " + sender;
 
-    processQuestion(text);
-  }
+      if (sender === "eva") {
+        msg.innerHTML = `
+          <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/evalogo.png" alt="EVA">
+          <div class="bubble"><b><span style="color:black;">E</span><span style="color:orange;">V</span><span style="color:black;">A</span>:</b> ${text}</div>
+        `;
+      } else {
+        msg.innerHTML = `<div class="bubble">${text}</div>`;
+      }
 
-  async function processQuestion(q) {
-    q = q.toLowerCase();
-
-    // Cumprimento simples
-    if (q.includes("olá") || q.includes("oi")) {
-      addMessage("Olá! Como posso ajudar?");
-      return;
+      chat.appendChild(msg);
+      chat.scrollTop = chat.scrollHeight;
     }
 
-    // Clima
-    if (q.includes("tempo em") || q.includes("clima em")) {
-      const cidade = q.replace("tempo em","").replace("clima em","").trim();
-      const clima = await getWeather(cidade);
-      addMessage(clima);
-      return;
+    async function sendMessage() {
+      const input = document.getElementById("userInput");
+      const text = input.value.trim();
+      if (!text) return;
+      addMessage(text, "user");
+      input.value = "";
+
+      addMessage("A pensar...", "eva");
+
+      let resposta = await responderEVA(text);
+
+      chat.lastChild.remove(); 
+      addMessage(resposta, "eva");
     }
 
-    // Wikipedia
-    if (q.includes("wikipedia") || q.includes("quem é") || q.includes("o que é")) {
-      const termo = q.replace("wikipedia","").trim();
-      const resumo = await getWikipedia(termo);
-      if (resumo) {
-        addMessage(resumo);
-        return;
+    async function responderEVA(query) {
+      try {
+        // --- 1. Clima ---
+        if (query.toLowerCase().includes("tempo") || query.toLowerCase().includes("clima") || query.toLowerCase().includes("temperatura")) {
+          const cidade = query.split("em ")[1] || "Lisboa";
+          const url = `https://api.openweathermap.org/data/2.5/weather?q=${cidade}&appid=${weatherKey}&units=metric&lang=pt`;
+          const response = await fetch(url);
+          const data = await response.json();
+
+          if (data.cod === 200) {
+            return `🌍 Clima em <b>${data.name}</b>: ${data.weather[0].description}, 🌡️ ${data.main.temp}°C (sensação ${data.main.feels_like}°C), 💨 Vento: ${data.wind.speed} m/s.`;
+          } else {
+            return "Não consegui encontrar dados do tempo para essa cidade.";
+          }
+        }
+
+        // --- 2. YouTube ---
+        if (query.toLowerCase().includes("vídeo") || query.toLowerCase().includes("video")) {
+          const q = query.replace("vídeo", "").replace("video", "").trim();
+          const ytUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(q)}&type=video&maxResults=1&key=${ytKey}`;
+          const response = await fetch(ytUrl);
+          const data = await response.json();
+
+          if (data.items && data.items.length > 0) {
+            const video = data.items[0];
+            const videoId = video.id.videoId;
+            return `🎥 ${video.snippet.title}<br><img src="${video.snippet.thumbnails.medium.url}" alt="thumb"><br>🔗 <a href="https://www.youtube.com/watch?v=${videoId}" target="_blank">Assistir no YouTube</a>`;
+          } else {
+            return "Não encontrei vídeos para isso.";
+          }
+        }
+
+        // --- 3. Wikipedia ---
+        const wikiUrl = `https://pt.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`;
+        const wikiRes = await fetch(wikiUrl);
+        if (wikiRes.ok) {
+          const wikiData = await wikiRes.json();
+          if (wikiData.extract) {
+            return `📚 <b>${wikiData.title}</b><br>${wikiData.extract}<br>🔗 <a href="${wikiData.content_urls.desktop.page}" target="_blank">Ver mais na Wikipedia</a>`;
+          }
+        }
+
+        // --- 4. Google Search (fallback) ---
+        const gUrl = `https://www.googleapis.com/customsearch/v1?q=${encodeURIComponent(query)}&key=${googleKey}&cx=${cx}`;
+        const gRes = await fetch(gUrl);
+        const gData = await gRes.json();
+
+        if (gData.items && gData.items.length > 0) {
+          return `${gData.items[0].title}<br>${gData.items[0].snippet}<br>🔗 <a href="${gData.items[0].link}" target="_blank">${gData.items[0].link}</a>`;
+        } else {
+          return "Não encontrei nada relevante no Google.";
+        }
+
+      } catch (e) {
+        console.error(e);
+        return "Erro ao tentar procurar a resposta.";
       }
     }
-
-    // Se não encontrou → tenta Google
-    const googleResult = await getGoogleSearch(q);
-    if (googleResult) {
-      addMessage(`🔎 Encontrei isto no Google: ${googleResult}`);
-      return;
-    }
-
-    // Fallback final
-    addMessage("🤷‍♀️ Não encontrei nada relevante desta vez. 👉 Tente reformular a pergunta.");
-  }
-
-  // === APIs ===
-
-  // OpenWeather
-  async function getWeather(city) {
-    try {
-      const key = "7db838cde261492656dc201d1d17e4aa"; // tua chave OpenWeather
-      const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${key}&lang=pt&units=metric`;
-      const res = await fetch(url);
-      const data = await res.json();
-      if (data.main) {
-        return `🌤️ O clima em ${city} é ${data.weather[0].description}, temperatura ${data.main.temp}°C.`;
-      }
-      return null;
-    } catch {
-      return null;
-    }
-  }
-
-  // Wikipedia
-  async function getWikipedia(term) {
-    try {
-      const url = `https://pt.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(term)}`;
-      const res = await fetch(url);
-      const data = await res.json();
-      return data.extract || null;
-    } catch {
-      return null;
-    }
-  }
-
-  // Google Custom Search
-  async function getGoogleSearch(query) {
-    try {
-      const apiKey = "AIzaSyBBaANH7WwPwdCw5lzkuhxTGtX77r6u5QQ"; // tua chave Google
-      const cx = "81b1c6566b6be4ccf"; // ID do motor de busca (Custom Search Engine)
-      const url = `https://www.googleapis.com/customsearch/v1?q=${encodeURIComponent(query)}&key=${apiKey}&cx=${cx}`;
-      const res = await fetch(url);
-      const data = await res.json();
-      if (data.items && data.items.length > 0) {
-        return `<a href="${data.items[0].link}" target="_blank">${data.items[0].title}</a> - ${data.items[0].snippet}`;
-      }
-      return null;
-    } catch {
-      return null;
-    }
-  }
-</script>
+  </script>
 </body>
 </html>
