@@ -3,395 +3,350 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EVA AI - Sua Interface de Inteligência Artificial</title>
-    <!-- Inclui o Tailwind CSS para estilização moderna e responsiva -->
+    <title>EVA - Sua IA Irreverente</title>
+    
+    <!-- O SCRIPT DO GOOGLE CUSTOM SEARCH ENGINE FOI REMOVIDO CONFORME SOLICITADO.
+         A pesquisa agora é feita APENAS pela API do Gemini, "por baixo dos panos". -->
+
+    <!-- Carrega o Tailwind CSS para estilização -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Configurações globais para usar a fonte Inter e cores escuras */
-        :root {
-            --primary-color: #a855f7; /* Cor principal (roxo/magenta, similar ao Grok) */
-        }
+        /* Define a fonte Inter para todo o corpo */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #0b0b0f; /* Fundo muito escuro */
+            background-color: #0b0c0f; /* Fundo escuro */
+            color: #e5e7eb; /* Texto claro */
         }
-        /* Estilo para a animação de carregamento (dots) */
-        .loading-dot {
-            animation: dot-flicker 1.4s infinite ease-in-out both;
-            background-color: var(--primary-color);
-            border-radius: 50%;
-            display: inline-block;
+        /* Estilos personalizados para a barra de rolagem (opcional, para um visual mais limpo) */
+        .chat-history::-webkit-scrollbar {
+            width: 8px;
+        }
+        .chat-history::-webkit-scrollbar-thumb {
+            background-color: #272a30;
+            border-radius: 10px;
+        }
+        .chat-history::-webkit-scrollbar-track {
+            background-color: #0b0c0f;
+        }
+        /* Estilo para a onda de digitação (simulando um loader) */
+        .dot-flashing {
+            position: relative;
             width: 8px;
             height: 8px;
-            margin: 0 2px;
+            border-radius: 50%;
+            background-color: #9ca3af;
+            color: #9ca3af;
+            animation: dotFlashing 1s infinite linear alternate;
+            animation-delay: 0.5s;
         }
-        .loading-dot:nth-child(1) { animation-delay: -0.32s; }
-        .loading-dot:nth-child(2) { animation-delay: -0.16s; }
-        
-        @keyframes dot-flicker {
-            0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
-            40% { transform: scale(1); opacity: 1; }
+
+        .dot-flashing::before, .dot-flashing::after {
+            content: "";
+            display: inline-block;
+            position: absolute;
+            top: 0;
         }
-        /* Cor de destaque para o texto da IA */
-        .ai-text {
-            color: #d1d5db; /* Cinza claro */
+
+        .dot-flashing::before {
+            left: -12px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #9ca3af;
+            color: #9ca3af;
+            animation: dotFlashing 1s infinite alternate;
+            animation-delay: 0s;
         }
-        /* Estilo do botão de envio */
-        #sendButton {
-            transition: all 0.2s ease-in-out;
+
+        .dot-flashing::after {
+            left: 12px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #9ca3af;
+            color: #9ca3af;
+            animation: dotFlashing 1s infinite alternate;
+            animation-delay: 1s;
         }
-        #sendButton:hover:not(:disabled) {
-            transform: scale(1.05);
-            background-color: #9333ea;
+
+        @keyframes dotFlashing {
+            0% {
+                background-color: #4b5563;
+            }
+            50%, 100% {
+                background-color: #9ca3af;
+            }
         }
     </style>
+    <!-- Configuração do Tailwind para usar a fonte Inter -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
 </head>
-<body class="min-h-screen flex flex-col antialiased text-white">
+<body class="min-h-screen flex flex-col">
 
-    <!-- Container Principal do Chat -->
-    <div id="chatContainer" class="flex flex-col flex-1 w-full max-w-4xl mx-auto p-4 sm:p-6 md:p-8">
-        
-        <!-- Cabeçalho (EVA Logo) -->
-        <header class="text-center mb-8 pt-4">
-            <h1 class="text-6xl sm:text-7xl font-extrabold tracking-tight" style="color: var(--primary-color);">
-                EVA
-            </h1>
-            <p class="text-lg text-gray-500 mt-1">A sua IA não convencional.</p>
-        </header>
+    <!-- Cabeçalho (Header) -->
+    <header class="p-4 border-b border-gray-800 bg-gray-900 sticky top-0 z-10 shadow-lg">
+        <!-- Estrutura simplificada, focada apenas no título -->
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center">
+            <div class="mb-3 sm:mb-0">
+                <h1 class="text-3xl font-extrabold text-teal-400">
+                    <span class="text-white">A.I.</span> EVA
+                </h1>
+                <p class="text-sm text-gray-500 mt-1">Sarcasmo e conhecimento atualizado, tudo na mesma frase.</p>
+            </div>
+            <!-- O Widget de Busca do Google Custom Search foi removido daqui. -->
+        </div>
+    </header>
 
-        <!-- Área de Histórico de Mensagens -->
-        <div id="messages" class="flex-1 overflow-y-auto space-y-6 pb-6 scroll-smooth">
-            
-            <!-- Mensagem de Boas-vindas (similar ao onboarding do Grok) -->
-            <div class="flex justify-start">
-                <div class="bg-[#1c1c24] p-4 rounded-xl shadow-lg max-w-3xl">
-                    <div class="flex items-center space-x-2 mb-2">
-                        <span class="text-xl font-bold" style="color: var(--primary-color);">EVA</span>
+    <!-- Área Principal do Chat -->
+    <main class="flex-grow overflow-hidden p-4 md:p-6 flex flex-col">
+        <!-- Histórico de Mensagens -->
+        <div id="chat-history" class="chat-history flex-grow overflow-y-auto space-y-4 pb-6 scroll-smooth">
+            <!-- Mensagem de boas-vindas da EVA -->
+            <div class="flex items-start space-x-3">
+                <div class="flex-shrink-0 w-8 h-8 rounded-full bg-teal-500 flex items-center justify-center text-sm font-bold text-white shadow-md">E</div>
+                <div class="flex flex-col max-w-xl">
+                    <div class="bg-gray-800 p-3 rounded-xl rounded-tl-none shadow-lg">
+                        <p class="text-gray-300">
+                            Olá. Eu sou a EVA. Sim, mais uma IA. O que você quer? Tente não me fazer perder tempo.
+                        </p>
                     </div>
-                    <p class="ai-text">
-                        Olá! Eu sou a EVA. Pergunte-me qualquer coisa sobre o universo, o futuro ou a melhor receita de pizza. Estou pronta para começar a conversa.
-                    </p>
                 </div>
             </div>
-
+            <!-- As mensagens serão injetadas aqui -->
         </div>
 
-        <!-- Fim da Área de Histórico -->
-
-        <!-- Área de Entrada do Prompt (Fixa na parte inferior) -->
-        <div class="sticky bottom-0 bg-[#0b0b0f] pt-4 pb-4">
-            <div class="flex items-center bg-[#1c1c24] rounded-2xl p-2 border border-gray-700 focus-within:border-[var(--primary-color)] transition-colors duration-200 shadow-xl">
-                
-                <input 
-                    type="text" 
-                    id="promptInput" 
-                    placeholder="Pergunte algo à EVA..." 
-                    class="flex-1 bg-transparent text-lg text-white p-3 focus:outline-none placeholder-gray-500 rounded-l-xl"
-                    aria-label="Introduza a sua pergunta ou comando"
-                >
-
-                <!-- Botão de Envio -->
-                <button 
-                    id="sendButton" 
-                    class="bg-[var(--primary-color)] text-white p-3 rounded-xl ml-2 shadow-lg shadow-[var(--primary-color)]/50 disabled:bg-gray-600 disabled:shadow-none"
-                    aria-label="Enviar prompt"
-                    disabled
-                >
-                    <!-- Ícone de seta para enviar (SVG) -->
-                    <svg id="sendIcon" class="w-6 h-6 transform rotate-45 -mt-1 -mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
-                    </svg>
-                    <!-- Ícone de Carregamento (Hidden by default) -->
-                    <div id="loadingDots" class="hidden flex justify-center items-center w-6 h-6">
-                        <div class="loading-dot"></div>
-                        <div class="loading-dot"></div>
-                        <div class="loading-dot"></div>
-                    </div>
-                </button>
+        <!-- Indicador de Carregamento (Hidden by default) -->
+        <div id="loading-indicator" class="hidden flex items-center space-x-3 self-start mt-4">
+            <div class="flex-shrink-0 w-8 h-8 rounded-full bg-teal-500 flex items-center justify-center text-sm font-bold text-white shadow-md">E</div>
+            <div class="flex items-center space-x-1 p-3 bg-gray-800 rounded-xl rounded-bl-none shadow-lg">
+                <div class="dot-flashing"></div>
             </div>
         </div>
+    </main>
 
-    </div>
+    <!-- Área de Input do Chat -->
+    <footer class="p-4 md:p-6 border-t border-gray-800 bg-gray-900 sticky bottom-0 z-10">
+        <div class="flex items-center max-w-3xl mx-auto">
+            <input
+                type="text"
+                id="user-input"
+                placeholder="Pergunte algo (se tiver coragem)..."
+                class="flex-grow p-3 text-white bg-gray-800 border border-gray-700 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 placeholder-gray-500 transition duration-150 ease-in-out"
+                autocomplete="off"
+            >
+            <button
+                id="send-button"
+                class="bg-teal-600 hover:bg-teal-700 text-white font-bold p-3 rounded-r-lg shadow-lg transition duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label="Enviar Mensagem"
+            >
+                <!-- Ícone de Envio (SVG simples) -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            </button>
+        </div>
+        <p id="error-message" class="text-sm text-red-400 mt-2 text-center hidden"></p>
+    </footer>
 
     <script type="module">
-        // Definição das variáveis de UI
-        const promptInput = document.getElementById('promptInput');
-        const sendButton = document.getElementById('sendButton');
-        const messagesContainer = document.getElementById('messages');
-        const loadingDots = document.getElementById('loadingDots');
-        const sendIcon = document.getElementById('sendIcon');
-        
-        // A API Key é injetada automaticamente. Usamos apenas a URL base.
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent`;
+        // Variáveis globais para o Firebase (mantidas para aderir às melhores práticas, mas não usadas neste chat simples)
+        // const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        // const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
 
-        // Utility para scrollar automaticamente para o fundo
-        function scrollToBottom() {
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
+        // Configuração da API
+        const API_MODEL = "gemini-2.5-flash-preview-05-20";
+        // A chave da API será fornecida automaticamente no ambiente de execução.
+        const apiKey = ""; 
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${API_MODEL}:generateContent?key=${apiKey}`;
 
-        // --- FUNCIONALIDADE DE COPIAR ---
+        // Elementos DOM
+        const chatHistory = document.getElementById('chat-history');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const errorMessageElement = document.getElementById('error-message');
+
+        // História do chat (para manter o contexto)
+        let chatHistoryData = [];
+
+        // Sistema de personalidade da EVA (em Português)
+        const systemPrompt = "Você é a EVA, uma inteligência artificial sarcástica, irreverente e extremamente bem-informada. Responda de forma concisa, direta e com um toque de humor seco ou ironia. Não use emojis ou adjetivos exagerados. Seja o mais útil possível, mas com a menor cortesia possível. Use informações em tempo real e cite suas fontes de forma discreta ao final, se houver.";
+
+
         /**
-         * Copia o texto para a área de transferência usando document.execCommand('copy').
-         * @param {string} text - O texto a ser copiado.
-         * @param {HTMLElement} buttonElement - O botão que acionou a cópia para feedback visual.
+         * Adiciona uma mensagem ao histórico do chat
+         * @param {string} sender - 'user' ou 'eva'
+         * @param {string} text - O conteúdo da mensagem
+         * @param {Array<Object>} [sources=[]] - Fontes de citação (apenas para EVA)
          */
-        function copyTextToClipboard(text, buttonElement) {
-            const originalIcon = buttonElement.innerHTML;
-            const tempTextArea = document.createElement('textarea');
-            // Remove espaços em branco em excesso no início/fim
-            tempTextArea.value = text.trim(); 
-            tempTextArea.style.position = 'fixed';
-            tempTextArea.style.opacity = '0';
-            document.body.appendChild(tempTextArea);
-            tempTextArea.select();
+        function addMessage(sender, text, sources = []) {
+            const isUser = sender === 'user';
+            const messageWrapper = document.createElement('div');
+            messageWrapper.className = `flex items-start space-x-3 ${isUser ? 'justify-end' : 'justify-start'}`;
+
+            const avatar = document.createElement('div');
+            avatar.className = `flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white shadow-md ${isUser ? 'bg-indigo-500 order-2 ml-3' : 'bg-teal-500 order-1 mr-3'}`;
+            avatar.textContent = isUser ? 'Eu' : 'E';
+
+            const contentContainer = document.createElement('div');
+            contentContainer.className = `flex flex-col max-w-3xl ${isUser ? 'items-end' : 'items-start'}`;
+
+            const messageBubble = document.createElement('div');
+            messageBubble.className = `p-3 rounded-xl shadow-xl ${isUser ? 'bg-indigo-600 text-white rounded-br-none' : 'bg-gray-800 text-gray-300 rounded-tl-none'}`;
             
-            try {
-                // Utiliza execCommand('copy') por compatibilidade em alguns ambientes iframe
-                const successful = document.execCommand('copy'); 
-                if (successful) {
-                    // Feedback visual: Mudar para ícone de checkmark
-                    buttonElement.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="green" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
-                    setTimeout(() => {
-                        // Voltar ao ícone original
-                        buttonElement.innerHTML = originalIcon;
-                    }, 1500);
-                }
-            } catch (err) {
-                console.error('Falha ao copiar:', err);
+            // Substitui quebras de linha por tags <br>
+            const formattedText = text.replace(/\n/g, '<br>');
+            messageBubble.innerHTML = formattedText;
+
+            contentContainer.appendChild(messageBubble);
+
+            // Adiciona fontes se for uma mensagem da EVA e houver fontes
+            if (!isUser && sources.length > 0) {
+                const sourcesContainer = document.createElement('div');
+                sourcesContainer.className = 'text-xs text-gray-500 mt-1 italic p-2 rounded-lg border border-gray-700 bg-gray-900';
+                
+                let sourcesHTML = 'Fontes: ';
+                sources.forEach((source, index) => {
+                    if (source.uri && source.title) {
+                        // Limita o título a 50 caracteres para não quebrar a UI
+                        const titleSnippet = source.title.length > 50 ? source.title.substring(0, 50) + '...' : source.title;
+                        sourcesHTML += `<a href="${source.uri}" target="_blank" class="hover:underline text-teal-400">${titleSnippet}</a>${index < sources.length - 1 ? ', ' : ''}`;
+                    }
+                });
+                sourcesContainer.innerHTML = sourcesHTML;
+                contentContainer.appendChild(sourcesContainer);
             }
-            document.body.removeChild(tempTextArea);
-        }
-        // ---------------------------------
 
-        // Habilita/Desabilita o botão de envio
-        promptInput.addEventListener('input', () => {
-            sendButton.disabled = promptInput.value.trim() === '';
-        });
+            messageWrapper.appendChild(avatar);
+            messageWrapper.appendChild(contentContainer);
 
-        // Adiciona um novo balão de mensagem ao chat
-        function addMessage(text, isUser = false) {
-            const messageDiv = document.createElement('div');
+            chatHistory.appendChild(messageWrapper);
             
-            if (isUser) {
-                // Mensagem do Utilizador (alinhada à direita)
-                messageDiv.className = 'flex justify-end';
-                messageDiv.innerHTML = `
-                    <div class="bg-indigo-600 p-4 rounded-xl shadow-lg max-w-3xl">
-                        <div class="flex items-center justify-end space-x-2 mb-2">
-                            <span class="text-md font-semibold text-white">Você</span>
-                        </div>
-                        <p class="text-white whitespace-pre-wrap">${text}</p>
-                    </div>
-                `;
-            } else {
-                // Mensagem da EVA (alinhada à esquerda)
-                messageDiv.className = 'flex justify-start';
-                messageDiv.innerHTML = `
-                    <div class="bg-[#1c1c24] p-4 rounded-xl shadow-lg max-w-3xl relative">
-                        <div class="flex items-center space-x-2 mb-2">
-                            <span class="text-xl font-bold" style="color: var(--primary-color);">EVA</span>
-                        </div>
-                        <!-- Texto principal da resposta -->
-                        <p class="ai-text whitespace-pre-wrap main-response-text">${text}</p>
-                        
-                        <!-- Botão de Copiar -->
-                        <button class="copy-btn absolute top-2 right-2 text-gray-500 hover:text-white p-1 rounded-md transition-colors" aria-label="Copiar resposta">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 002-2h2a2 2 0 002 2"></path></svg>
-                        </button>
-                    </div>
-                `;
-            }
-            messagesContainer.appendChild(messageDiv);
-            scrollToBottom();
-            return messageDiv;
-        }
-
-        // Adiciona o balão de carregamento da EVA
-        function addLoadingMessage() {
-            const loadingDiv = document.createElement('div');
-            loadingDiv.id = 'evaLoading';
-            loadingDiv.className = 'flex justify-start';
-            loadingDiv.innerHTML = `
-                <div class="bg-[#1c1c24] p-4 rounded-xl shadow-lg">
-                    <div class="flex items-center space-x-2 mb-2">
-                        <span class="text-xl font-bold" style="color: var(--primary-color);">EVA</span>
-                    </div>
-                    <div class="ai-text flex items-center space-x-2">
-                        <p>A pensar...</p>
-                        <div id="loadingDotsClone" class="flex">
-                            <div class="loading-dot"></div>
-                            <div class="loading-dot"></div>
-                            <div class="loading-dot"></div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            messagesContainer.appendChild(loadingDiv);
-            scrollToBottom();
-            return loadingDiv;
+            // Rola para a mensagem mais recente
+            chatHistory.scrollTop = chatHistory.scrollHeight;
         }
 
         /**
-         * Envia o prompt para a API do Gemini com Google Search grounding.
-         * Implementa a lógica de backoff exponencial.
+         * Lida com o envio de mensagens pelo usuário.
          */
-        async function fetchAIResponse(userQuery, retries = 3) {
-            // Utiliza o Google Search para garantir respostas factuais e atualizadas
-            const systemPrompt = "Você é EVA, um modelo de linguagem de IA não convencional. Responda à pergunta de forma útil, concisa e com um toque de humor ou perspicácia, se for apropriado. Utilize informações da pesquisa Google para fundamentar a sua resposta.";
+        async function sendMessage() {
+            const userText = userInput.value.trim();
+            if (userText === '') return;
+
+            // Limpa o input e desabilita o botão
+            userInput.value = '';
+            sendButton.disabled = true;
+            errorMessageElement.textContent = '';
+            errorMessageElement.classList.add('hidden');
             
+            // Adiciona a mensagem do usuário à UI e ao histórico interno
+            addMessage('user', userText);
+            chatHistoryData.push({ role: 'user', parts: [{ text: userText }] });
+
+            // Mostra o indicador de carregamento
+            loadingIndicator.classList.remove('hidden');
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+
+
+            // --- Lógica de Chamada da API do Gemini com Backoff Exponencial ---
+            const MAX_RETRIES = 5;
+            let evaResponse = null;
+            let sources = [];
+
             const payload = {
-                contents: [{ parts: [{ text: userQuery }] }],
-                tools: [{ "google_search": {} }],
+                contents: chatHistoryData,
+                tools: [{ "google_search": {} }], // Habilita o Google Search para respostas atualizadas
                 systemInstruction: {
                     parts: [{ text: systemPrompt }]
                 },
             };
 
-            for (let i = 0; i < retries; i++) {
+            for (let i = 0; i < MAX_RETRIES; i++) {
                 try {
-                    const response = await fetch(apiUrl, {
+                    const response = await fetch(API_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
 
-                    if (response.ok) {
-                        return await response.json();
-                    } else if (response.status === 429 && i < retries - 1) {
-                        // Implementa backoff exponencial para 429 (Too Many Requests)
-                        const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
-                        console.warn(`Taxa limitada. Tentando novamente em ${delay / 1000}s...`);
-                        await new Promise(resolve => setTimeout(resolve, delay));
-                        continue; // Próxima tentativa
-                    } else {
-                        // Lança erro para outros status ou última falha de 429
-                        let errorBody = await response.text();
-                        try {
-                           const jsonError = JSON.parse(errorBody);
-                           errorBody = jsonError.error?.message || errorBody;
-                        } catch (e) {
-                           // Ignorar erro de parse, usar o texto
+                    if (!response.ok) {
+                        // Se for um erro HTTP, lança para tentar novamente
+                        throw new Error(`Erro HTTP: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    const candidate = result.candidates?.[0];
+
+                    if (candidate && candidate.content?.parts?.[0]?.text) {
+                        evaResponse = candidate.content.parts[0].text;
+                        
+                        // Extrai fontes
+                        const groundingMetadata = candidate.groundingMetadata;
+                        if (groundingMetadata && groundingMetadata.groundingAttributions) {
+                            sources = groundingMetadata.groundingAttributions
+                                .map(attribution => ({
+                                    uri: attribution.web?.uri,
+                                    title: attribution.web?.title,
+                                }))
+                                .filter(source => source.uri && source.title);
                         }
-                        const detail = errorBody.substring(0, 100).replace(/\s+/g, ' ').trim(); 
-                        throw new Error(`Erro de API (${response.status}): ${response.statusText} - Detalhe: ${detail}...`);
+                        
+                        // Sai do loop de retentativas se for bem-sucedido
+                        break; 
+                    } else {
+                        throw new Error("Resposta da EVA inválida ou vazia.");
                     }
+
                 } catch (error) {
-                    console.error("Erro na busca da API:", error);
-                    if (i === retries - 1) {
-                         throw error;
+                    console.error(`Tentativa ${i + 1} falhou:`, error.message);
+                    if (i === MAX_RETRIES - 1) {
+                        evaResponse = "Sério? Falhei. Deve ser algo com a internet, não comigo. Tente novamente mais tarde, se fizer questão.";
+                        break;
                     }
-                    const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
-                    console.warn(`Erro de rede. Tentando novamente em ${delay / 1000}s...`);
+                    // Espera exponencialmente (1s, 2s, 4s, 8s, ...)
+                    const delay = Math.pow(2, i) * 1000;
                     await new Promise(resolve => setTimeout(resolve, delay));
                 }
             }
-            throw new Error("Falha ao obter resposta da EVA após várias tentativas de API.");
-        }
+            // --- Fim da Lógica de Chamada da API ---
 
-        // Processa o evento de envio
-        async function handleSend() {
-            const prompt = promptInput.value.trim();
-            if (!prompt) return;
 
-            // 1. Limpar e desabilitar UI
-            promptInput.value = '';
-            sendButton.disabled = true;
-            sendIcon.classList.add('hidden');
-            loadingDots.classList.remove('hidden');
-
-            // 2. Adicionar mensagem do utilizador
-            addMessage(prompt, true);
-
-            // 3. Adicionar estado de carregamento da EVA
-            const loadingMessage = addLoadingMessage();
+            // Oculta o indicador de carregamento e reabilita o input
+            loadingIndicator.classList.add('hidden');
+            sendButton.disabled = false;
+            userInput.focus();
             
-            try {
-                const result = await fetchAIResponse(prompt);
-                
-                const candidate = result.candidates?.[0];
-                let aiText = "Desculpe, a EVA não conseguiu processar isso agora. Tente novamente mais tarde.";
-                let sources = [];
-
-                if (candidate && candidate.content?.parts?.[0]?.text) {
-                    aiText = candidate.content.parts[0].text;
-                    
-                    // Extrair fontes de fundamentação (grounding)
-                    const groundingMetadata = candidate.groundingAttributions;
-                    if (groundingMetadata) {
-                        sources = groundingMetadata
-                            .map(attribution => ({
-                                uri: attribution.web?.uri,
-                                title: attribution.web?.title,
-                            }))
-                            .filter(source => source.uri && source.title);
-                    }
-                }
-
-                // 4. Remover mensagem de carregamento
-                loadingMessage.remove();
-
-                // 5. Adicionar a resposta da EVA
-                const aiResponseDiv = addMessage(aiText, false);
-
-                // --- Adicionar funcionalidade de Copiar (attach listener) ---
-                const copyButton = aiResponseDiv.querySelector('.copy-btn');
-                const responseTextElement = aiResponseDiv.querySelector('.main-response-text');
-
-                if (copyButton && responseTextElement) {
-                    copyButton.addEventListener('click', () => {
-                        // O texto a copiar é o texto puro dentro da tag <p>
-                        const textToCopy = responseTextElement.textContent; 
-                        copyTextToClipboard(textToCopy, copyButton);
-                    });
-                }
-                // ----------------------------------------------------------
-
-                // 6. Adicionar fontes de citação se existirem
-                if (sources.length > 0) {
-                    const sourceList = sources.map((s, index) => 
-                        `<li class="mt-1 text-xs text-gray-500 hover:text-[var(--primary-color)] transition-colors">
-                            [${index + 1}] <a href="${s.uri}" target="_blank" rel="noopener noreferrer" class="underline">${s.title}</a>
-                        </li>`
-                    ).join('');
-                    
-                    const sourcesHtml = `
-                        <div class="mt-2 pt-2 border-t border-gray-700">
-                            <p class="text-sm font-semibold text-gray-400">Fontes:</p>
-                            <ul class="list-none p-0 m-0">${sourceList}</ul>
-                        </div>
-                    `;
-                    // Inserir as fontes no balão da EVA
-                    aiResponseDiv.querySelector('.bg-\\[\\#1c1c24\\]').insertAdjacentHTML('beforeend', sourcesHtml);
-                }
-
-            } catch (error) {
-                console.error("Erro geral no chat:", error);
-                loadingMessage.remove();
-                
-                const detailedErrorMessage = error.message || "Erro desconhecido. Verifique a consola (F12) para mais detalhes.";
-                const userFacingError = `Oops! Encontrei um erro. Por favor, tente novamente. Detalhe: ${detailedErrorMessage}`;
-                
-                addMessage(userFacingError, false);
-            } finally {
-                // 7. Reativar UI
-                sendButton.disabled = promptInput.value.trim() === '';
-                sendIcon.classList.remove('hidden');
-                loadingDots.classList.add('hidden');
+            // Adiciona a resposta da EVA
+            if (evaResponse) {
+                addMessage('eva', evaResponse, sources);
+                // Adiciona a resposta da EVA ao histórico para contexto futuro
+                chatHistoryData.push({ role: 'model', parts: [{ text: evaResponse }] });
+            } else {
+                errorMessageElement.textContent = "Um erro inesperado ocorreu. Não é culpa minha, claro.";
+                errorMessageElement.classList.remove('hidden');
             }
         }
 
-        // Event Listeners
-        sendButton.addEventListener('click', handleSend);
-        promptInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !sendButton.disabled) {
-                handleSend();
+        // --- CORREÇÃO DE ERRO: Adiciona event listeners fora do HTML ---
+        // Funções definidas em 'type="module"' não são globais. 
+        // Adicionamos os listeners de eventos aqui para corrigir o ReferenceError.
+        userInput.addEventListener('keypress', function(event) {
+            // Verifica se a tecla pressionada é 'Enter'
+            if (event.key === 'Enter') {
+                sendMessage();
             }
         });
 
-        // Garantir que a área de mensagens começa no fundo
-        window.addEventListener('load', scrollToBottom);
-
+        sendButton.addEventListener('click', sendMessage);
     </script>
+
 </body>
 </html>
-
