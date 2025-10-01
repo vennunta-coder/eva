@@ -1,260 +1,331 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EVA</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    /* Estilos base (Mantenho os seus estilos e adiciono Tailwind para responsividade e visual) */
-    body {
-      font-family: Arial, sans-serif;
-      background: #f7f7f7; /* Cor de fundo mais clara */
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      color: #333;
-    }
-    header {
-      font-size: 24px;
-      font-weight: 700; /* Bold */
-      padding: 15px 20px;
-      background: #fff;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      color: #1a73e8; /* Cor principal */
-    }
-    header span.v { color: #f90; } /* Laranja */
-    main {
-      flex: 1;
-      padding: 20px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    /* Estilos das mensagens */
-    .mensagem {
-      max-width: 85%; /* Aumenta um pouco para dispositivos móveis */
-      padding: 12px 16px;
-      border-radius: 18px; /* Cantos mais arredondados */
-      line-height: 1.4;
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      word-wrap: break-word;
-    }
-    .usuario {
-      background: #1a73e8;
-      color: white;
-      margin-left: auto;
-      border-bottom-right-radius: 4px; /* Ponta da bolha */
-    }
-    .eva {
-      background: #eef1f5;
-      color: #333;
-      margin-right: auto;
-      border-bottom-left-radius: 4px; /* Ponta da bolha */
-    }
-    .eva .avatar {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      flex-shrink: 0;
-      background: #ddd; /* Fundo se a imagem falhar */
-    }
-    footer {
-      text-align: center;
-      padding: 10px;
-      font-size: 13px;
-      color: #888;
-    }
-    .entrada {
-      display: flex;
-      padding: 10px;
-      background: #fff;
-      border-top: 1px solid #eee;
-      align-items: center;
-    }
-    .entrada input {
-      flex: 1;
-      padding: 12px 18px;
-      font-size: 16px;
-      border: 1px solid #ddd;
-      border-radius: 25px;
-      outline: none;
-      transition: border-color 0.3s;
-    }
-    .entrada input:focus {
-      border-color: #1a73e8;
-    }
-    .entrada button {
-      margin-left: 8px;
-      padding: 12px 18px;
-      border: none;
-      background: #1a73e8;
-      color: white;
-      border-radius: 25px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-    .entrada button:hover {
-      background: #155cb8;
-    }
-    .loading-indicator {
-      display: none;
-      color: #888;
-      font-style: italic;
-      padding-left: 42px; /* Alinha com o texto EVA */
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EVA AI - Sua Interface de Inteligência Artificial</title>
+    <!-- Inclui o Tailwind CSS para estilização moderna e responsiva -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Configurações globais para usar a fonte Inter e cores escuras */
+        :root {
+            --primary-color: #a855f7; /* Cor principal (roxo/magenta, similar ao Grok) */
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b0b0f; /* Fundo muito escuro */
+        }
+        /* Estilo para a animação de carregamento (dots) */
+        .loading-dot {
+            animation: dot-flicker 1.4s infinite ease-in-out both;
+            background-color: var(--primary-color);
+            border-radius: 50%;
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            margin: 0 2px;
+        }
+        .loading-dot:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dot:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes dot-flicker {
+            0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+        /* Cor de destaque para o texto da IA */
+        .ai-text {
+            color: #d1d5db; /* Cinza claro */
+        }
+        /* Estilo do botão de envio */
+        #sendButton {
+            transition: all 0.2s ease-in-out;
+        }
+        #sendButton:hover:not(:disabled) {
+            transform: scale(1.05);
+            background-color: #9333ea;
+        }
+    </style>
 </head>
-<body>
-  <header><span>E</span><span class="v">V</span><span>A</span></header>
+<body class="min-h-screen flex flex-col antialiased text-white">
 
-  <main id="chat">
-    <div class="mensagem eva">
-      <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/evalogo.png" class="avatar" alt="EVA Avatar">
-      <div><b><span>E</span><span class="v">V</span><span>A</span>:</b> Olá! Eu sou a EVA, sua assistente de IA. Pergunte-me qualquer coisa sobre o tempo, curiosidades, ou qualquer outra coisa que precisar!</div>
+    <!-- Container Principal do Chat -->
+    <div id="chatContainer" class="flex flex-col flex-1 w-full max-w-4xl mx-auto p-4 sm:p-6 md:p-8">
+        
+        <!-- Cabeçalho (EVA Logo) -->
+        <header class="text-center mb-8 pt-4">
+            <h1 class="text-6xl sm:text-7xl font-extrabold tracking-tight" style="color: var(--primary-color);">
+                EVA
+            </h1>
+            <p class="text-lg text-gray-500 mt-1">A sua IA não convencional.</p>
+        </header>
+
+        <!-- Área de Histórico de Mensagens -->
+        <div id="messages" class="flex-1 overflow-y-auto space-y-6 pb-6 scroll-smooth">
+            
+            <!-- Mensagem de Boas-vindas (similar ao onboarding do Grok) -->
+            <div class="flex justify-start">
+                <div class="bg-[#1c1c24] p-4 rounded-xl shadow-lg max-w-3xl">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <span class="text-xl font-bold" style="color: var(--primary-color);">EVA</span>
+                    </div>
+                    <p class="ai-text">
+                        Olá! Eu sou a EVA. Pergunte-me qualquer coisa sobre o universo, o futuro ou a melhor receita de pizza. Estou pronta para começar a conversa.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Fim da Área de Histórico -->
+
+        <!-- Área de Entrada do Prompt (Fixa na parte inferior) -->
+        <div class="sticky bottom-0 bg-[#0b0b0f] pt-4 pb-4">
+            <div class="flex items-center bg-[#1c1c24] rounded-2xl p-2 border border-gray-700 focus-within:border-[var(--primary-color)] transition-colors duration-200 shadow-xl">
+                
+                <input 
+                    type="text" 
+                    id="promptInput" 
+                    placeholder="Pergunte algo à EVA..." 
+                    class="flex-1 bg-transparent text-lg text-white p-3 focus:outline-none placeholder-gray-500 rounded-l-xl"
+                    aria-label="Introduza a sua pergunta ou comando"
+                >
+
+                <!-- Botão de Envio -->
+                <button 
+                    id="sendButton" 
+                    class="bg-[var(--primary-color)] text-white p-3 rounded-xl ml-2 shadow-lg shadow-[var(--primary-color)]/50 disabled:bg-gray-600 disabled:shadow-none"
+                    aria-label="Enviar prompt"
+                    disabled
+                >
+                    <!-- Ícone de seta para enviar (SVG) -->
+                    <svg id="sendIcon" class="w-6 h-6 transform rotate-45 -mt-1 -mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                    </svg>
+                    <!-- Ícone de Carregamento (Hidden by default) -->
+                    <div id="loadingDots" class="hidden flex justify-center items-center w-6 h-6">
+                        <div class="loading-dot"></div>
+                        <div class="loading-dot"></div>
+                        <div class="loading-dot"></div>
+                    </div>
+                </button>
+            </div>
+        </div>
+
     </div>
-  </main>
 
-  <div class="entrada">
-    <input type="text" id="pergunta" placeholder="Mensagem..." onkeypress="if(event.keyCode===13) enviarMensagem()">
-    <button onclick="enviarMensagem()">Enviar</button>
-  </div>
-  <div id="loading" class="loading-indicator">EVA está a pensar...</div>
+    <script type="module">
+        // Definição das variáveis de UI
+        const promptInput = document.getElementById('promptInput');
+        const sendButton = document.getElementById('sendButton');
+        const messagesContainer = document.getElementById('messages');
+        const loadingDots = document.getElementById('loadingDots');
+        const sendIcon = document.getElementById('sendIcon');
+        
+        const apiKey = ""; // Chave de API deixada vazia para preenchimento automático
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
 
-  <footer><span>E</span><span class="v">V</span><span>A</span> © 2025</footer>
+        // Utility para scrollar automaticamente para o fundo
+        function scrollToBottom() {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
 
-  <script>
-    const OPENWEATHER_API_KEY = "7db838cde261492656dc201d1d17e4aa";
-    // A chave da API Gemini será fornecida automaticamente pelo ambiente
-    const apiKey = ""; 
-
-    // Função: API Gemini (para perguntas gerais)
-    async function getGeminiResponse(query) {
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-
-      const systemPrompt = "Você é EVA, uma assistente virtual prestativa, concisa e amigável. Responda à pergunta do usuário de forma direta e em português. Use apenas informações que você possa confirmar e use formatação Markdown para listas ou negrito se for útil.";
-
-      const payload = {
-        contents: [{ parts: [{ text: query }] }],
-        // Usar Google Search para respostas factuais e atualizadas
-        tools: [{ "google_search": {} }],
-        systemInstruction: {
-          parts: [{ text: systemPrompt }]
-        },
-      };
-
-      try {
-        const response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+        // Habilita/Desabilita o botão de envio
+        promptInput.addEventListener('input', () => {
+            sendButton.disabled = promptInput.value.trim() === '';
         });
 
-        if (!response.ok) {
-          console.error('Gemini API HTTP Error:', response.status, response.statusText);
-          return "❌ Ocorreu um erro ao tentar conectar com a minha inteligência (Erro HTTP). Por favor, tente novamente.";
+        // Adiciona um novo balão de mensagem ao chat
+        function addMessage(text, isUser = false) {
+            const messageDiv = document.createElement('div');
+            
+            if (isUser) {
+                // Mensagem do Utilizador (alinhada à direita)
+                messageDiv.className = 'flex justify-end';
+                messageDiv.innerHTML = `
+                    <div class="bg-indigo-600 p-4 rounded-xl shadow-lg max-w-3xl">
+                        <div class="flex items-center justify-end space-x-2 mb-2">
+                            <span class="text-md font-semibold text-white">Você</span>
+                        </div>
+                        <p class="text-white whitespace-pre-wrap">${text}</p>
+                    </div>
+                `;
+            } else {
+                // Mensagem da EVA (alinhada à esquerda)
+                messageDiv.className = 'flex justify-start';
+                messageDiv.innerHTML = `
+                    <div class="bg-[#1c1c24] p-4 rounded-xl shadow-lg max-w-3xl">
+                        <div class="flex items-center space-x-2 mb-2">
+                            <span class="text-xl font-bold" style="color: var(--primary-color);">EVA</span>
+                        </div>
+                        <p class="ai-text whitespace-pre-wrap">${text}</p>
+                    </div>
+                `;
+            }
+            messagesContainer.appendChild(messageDiv);
+            scrollToBottom();
+            return messageDiv;
         }
 
-        const result = await response.json();
-        const candidate = result.candidates?.[0];
-
-        if (candidate && candidate.content?.parts?.[0]?.text) {
-          // A resposta da IA
-          return candidate.content.parts[0].text;
-        } else {
-          // Se a resposta estiver vazia ou inválida
-          return "😕 Não consegui gerar uma resposta para isso. Tente refazer a pergunta ou tente mais tarde.";
+        // Adiciona o balão de carregamento da EVA
+        function addLoadingMessage() {
+            const loadingDiv = document.createElement('div');
+            loadingDiv.id = 'evaLoading';
+            loadingDiv.className = 'flex justify-start';
+            loadingDiv.innerHTML = `
+                <div class="bg-[#1c1c24] p-4 rounded-xl shadow-lg">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <span class="text-xl font-bold" style="color: var(--primary-color);">EVA</span>
+                    </div>
+                    <div class="ai-text flex items-center space-x-2">
+                        <p>A pensar...</p>
+                        <div id="loadingDotsClone" class="flex">
+                            <div class="loading-dot"></div>
+                            <div class="loading-dot"></div>
+                            <div class="loading-dot"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            messagesContainer.appendChild(loadingDiv);
+            scrollToBottom();
+            return loadingDiv;
         }
-      } catch (error) {
-        console.error('Gemini API Fetch Error:', error);
-        return "⚠️ Ocorreu um erro de rede. Verifique sua conexão ou tente mais tarde.";
-      }
-    }
 
-    // Função: Clima
-    async function getWeather(city) {
-      const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${OPENWEATHER_API_KEY}&units=metric&lang=pt`;
-      try {
-        const response = await fetch(url);
-        const data = await response.json();
-        if (data.cod === 200) {
-          return `🌤️ Clima em ${data.name}: ${data.weather[0].description}, **${Math.round(data.main.temp)}°C** (sensação ${Math.round(data.main.feels_like)}°C), humidade ${data.main.humidity}%, vento ${data.wind.speed} km/h.`;
-        } else {
-          // Para evitar o fallback para o Google em caso de erro 404 de cidade
-          return "❌ Não consegui encontrar informações sobre o clima para essa cidade.";
+        /**
+         * Envia o prompt para a API do Gemini com Google Search grounding.
+         * Implementa a lógica de backoff exponencial.
+         */
+        async function fetchAIResponse(userQuery, retries = 3) {
+            // Utiliza o Google Search para garantir respostas factuais e atualizadas
+            const systemPrompt = "Você é EVA, um modelo de linguagem de IA não convencional. Responda à pergunta de forma útil, concisa e com um toque de humor ou perspicácia, se for apropriado. Utilize informações da pesquisa Google para fundamentar a sua resposta.";
+            
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                tools: [{ "google_search": {} }],
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                },
+            };
+
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.ok) {
+                        return await response.json();
+                    } else if (response.status === 429 && i < retries - 1) {
+                        // Implementa backoff exponencial para 429 (Too Many Requests)
+                        const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
+                        console.warn(`Taxa limitada. Tentando novamente em ${delay / 1000}s...`);
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        continue; // Próxima tentativa
+                    } else {
+                        // Lança erro para outros status ou última falha de 429
+                        throw new Error(`Erro de API: ${response.statusText}`);
+                    }
+                } catch (error) {
+                    console.error("Erro na busca da API:", error);
+                    if (i === retries - 1) {
+                         throw new Error(`Falha ao obter resposta da EVA: ${error.message}`);
+                    }
+                    const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
+                    console.warn(`Erro de rede. Tentando novamente em ${delay / 1000}s...`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
         }
-      } catch {
-        return "⚠️ Erro ao conectar ao serviço do tempo. Tente novamente.";
-      }
-    }
 
-    // Função: Processar pergunta
-    async function processarPergunta(pergunta) {
-      pergunta = pergunta.toLowerCase().trim();
+        // Processa o evento de envio
+        async function handleSend() {
+            const prompt = promptInput.value.trim();
+            if (!prompt) return;
 
-      // 1. Ano Atual
-      if (pergunta.includes("que ano") || pergunta.includes("em que ano estamos") || pergunta.includes("ano atual")) {
-        const anoAtual = new Date().getFullYear();
-        return `📅 Estamos no ano de **${anoAtual}**.`;
-      }
+            // 1. Limpar e desabilitar UI
+            promptInput.value = '';
+            sendButton.disabled = true;
+            sendIcon.classList.add('hidden');
+            loadingDots.classList.remove('hidden');
 
-      // 2. Clima (Usa a função de terceiros, pois é mais rápida para o clima)
-      if (pergunta.includes("tempo em") || pergunta.includes("clima em") || pergunta.includes("vai chover")) {
-        let cidade = pergunta.replace("tempo em", "")
-                             .replace("clima em", "")
-                             .replace("vai chover em", "")
-                             .trim();
-        if (cidade.length > 0) {
-          return await getWeather(cidade);
-        } else {
-          return "Por favor, diga o nome da cidade para eu verificar o clima. 🌍";
+            // 2. Adicionar mensagem do utilizador
+            addMessage(prompt, true);
+
+            // 3. Adicionar estado de carregamento da EVA
+            const loadingMessage = addLoadingMessage();
+            
+            try {
+                const result = await fetchAIResponse(prompt);
+                
+                const candidate = result.candidates?.[0];
+                let aiText = "Desculpe, a EVA não conseguiu processar isso agora. Tente novamente mais tarde.";
+                let sources = [];
+
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                    aiText = candidate.content.parts[0].text;
+                    
+                    // Extrair fontes de fundamentação (grounding)
+                    const groundingMetadata = candidate.groundingMetadata;
+                    if (groundingMetadata && groundingMetadata.groundingAttributions) {
+                        sources = groundingMetadata.groundingAttributions
+                            .map(attribution => ({
+                                uri: attribution.web?.uri,
+                                title: attribution.web?.title,
+                            }))
+                            .filter(source => source.uri && source.title);
+                    }
+                }
+
+                // 4. Remover mensagem de carregamento
+                loadingMessage.remove();
+
+                // 5. Adicionar a resposta da EVA
+                const aiResponseDiv = addMessage(aiText, false);
+
+                // 6. Adicionar fontes de citação se existirem
+                if (sources.length > 0) {
+                    const sourceList = sources.map((s, index) => 
+                        `<li class="mt-1 text-xs text-gray-500 hover:text-[var(--primary-color)] transition-colors">
+                            [${index + 1}] <a href="${s.uri}" target="_blank" rel="noopener noreferrer" class="underline">${s.title}</a>
+                        </li>`
+                    ).join('');
+                    
+                    const sourcesHtml = `
+                        <div class="mt-2 pt-2 border-t border-gray-700">
+                            <p class="text-sm font-semibold text-gray-400">Fontes:</p>
+                            <ul class="list-none p-0 m-0">${sourceList}</ul>
+                        </div>
+                    `;
+                    // Inserir as fontes no balão da EVA
+                    aiResponseDiv.querySelector('.bg-\\[\\#1c1c24\\]').insertAdjacentHTML('beforeend', sourcesHtml);
+                }
+
+            } catch (error) {
+                console.error("Erro geral no chat:", error);
+                loadingMessage.remove();
+                addMessage("Oops! Encontrei um erro. Verifique a consola para mais detalhes e tente novamente.", false);
+            } finally {
+                // 7. Reativar UI
+                sendButton.disabled = promptInput.value.trim() === '';
+                sendIcon.classList.remove('hidden');
+                loadingDots.classList.add('hidden');
+            }
         }
-      }
 
-      // 3. Fallback inteligente (Agora usando o Gemini para tudo o resto)
-      return await getGeminiResponse(pergunta);
-    }
+        // Event Listeners
+        sendButton.addEventListener('click', handleSend);
+        promptInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !sendButton.disabled) {
+                handleSend();
+            }
+        });
 
-    // Enviar mensagem
-    async function enviarMensagem() {
-      const input = document.getElementById("pergunta");
-      const loading = document.getElementById("loading");
-      const pergunta = input.value.trim();
-      if (!pergunta) return;
+        // Garantir que a área de mensagens começa no fundo
+        window.addEventListener('load', scrollToBottom);
 
-      const chat = document.getElementById("chat");
-
-      // Mensagem do Usuário
-      const divUser = document.createElement("div");
-      divUser.className = "mensagem usuario";
-      divUser.innerText = pergunta;
-      chat.appendChild(divUser);
-
-      input.value = "";
-      input.disabled = true; // Desabilita o input durante o processamento
-      loading.style.display = 'block'; // Mostra o indicador de loading
-      chat.scrollTop = chat.scrollHeight;
-
-      // EVA resposta
-      const resposta = await processarPergunta(pergunta);
-      
-      loading.style.display = 'none'; // Esconde o indicador de loading
-      input.disabled = false; // Reabilita o input
-
-      const divEva = document.createElement("div");
-      divEva.className = "mensagem eva";
-      // O innerHTML é usado para renderizar o Markdown da resposta do LLM
-      divEva.innerHTML = `<img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/evalogo.png" class="avatar" alt="EVA Avatar"><div><b><span>E</span><span class="v">V</span><span>A</span>:</b> ${resposta}</div>`;
-      chat.appendChild(divEva);
-
-      chat.scrollTop = chat.scrollHeight;
-      input.focus(); // Coloca o foco de volta na caixa de texto
-    }
-  </script>
+    </script>
 </body>
 </html>
 
