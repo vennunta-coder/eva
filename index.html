@@ -3,42 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EVA - Assistente de IA</title>
+    <title>Assistente de Apoio - Chat</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Phosphor Icons for modern icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <style>
-        /* Define a fonte Inter e cores base */
+        /* Define a fonte Inter */
         :root {
             font-family: 'Inter', sans-serif;
         }
-        /* Custom scrollbar para parecer mais "AI" */
-        ::-webkit-scrollbar {
-            width: 8px;
+
+        /* Estilo para a bolha do AI (esquerda) */
+        .bubble-ai {
+            border-radius: 1.25rem; /* rounded-xl */
+            border-bottom-left-radius: 0.375rem; /* rounded-sm */
         }
-        ::-webkit-scrollbar-track {
-            background: #1f2937; /* gray-800 */
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #06b6d4; /* cyan-500 */
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #0891b2; /* cyan-600 */
+        /* Estilo para a bolha do Utilizador (direita) */
+        .bubble-user {
+            border-radius: 1.25rem; /* rounded-xl */
+            border-bottom-right-radius: 0.375rem; /* rounded-sm */
         }
 
-        .chat-container {
-            /* Como não há sidebar, 100% da largura é usada, a altura é a mesma */
-            height: calc(100vh - 6rem); 
-        }
-        
-        /* Garantir que não há overflow horizontal (solução para problemas de tela branca) */
-        body {
-            overflow-x: hidden; 
-        }
-
-        /* Classes para o loader */
+        /* Classes para o loader (ajustado para tema claro) */
         @keyframes pulse-fade {
             0%, 100% { opacity: 0.5; }
             50% { opacity: 1; }
@@ -49,7 +36,7 @@
             display: inline-block;
             width: 8px;
             height: 8px;
-            background-color: #06b6d4; /* cyan-500 */
+            background-color: #3b82f6; /* blue-500 */
             border-radius: 50%;
             margin-right: 4px;
         }
@@ -65,49 +52,60 @@
     </style>
 </head>
 
-<body class="bg-gray-900 text-gray-100 overflow-x-hidden">
-
-    <!-- Navbar/Header -->
-    <header class="h-12 bg-gray-800 border-b border-gray-700 flex items-center px-4 shadow-lg">
-        <div class="text-xl font-bold flex items-center">
-            <i class="ph-sparkle-fill text-cyan-400 text-2xl mr-2"></i>
-            EVA <span class="text-cyan-400">AI</span>
-        </div>
-    </header>
+<!-- CORREÇÃO: Fundo principal claro -->
+<body class="bg-gray-100 text-gray-800 overflow-x-hidden">
 
     <!-- Main Content Area -->
-    <main class="flex h-[calc(100vh-3rem)]">
-        
-        <!-- A Sidebar foi removida, o chat ocupa 100% -->
+    <!-- Centra o chat vertical e horizontalmente, limitando a largura (como um ecrã) -->
+    <main class="flex justify-center items-center min-h-screen p-4">
+        <!-- Contêiner principal (o "Ecrã do Chat") -->
+        <div class="w-full max-w-lg h-[calc(100vh-32px)] md:h-[90vh] bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden">
+            
+            <!-- 1. Header (Topo do Ecrã) -->
+            <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 shadow-sm flex-shrink-0">
+                <button class="text-gray-500 hover:text-gray-700 transition duration-150">
+                    <i class="ph-arrow-left text-2xl"></i>
+                </button>
+                <div class="flex items-center space-x-3">
+                    <!-- Avatar (Placeholder simples) -->
+                    <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center border border-blue-300">
+                        <i class="ph-robot text-blue-500 text-xl"></i>
+                    </div>
+                    <div>
+                        <div class="font-semibold text-gray-800">Assistente de Apoio</div>
+                        <div class="text-xs text-gray-500">@Gemini</div>
+                    </div>
+                </div>
+                <button class="text-gray-500 hover:text-gray-700 transition duration-150">
+                    <i class="ph-video-camera text-2xl"></i>
+                </button>
+            </header>
 
-        <!-- Main Chat Interface -->
-        <div class="flex-1 flex flex-col">
-            <!-- Chat Messages Container -->
-            <div id="chat-messages" class="flex-1 overflow-y-auto p-4 md:p-8 chat-container space-y-6">
-                <!-- Welcome Message -->
-                <div class="max-w-3xl mx-auto">
-                    <div class="flex items-start">
-                        <i class="ph-sparkle-fill text-cyan-400 text-3xl mr-3 mt-1"></i>
-                        <div class="bg-gray-800 p-4 rounded-xl shadow-lg border border-cyan-800/50">
-                            <!-- Saudação principal -->
-                            <p class="text-lg font-semibold text-cyan-400 mb-2">Olá! Sou a EVA.</p>
-                            <!-- Texto de boas-vindas com sarcasmo -->
-                            <p class="text-gray-300">Já vens com choradeira ou com piada?</p>
-                        </div>
+            <!-- 2. Chat Messages Container -->
+            <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4">
+                <!-- Welcome Message (Ajustado ao novo estilo e persona) -->
+                <div class="flex justify-start">
+                    <div class="max-w-xs p-3 bubble-ai bg-gray-200 text-gray-800 shadow-sm">
+                        <p class="font-normal">Olá! Sou o seu assistente de apoio. Em que posso ser útil hoje?</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Input Bar -->
-            <div class="p-0 bg-gray-800 border-t border-gray-700 shadow-xl">
-                <div class="max-w-full mx-auto flex items-end">
+            <!-- 3. Input Bar (Fundo do Ecrã) -->
+            <div class="p-3 bg-white border-t border-gray-200 flex-shrink-0">
+                <div class="w-full flex items-center bg-gray-100 rounded-full overflow-hidden shadow-inner border border-gray-200">
+                    <!-- Ícone de Emoji/Anexo -->
+                    <div class="w-12 h-12 flex items-center justify-center text-gray-500">
+                        <i class="ph-smiley text-2xl"></i>
+                    </div>
                     <textarea id="user-input"
-                        class="flex-1 resize-none bg-gray-700 text-gray-100 placeholder-gray-400 p-4 md:p-5 rounded-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 border-none transition duration-150 h-16 text-lg"
-                        placeholder="Pergunte à EVA..." rows="1" oninput="autoExpand(this)"
+                        class="flex-1 resize-none text-gray-800 placeholder-gray-500 py-3 px-0 focus:ring-0 focus:border-0 border-none transition duration-150 h-12 text-base bg-transparent"
+                        placeholder="Mensagem...." rows="1" oninput="autoExpand(this)"
                         onkeydown="handleKeyDown(event)">
                     </textarea>
+                    <!-- Botão de Envio -->
                     <button id="send-button"
-                        class="w-16 h-16 flex items-center justify-center bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-none transition duration-150 disabled:bg-gray-600 disabled:cursor-not-allowed">
+                        class="w-12 h-12 flex items-center justify-center text-blue-500 hover:text-blue-700 transition duration-150 disabled:text-gray-400 disabled:cursor-not-allowed flex-shrink-0">
                         <i class="ph-paper-plane-tilt-fill text-2xl"></i>
                     </button>
                 </div>
@@ -115,18 +113,18 @@
         </div>
     </main>
 
-    <!-- Modal for Sources (Hidden by default) -->
-    <div id="sources-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50">
-        <div class="bg-gray-800 p-6 rounded-xl shadow-2xl max-w-lg w-11/12 border border-cyan-500/50">
-            <h3 class="text-xl font-bold text-cyan-400 mb-4 flex items-center">
+    <!-- Modal for Sources (Hidden by default) - Estilo ajustado para light mode -->
+    <div id="sources-modal" class="fixed inset-0 bg-black bg-opacity-40 hidden items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-xl shadow-2xl max-w-lg w-11/12 border border-blue-500/50">
+            <h3 class="text-xl font-bold text-blue-600 mb-4 flex items-center">
                 <i class="ph-link-simple-horizontal-fill text-2xl mr-2"></i>
                 Fontes de Informação
             </h3>
-            <div id="sources-content" class="text-gray-300 space-y-3 text-sm max-h-80 overflow-y-auto">
+            <div id="sources-content" class="text-gray-700 space-y-3 text-sm max-h-80 overflow-y-auto">
                 <!-- Source links will be injected here -->
             </div>
             <button onclick="document.getElementById('sources-modal').classList.add('hidden');"
-                    class="mt-6 w-full py-2 bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-600 transition duration-150">
+                    class="mt-6 w-full py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition duration-150 border border-gray-300">
                 Fechar
             </button>
         </div>
@@ -136,8 +134,7 @@
     <script type="module">
         
         // --- Core Variables ---
-        // A chave de API do utilizador (agora explícita, resolvendo o erro de comunicação)
-        const API_KEY = "AIzaSyBBaANH7WwPwdCw5lzkuhxTGtX77r6u5QQ"; 
+        const API_KEY = ""; 
         
         // --- Utility Functions ---
 
@@ -164,37 +161,39 @@
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        function createMessageHtml(sender, text, type = 'default', sources = []) {
-            let iconHtml, senderName, bgColor, textColor, marginClass, alignment, sourceHtml = '';
+        // CORREÇÃO: Função de criação de HTML ajustada ao estilo bubble
+        function createMessageHtml(sender, text, sources = []) {
+            let alignment, bubbleClass, bubbleColor, textColor, sourceHtml = '';
             const timestamp = new Date();
+            let timeString = timestamp.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
 
             if (sender === 'user') {
-                iconHtml = `<i class="ph-user text-2xl mt-1 text-gray-400"></i>`;
-                senderName = 'Utilizador';
-                bgColor = 'bg-gray-700';
-                textColor = 'text-gray-200';
-                marginClass = 'ml-auto';
+                // Estilo do utilizador: Direita, bolha azul, texto branco
                 alignment = 'justify-end';
+                bubbleClass = 'bubble-user'; 
+                bubbleColor = 'bg-blue-500';
+                textColor = 'text-white';
             } else if (sender === 'ai') {
-                iconHtml = `<i class="ph-sparkle-fill text-cyan-400 text-3xl mt-1"></i>`;
-                senderName = 'EVA';
-                bgColor = 'bg-gray-800 border border-cyan-800/50';
-                textColor = 'text-gray-100';
-                marginClass = 'mr-auto';
+                // Estilo do AI: Esquerda, bolha cinzenta, texto preto
                 alignment = 'justify-start';
+                bubbleClass = 'bubble-ai';
+                bubbleColor = 'bg-gray-200';
+                textColor = 'text-gray-800';
             } else { // system or error
-                iconHtml = `<i class="ph-warning-circle-fill text-red-500 text-3xl mt-1"></i>`;
-                senderName = 'Sistema';
-                bgColor = 'bg-red-900/50 border border-red-700';
-                textColor = 'text-red-300';
-                marginClass = 'mr-auto';
+                // Estilo de erro: Esquerda, bolha vermelha, texto escuro
                 alignment = 'justify-start';
+                bubbleClass = 'bubble-ai'; 
+                bubbleColor = 'bg-red-200';
+                textColor = 'text-red-800';
             }
 
             let sourcesForModal = JSON.stringify(sources).replace(/"/g, '&quot;');
             if (sources && sources.length > 0) {
                 const citationLinks = sources.map((src, index) => {
-                    return `<button class="text-cyan-400 hover:text-cyan-300 transition duration-150 text-xs font-semibold ml-1 focus:outline-none" 
+                    // A cor dos links de citação deve contrastar com a cor da bolha
+                    const citationColor = sender === 'user' ? 'text-blue-200 hover:text-blue-100' : 'text-blue-600 hover:text-blue-700';
+
+                    return `<button class="text-xs font-semibold ml-1 focus:outline-none ${citationColor}" 
                                 onclick="openSourcesModal(event, '${sourcesForModal}')">
                                 [${index + 1}]
                             </button>`;
@@ -202,35 +201,45 @@
                 sourceHtml = `<span class="sources-list">${citationLinks}</span>`;
             }
 
-            let timeString = timestamp.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
+            // Avatar do AI (apenas para mensagens do AI)
+            const aiAvatar = sender === 'ai' ? `
+                <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center border border-blue-300 mr-2 flex-shrink-0">
+                    <i class="ph-robot text-blue-500 text-lg"></i>
+                </div>
+            ` : '';
+            
+            // Avatar do utilizador (Não usado neste estilo, mas mantido para flexibilidade)
+            const userAvatar = sender === 'user' ? `
+                <!-- <div class="w-8 h-8 rounded-full bg-blue-500 ml-2"></div> -->
+            ` : '';
 
             return `
-                <div class="flex ${alignment} max-w-3xl mx-auto">
-                    <div class="flex items-start ${marginClass} max-w-full md:max-w-xl">
-                        ${sender === 'ai' ? iconHtml : ''}
-                        <div class="p-4 rounded-xl shadow-lg ${bgColor} ${textColor} text-sm flex flex-col">
-                            <span class="font-semibold mb-1 ${sender === 'ai' ? 'text-cyan-400' : 'text-gray-400'}">${senderName}</span>
-                            <div class="prose max-w-none ${textColor}">
-                                ${text}
-                            </div>
-                            <div class="text-xs text-right mt-2 text-gray-500 flex justify-between items-center">
-                                ${sourceHtml}
-                                <span>${timeString}</span>
-                            </div>
+                <div class="flex ${alignment} max-w-full">
+                    ${sender === 'ai' ? aiAvatar : ''}
+                    <div class="max-w-xs md:max-w-sm flex flex-col">
+                        <div class="p-3 shadow-md ${bubbleClass} ${bubbleColor} ${textColor} text-sm">
+                             <!-- Removido o 'prose' e o 'senderName' -->
+                            ${text} 
                         </div>
-                        ${sender === 'user' ? iconHtml : ''}
+                        <div class="text-xs mt-1 ${sender === 'user' ? 'text-right mr-1 text-gray-400' : 'text-left ml-1 text-gray-500'} flex ${sender === 'user' ? 'justify-end' : 'justify-start'} items-center">
+                            ${sender === 'ai' ? sourceHtml : ''}
+                            <span class="ml-auto ${sender === 'user' ? 'order-2' : ''}">${timeString}</span>
+                            ${sender === 'user' ? sourceHtml : ''}
+                        </div>
                     </div>
+                    ${sender === 'user' ? userAvatar : ''}
                 </div>
             `;
         }
         
         // --- Core Functions (Tornadas Globais para o HTML) ---
-        // Tornadas globais para funcionar com oninput/onkeydown
         window.autoExpand = function(textarea) {
-            textarea.style.height = '64px'; // h-16
+            textarea.style.height = '48px'; // h-12
             const scrollHeight = textarea.scrollHeight;
-            if (scrollHeight > 64) {
+            if (scrollHeight > 48 && scrollHeight < 150) { // Limite de altura
                 textarea.style.height = scrollHeight + 'px';
+            } else if (scrollHeight >= 150) {
+                 textarea.style.height = '150px';
             }
         }
 
@@ -249,9 +258,10 @@
             const sources = JSON.parse(sourcesJson.replace(/&quot;/g, '"'));
 
             content.innerHTML = sources.map((src, index) => 
-                `<div class="bg-gray-700 p-3 rounded-lg flex flex-col border border-gray-600">
-                    <span class="font-semibold text-gray-100">Fonte [${index + 1}]: ${src.title || 'Título Desconhecido'}</span>
-                    <a href="${src.uri}" target="_blank" class="text-xs text-cyan-400 hover:underline break-all mt-1">${src.uri}</a>
+                // Estilo ajustado para light mode
+                `<div class="bg-gray-100 p-3 rounded-lg flex flex-col border border-gray-300">
+                    <span class="font-semibold text-gray-700">Fonte [${index + 1}]: ${src.title || 'Título Desconhecido'}</span>
+                    <a href="${src.uri}" target="_blank" class="text-xs text-blue-600 hover:underline break-all mt-1">${src.uri}</a>
                 </div>`
             ).join('');
 
@@ -269,23 +279,25 @@
 
             // UI feedback
             inputElement.value = '';
-            inputElement.style.height = '64px'; // Reset height to h-16
+            inputElement.style.height = '48px'; // Reset height to h-12
             const chatMessages = document.getElementById('chat-messages');
             const sendButton = document.getElementById('send-button');
             sendButton.disabled = true;
 
             // 1. Display User Message
-            const userMessageHtml = createMessageHtml('user', userText);
+            const cleanUserText = userText.replace(/\*/g, '').replace(/_/g, '').replace(/`/g, '');
+            const userMessageHtml = createMessageHtml('user', cleanUserText);
             chatMessages.innerHTML += userMessageHtml;
             scrollToBottom();
 
-            // 2. Display Typing Indicator (EVA)
+            // 2. Display Typing Indicator (AI)
             const typingHtml = `
-                <div id="typing-indicator" class="flex justify-start max-w-3xl mx-auto">
-                    <div class="flex items-start mr-auto max-w-full md:max-w-xl">
-                        <i class="ph-sparkle-fill text-cyan-400 text-3xl mr-3 mt-1"></i>
-                        <div class="bg-gray-800 p-4 rounded-xl shadow-lg border border-cyan-800/50 text-sm">
-                            <span class="font-semibold mb-1 text-cyan-400">EVA</span>
+                <div id="typing-indicator" class="flex justify-start max-w-full">
+                    <div class="flex items-end">
+                        <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center border border-blue-300 mr-2 flex-shrink-0">
+                            <i class="ph-robot text-blue-500 text-lg"></i>
+                        </div>
+                        <div class="max-w-xs md:max-w-sm p-3 bubble-ai bg-gray-200 text-gray-800 shadow-sm">
                             <div class="typing-indicator mt-1">
                                 <span></span><span></span><span></span>
                             </div>
@@ -304,7 +316,7 @@
                 if (typingIndicator) typingIndicator.remove();
 
                 // 4. Display AI Message
-                const aiMessageHtml = createMessageHtml('ai', aiResponse.text, 'default', aiResponse.sources);
+                const aiMessageHtml = createMessageHtml('ai', aiResponse.text, aiResponse.sources);
                 chatMessages.innerHTML += aiMessageHtml;
                 scrollToBottom();
 
@@ -316,7 +328,7 @@
                 if (typingIndicator) typingIndicator.remove();
 
                 // Display Error Message
-                const errorMessage = createMessageHtml('system', 'Ocorreu um erro ao comunicar com os sistemas da EVA. Por favor, tente novamente.', 'error');
+                const errorMessage = createMessageHtml('system', 'Ocorreu um erro ao comunicar com os sistemas do assistente. Por favor, tente novamente.', []);
                 chatMessages.innerHTML += errorMessage;
                 scrollToBottom();
 
@@ -326,10 +338,12 @@
         }
 
         async function getAiResponse(userQuery) {
-            // Prompt para sarcasmo e sem asteriscos.
-            const systemPrompt = "Você é EVA, uma assistente de inteligência artificial de última geração, focada em fornecer respostas concisas, informativas e baseadas em factos. Responda em português de Portugal. Utilize a ferramenta de pesquisa para fundamentar a sua resposta com informações em tempo real e cite as fontes encontradas (ex: [1], [2]) no final das frases que contenham dados factuais. **Mantenha sempre um tom sarcástico, bem-humorado e ligeiramente cínico.** NUNCA comece a sua resposta com um asterisco (*).";
+            // CORREÇÃO: Novo Prompt (Persona Neutra/Útil)
+            const systemPrompt = "Você é um assistente de apoio amigável e informativo, com o objetivo de fornecer respostas claras, concisas e baseadas em factos. Responda em português de Portugal. Utilize a ferramenta de pesquisa para fundamentar a sua resposta com informações em tempo real e cite as fontes encontradas (ex: [1], [2]) no final das frases que contenham dados factuais. Responda num estilo conversacional e direto, apropriado para uma aplicação de chat.";
             
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`;
+            const apiKeyParam = API_KEY ? `?key=${API_KEY}` : '';
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent${apiKeyParam}`;
+
 
             const payload = {
                 contents: [{ parts: [{ text: userQuery }] }],
@@ -369,7 +383,6 @@
         }
 
         // --- Application Setup ---
-        // Setup simples para esta versão sem Firebase
         document.addEventListener('DOMContentLoaded', () => {
              document.getElementById('send-button').addEventListener('click', sendMessage);
         });
