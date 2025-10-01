@@ -1,154 +1,190 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EVA</title>
-  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { font-family: 'Inter', sans-serif; }
-    .chat-bubble { max-width: 75%; word-wrap: break-word; }
-    .fade-in-up { animation: fadeInUp 0.8s ease-out; }
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+    body {
+      font-family: Arial, sans-serif;
+      background: #fff;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
     }
-    .logo-animate { animation: pulse 2s infinite; }
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.05); }
+    header {
+      font-size: 23px;
+      font-weight: bold;
+      padding: 15px;
+      color: black;
+    }
+    header span.v { color: orange; }
+    main {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .mensagem {
+      max-width: 70%;
+      padding: 10px 15px;
+      border-radius: 10px;
+      line-height: 1.5;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .usuario {
+      background: #1a73e8;
+      color: white;
+      margin-left: auto;
+      border-radius: 10px;
+    }
+    .eva {
+      background: #f1f1f1;
+      color: black;
+      margin-right: auto;
+      border-radius: 10px;
+    }
+    .eva .avatar {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+    }
+    footer {
+      text-align: center;
+      padding: 10px;
+      font-size: 14px;
+    }
+    footer span.v { color: orange; }
+    .entrada {
+      display: flex;
+      padding: 10px;
+      border-top: 1px solid #ccc;
+    }
+    .entrada input {
+      flex: 1;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+      outline: none;
+    }
+    .entrada button {
+      margin-left: 10px;
+      padding: 10px 20px;
+      border: none;
+      background: #1a73e8;
+      color: white;
+      border-radius: 20px;
+      cursor: pointer;
     }
   </style>
 </head>
-<body class="bg-white text-gray-900 flex flex-col min-h-screen">
+<body>
+  <header><span>E</span><span class="v">V</span><span>A</span></header>
 
-  <!-- Splash Screen -->
-  <div id="splash" class="flex flex-col items-center justify-center min-h-screen space-y-6">
-    <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/evalogo.png" 
-         alt="EVA Logo" class="w-32 h-32 rounded-full shadow-lg fade-in-up logo-animate" />
-    <h1 class="text-4xl font-bold fade-in-up">
-      <span class="text-black">E</span><span class="text-orange-500">V</span><span class="text-black">A</span>
-    </h1>
-    <p class="text-gray-600 fade-in-up">Assistente virtual pronta para responder a qualquer pergunta.</p>
-    <button id="enter-btn" 
-      class="px-6 py-2 bg-orange-500 text-white rounded-full shadow hover:bg-orange-600 transition">
-      👉 Clique para começar
-    </button>
-  </div>
-
-  <!-- Chat App -->
-  <div id="app" class="hidden flex flex-col flex-1">
-    <!-- Header -->
-    <header class="p-4 flex items-center space-x-3 border-b">
-      <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/evalogo.png" 
-           alt="EVA Logo" class="w-8 h-8 rounded-full shadow" />
-      <span class="font-semibold text-lg">
-        <span class="text-black">E</span><span class="text-orange-500">V</span><span class="text-black">A</span>
-      </span>
-    </header>
-
-    <!-- Chat messages -->
-    <main id="chat-messages" class="flex-1 p-4 space-y-4 overflow-y-auto"></main>
-
-    <!-- Input -->
-    <footer class="p-4 border-t flex space-x-2">
-      <input id="user-input" type="text" placeholder="Mensagem..." 
-        class="flex-1 border rounded-full px-4 py-2 focus:outline-none focus:ring focus:border-orange-500" />
-      <button id="send-btn" 
-        class="px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition">Enviar</button>
-    </footer>
-
-    <!-- Footer -->
-    <div class="text-center text-sm text-gray-500 py-2">
-      <span class="text-black">E</span><span class="text-orange-500">V</span><span class="text-black">A</span> © 2025
+  <main id="chat">
+    <div class="mensagem eva">
+      <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/evalogo.png" class="avatar">
+      <div><b><span>E</span><span class="v">V</span><span>A</span>:</b> Olá! Em que posso ajudar?</div>
     </div>
+  </main>
+
+  <div class="entrada">
+    <input type="text" id="pergunta" placeholder="Mensagem...">
+    <button onclick="enviarMensagem()">Enviar</button>
   </div>
+
+  <footer><span>E</span><span class="v">V</span><span>A</span> © 2025</footer>
 
   <script>
-    const splash = document.getElementById("splash");
-    const app = document.getElementById("app");
-    const enterBtn = document.getElementById("enter-btn");
-    const sendBtn = document.getElementById("send-btn");
-    const userInput = document.getElementById("user-input");
-    const chatMessages = document.getElementById("chat-messages");
+    const OPENWEATHER_API_KEY = "7db838cde261492656dc201d1d17e4aa";
 
-    // Entrar no app
-    enterBtn.addEventListener("click", () => {
-      splash.classList.add("hidden");
-      app.classList.remove("hidden");
-
-      // Mensagem automática da EVA com nome colorido
-      setTimeout(() => {
-        addMessage("ai", `<span class="text-black">E</span><span class="text-orange-500">V</span><span class="text-black">A</span>: Olá! Em que posso ajudar?`);
-      }, 500);
-    });
-
-    // Adicionar mensagens
-    function addMessage(sender, text) {
-      const div = document.createElement("div");
-
-      if (sender === "user") {
-        div.className = "flex justify-end";
-        div.innerHTML = `
-          <div class="bg-blue-500 text-white rounded-lg px-4 py-2 chat-bubble">
-            ${text}
-          </div>`;
-      } else {
-        div.className = "flex items-start space-x-2";
-        div.innerHTML = `
-          <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/evalogo.png" 
-               alt="EVA" class="w-8 h-8 rounded-full shadow mt-1" />
-          <div class="bg-gray-100 text-gray-800 rounded-lg px-4 py-2 chat-bubble">
-            ${text}
-          </div>`;
+    // Função: Clima
+    async function getWeather(city) {
+      const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${OPENWEATHER_API_KEY}&units=metric&lang=pt`;
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+        if (data.cod === 200) {
+          return `🌤️ Clima em ${data.name}: ${data.weather[0].description}, ${data.main.temp}°C (sensação ${data.main.feels_like}°C), humidade ${data.main.humidity}%, vento ${data.wind.speed} km/h.`;
+        } else {
+          return "❌ Não consegui obter o clima agora, tente outro local.";
+        }
+      } catch {
+        return "⚠️ Erro ao conectar ao serviço do tempo.";
       }
-
-      chatMessages.appendChild(div);
-      chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    // Responder
-    function evaReply(msg) {
-      msg = msg.toLowerCase();
+    // Função: Processar pergunta
+    async function processarPergunta(pergunta) {
+      pergunta = pergunta.toLowerCase();
 
-      // Saudações
-      if (msg.includes("ola") || msg.includes("olá") || msg.includes("oi")) {
-        return `<span class="text-black">E</span><span class="text-orange-500">V</span><span class="text-black">A</span>: Olá! Estou aqui para ajudar no que precisar. 🚀`;
+      // Clima
+      if (pergunta.includes("tempo em") || pergunta.includes("clima em") || pergunta.includes("vai chover")) {
+        let cidade = pergunta.replace("tempo em", "")
+                             .replace("clima em", "")
+                             .replace("vai chover em", "")
+                             .trim();
+        if (cidade.length > 0) {
+          return await getWeather(cidade);
+        } else {
+          return "Por favor, diga o nome da cidade para eu verificar o clima. 🌍";
+        }
       }
 
-      // Perguntar data
-      if (msg.includes("que dia") || msg.includes("data de hoje")) {
-        const hoje = new Date();
-        return `<span class="text-black">E</span><span class="text-orange-500">V</span><span class="text-black">A</span>: Hoje é ${hoje.toLocaleDateString("pt-PT", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}.`;
+      // Wikipedia
+      if (pergunta.startsWith("quem é") || pergunta.startsWith("o que é") || pergunta.startsWith("onde fica")) {
+        try {
+          const termo = encodeURIComponent(pergunta.replace("quem é", "")
+                                                   .replace("o que é", "")
+                                                   .replace("onde fica", "").trim());
+          const url = `https://pt.wikipedia.org/api/rest_v1/page/summary/${termo}`;
+          const response = await fetch(url);
+          const data = await response.json();
+          if (data.extract) {
+            return data.extract;
+          } else {
+            return "Não encontrei nada na Wikipédia sobre isso.";
+          }
+        } catch {
+          return "Erro ao aceder à Wikipédia.";
+        }
       }
 
-      // Perguntar ano
-      if (msg.includes("ano estamos") || msg.includes("ano é este")) {
-        return `<span class="text-black">E</span><span class="text-orange-500">V</span><span class="text-black">A</span>: Estamos no ano de ${new Date().getFullYear()}.`;
-      }
-
-      // Fallback
-      return `<span class="text-black">E</span><span class="text-orange-500">V</span><span class="text-black">A</span>: Posso não ter uma resposta exata, mas estou aqui para tentar ajudar da melhor forma. 😉`;
+      // Fallback → Google
+      return `🤔 Não tenho a resposta exata, mas pode procurar no Google: https://www.google.com/search?q=${encodeURIComponent(pergunta)}`;
     }
 
     // Enviar mensagem
-    function sendMessage() {
-      const text = userInput.value.trim();
-      if (!text) return;
+    async function enviarMensagem() {
+      const input = document.getElementById("pergunta");
+      const pergunta = input.value.trim();
+      if (!pergunta) return;
 
-      addMessage("user", text);
-      userInput.value = "";
+      const chat = document.getElementById("chat");
 
-      setTimeout(() => {
-        const reply = evaReply(text);
-        addMessage("ai", reply);
-      }, 600);
+      // Usuário
+      const divUser = document.createElement("div");
+      divUser.className = "mensagem usuario";
+      divUser.innerText = pergunta;
+      chat.appendChild(divUser);
+
+      input.value = "";
+
+      // EVA resposta
+      const resposta = await processarPergunta(pergunta);
+      const divEva = document.createElement("div");
+      divEva.className = "mensagem eva";
+      divEva.innerHTML = `<img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/evalogo.png" class="avatar"><div><b><span>E</span><span class="v">V</span><span>A</span>:</b> ${resposta}</div>`;
+      chat.appendChild(divEva);
+
+      chat.scrollTop = chat.scrollHeight;
     }
-
-    sendBtn.addEventListener("click", sendMessage);
-    userInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") sendMessage();
-    });
   </script>
 </body>
 </html>
