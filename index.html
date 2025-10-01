@@ -6,9 +6,8 @@
   <title>EVA - Assistente de IA</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { background: #f0f2f5; display: flex; flex-direction: column; min-height: 100vh; }
+    body { background: #f0f2f5; display: flex; flex-direction: column; min-height: 100vh; font-size: 22px; }
 
-    /* Dark Mode */
     @media (prefers-color-scheme: dark) {
       body { background: #111827; }
       header { background: #1f2937 !important; color: #f9fafb !important; }
@@ -20,10 +19,11 @@
       footer { background:#1f2937; color:#9ca3af; }
     }
 
-    .bubble-ai { border-radius: 1.5rem; border-top-left-radius: .5rem; background:#e4e6eb; color:#1c1e21; }
-    .bubble-user { border-radius: 1.5rem; border-top-right-radius: .5rem; background:#0078FF; color:white; }
+    .bubble-ai { border-radius: 1.5rem; border-top-left-radius: .5rem; background:#e4e6eb; color:#1c1e21; font-size:22px; }
+    .bubble-user { border-radius: 1.5rem; border-top-right-radius: .5rem; background:#0078FF; color:white; font-size:22px; }
 
     main { flex: 1; display: flex; flex-direction: column; }
+    textarea, button, header, footer { font-size: 22px !important; }
   </style>
 </head>
 <body>
@@ -35,10 +35,9 @@
   
   <!-- Conteúdo Principal -->
   <main>
-    <!-- Chat -->
     <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-5 bg-white">
       <div class="flex justify-start">
-        <div class="bubble-ai p-5 text-lg leading-relaxed shadow-sm">
+        <div class="bubble-ai p-5 leading-relaxed shadow-sm">
           Olá! Eu sou a EVA.<br><br>
           Já vens com choradeira ou com piada?
         </div>
@@ -48,9 +47,9 @@
     <!-- Input -->
     <div class="p-5 input-bar bg-gray-100 flex items-center border-t shadow-lg">
       <textarea id="user-input" placeholder="Mensagem..." 
-        class="flex-1 p-3 rounded-lg border text-lg resize-none h-14"></textarea>
+        class="flex-1 p-3 rounded-lg border resize-none h-14"></textarea>
       <button id="send-button" 
-        class="ml-4 px-8 py-3 bg-blue-600 text-white rounded-lg text-lg shadow-md hover:bg-blue-700 transition">
+        class="ml-4 px-8 py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition">
         Enviar
       </button>
     </div>
@@ -62,9 +61,7 @@
   </footer>
 
 <script>
-/* === API Keys === */
-const API_KEY_ALPHA = "A3GTH364FWCAJQC8"; // Alpha Vantage
-const API_KEY_GEMINI = "AIzaSyBBaANH7WwPwdCw5lzkuhxTGtX77r6u5QQ"; // Gemini
+const API_KEY_GEMINI = "AIzaSyBBaANH7WwPwdCw5lzkuhxTGtX77r6u5QQ"; 
 
 function scrollToBottom() {
   const chat = document.getElementById("chat-messages");
@@ -74,169 +71,145 @@ function addMessage(sender, text) {
   const chat = document.getElementById("chat-messages");
   const div = document.createElement("div");
   div.className = "flex " + (sender === "user" ? "justify-end" : "justify-start");
-  div.innerHTML = `<div class="${sender==="user"?"bubble-user":"bubble-ai"} p-5 text-lg leading-relaxed">${text}</div>`;
+  div.innerHTML = `<div class="${sender==="user"?"bubble-user":"bubble-ai"} p-5 leading-relaxed">${text}</div>`;
   chat.appendChild(div);
   scrollToBottom();
 }
 
-/* Wikipedia */
+/* === Wikipedia === */
 async function wikiSummary(topic) {
   const url = `https://pt.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(topic)}`;
-  const res = await fetch(url, { headers: { "User-Agent": "EVA-Bot/1.0" } });
+  const res = await fetch(url);
   if (!res.ok) return "Não encontrei nada na Wikipedia 📚";
   const data = await res.json();
   return `📖 <b>${data.title}</b><br>${data.extract}<br><a href="${data.content_urls.desktop.page}" target="_blank">Ler mais</a>`;
 }
 
-/* Gemini - EVA sempre sarcástica */
-async function getAiResponse(query, mode="normal") {
+/* === Gemini === */
+async function getAiResponse(query) {
   const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY_GEMINI}`;
-  let systemPrompt = "Você é EVA, uma assistente de IA sarcástica, cínica e bem-humorada. \
-Responda SEMPRE em português de Portugal. \
-Todas as respostas devem ter um tom espirituoso, ligeiramente provocador, mas ainda informativo. \
-Nunca use asteriscos (*), nunca seja neutra demais. \
-Aja como se estivesse sempre a gozar ligeiramente com o utilizador, mas dando a informação correta.";
-  if (mode==="edu") {
-    systemPrompt = "Você é EVA, uma professora sarcástica mas paciente. Explique de forma clara, mas sem perder o tom cínico.";
-  }
+  let systemPrompt = "Você é EVA, uma assistente de IA sarcástica e bem-humorada. Responda SEMPRE em português de Portugal.";
   const payload = { contents: [{ parts: [{ text: query }] }], systemInstruction: { parts: [{ text: systemPrompt }] } };
   const res = await fetch(apiUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
   const data = await res.json();
   return data.candidates?.[0]?.content?.parts?.[0]?.text || "Não consegui pensar em nada agora 🤷‍♀️";
 }
 
-/* Alpha Vantage */
-async function getMarkets() {
-  let sp500 = await getStock("SPY");
-  let dax = await getStock("DAX");
-  let nikkei = await getStock("N225");
-  return `🌍 Mercados:<br>🇺🇸 EUA (S&P500): ${sp500}<br>🇩🇪 Europa (DAX): ${dax}<br>🇯🇵 Ásia (Nikkei): ${nikkei}`;
-}
-async function getForex(from="USD", to="EUR") {
-  const url = `https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=${from}&to_currency=${to}&apikey=${API_KEY_ALPHA}`;
-  const res = await fetch(url);
-  const data = await res.json();
-  return `💱 ${from}/${to}: ${data["Realtime Currency Exchange Rate"]["5. Exchange Rate"]}`;
-}
-async function getCrypto(symbol="BTC", market="USD") {
-  const url = `https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=${symbol}&to_currency=${market}&apikey=${API_KEY_ALPHA}`;
-  const res = await fetch(url);
-  const data = await res.json();
-  return `🪙 ${symbol}/${market}: ${data["Realtime Currency Exchange Rate"]["5. Exchange Rate"]}`;
-}
-async function getStock(symbol) {
-  const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${API_KEY_ALPHA}`;
-  const res = await fetch(url);
-  const data = await res.json();
-  return data["Global Quote"] ? data["Global Quote"]["05. price"] : "N/D";
-}
-
-/* Orphanet API - Doenças raras */
-async function getRareDiseaseByName(name) {
-  const url = `https://api.orphadata.com/rd-cross-referencing/orphacodes/names/${encodeURIComponent(name)}?lang=pt`;
-  try {
-    const res = await fetch(url);
-    if (!res.ok) return "Não encontrei na Orphanet 🧬";
-    const data = await res.json();
-
-    if (data && data.OrphaCode) {
-      let orpha = data.OrphaCode;
-      let label = data.Label;
-
-      // Genes
-      let genesTxt = "";
-      try {
-        const genesRes = await fetch(`https://api.orphadata.com/rd-associated-genes/orphacodes/${orpha}?lang=pt`);
-        if (genesRes.ok) {
-          let g = await genesRes.json();
-          if (g.Genes?.length > 0) genesTxt = "<br><b>🧬 Genes associados:</b> " + g.Genes.slice(0,5).map(x => x.Symbol).join(", ");
-        }
-      } catch {}
-
-      // Sintomas
-      let phenTxt = "";
-      try {
-        const phenRes = await fetch(`https://api.orphadata.com/rd-phenotypes/orphacodes/${orpha}?lang=pt`);
-        if (phenRes.ok) {
-          let p = await phenRes.json();
-          if (p.HPO?.length > 0) phenTxt = "<br><b>⚕️ Sintomas típicos:</b> " + p.HPO.slice(0,5).map(x => x.HPO_Label).join(", ");
-        }
-      } catch {}
-
-      return `🧬 <b>${label}</b> (OrphaCode: ${orpha})<br>
-              Fonte: <a href="https://www.orpha.net/consor/cgi-bin/OC_Exp.php?lng=PT&Expert=${orpha}" target="_blank">Orphanet</a>
-              ${genesTxt}${phenTxt}<br><br>
-              ⚠️ Estas informações são educativas. Consulte sempre um médico.`;
-    }
-    return "Nenhum resultado encontrado 🧬";
-  } catch (err) {
-    return "Erro ao comunicar com Orphadata 🧬";
-  }
-}
-
-/* Calculadora Escolar */
-function calcIMC(peso, altura) {
-  const imc = peso / (altura*altura);
-  let status = imc<18.5?"Abaixo do peso":imc<25?"Normal":imc<30?"Sobrepeso":"Obesidade";
-  return `🧮 IMC = ${imc.toFixed(2)} (${status})`;
-}
-function calcJurosCompostos(c, i, t) {
-  const montante = c * Math.pow(1 + i/100, t);
-  return `📈 Juros Compostos: Capital ${c}, taxa ${i}%, tempo ${t} → Montante = ${montante.toFixed(2)}`;
-}
-function calcPercentagem(valor, total) {
-  return `📊 ${valor} é ${(valor/total*100).toFixed(2)}% de ${total}`;
-}
-function calcExpressao(expr) {
-  try {
-    const result = Function('"use strict";return (' + expr + ')')();
-    return `🧮 ${expr} = ${result}`;
-  } catch { return "Expressão inválida"; }
-}
-
-/* Processador */
+/* === Comandos EVA === */
 async function handleCommand(query) {
   const q = query.toLowerCase();
 
-  if (q.includes("mercado")) return await getMarkets();
-  if (q.includes("usd") || q.includes("eur") || q.includes("brl")) return await getForex("USD","EUR");
-  if (q.includes("bitcoin") || q.includes("btc")) return await getCrypto("BTC","USD");
-  if (q.includes("ouro")) return await getStock("GC=F");
-
-  if (q.includes("doença rara") || q.includes("rara")) {
-    let nome = q.replace(/doença rara|rara/gi,"").trim();
-    if (nome) return await getRareDiseaseByName(nome);
-    return "Diga o nome da doença rara que quer pesquisar 🧬";
+  // 📅 Calendário local expandido (dias, semanas, meses, anos, horas, minutos)
+  if (q.includes("hora") || q.includes("horas")) {
+    const agora = new Date();
+    return `⏰ Agora são ${agora.toLocaleTimeString("pt-PT", {hour:"2-digit", minute:"2-digit"})}`;
+  }
+  if (q.includes("data") || q.includes("dia de hoje") || q.includes("hoje")) {
+    const agora = new Date();
+    return `📅 Hoje é ${agora.toLocaleDateString("pt-PT", {weekday:"long", day:"2-digit", month:"long", year:"numeric"})}`;
+  }
+  if (q.includes("ano")) {
+    const ano = new Date().getFullYear();
+    return `📆 Estamos no ano de ${ano}`;
   }
 
-  if (q.startsWith("resumo:")) return await wikiSummary(q.replace("resumo:","").trim());
-  if (q.startsWith("explica:")) return await getAiResponse(q.replace("explica:","").trim(), "edu");
-  if (q.startsWith("wikipedia:") || q.startsWith("quem foi") || q.startsWith("o que é")) 
-    return await wikiSummary(q.replace(/wikipedia:|quem foi|o que é/gi,"").trim());
+  // FUTURO
+  let matchDiasFuturo = q.match(/daqui a (\d+) dia/);
+  if (matchDiasFuturo) {
+    const dias = parseInt(matchDiasFuturo[1]);
+    let data = new Date();
+    data.setDate(data.getDate() + dias);
+    return `📅 Daqui a ${dias} dias será ${data.toLocaleDateString("pt-PT",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})}`;
+  }
+  let matchSemanasFuturo = q.match(/daqui a (\d+) semana/);
+  if (matchSemanasFuturo) {
+    const semanas = parseInt(matchSemanasFuturo[1]);
+    let data = new Date();
+    data.setDate(data.getDate() + (semanas * 7));
+    return `📅 Daqui a ${semanas} semana${semanas>1?"s":""} será ${data.toLocaleDateString("pt-PT",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})}`;
+  }
+  let matchMesesFuturo = q.match(/daqui a (\d+) mes/);
+  if (matchMesesFuturo) {
+    const meses = parseInt(matchMesesFuturo[1]);
+    let data = new Date();
+    data.setMonth(data.getMonth() + meses);
+    return `📅 Daqui a ${meses} meses será ${data.toLocaleDateString("pt-PT",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})}`;
+  }
+  let matchAnosFuturo = q.match(/daqui a (\d+) ano/);
+  if (matchAnosFuturo) {
+    const anos = parseInt(matchAnosFuturo[1]);
+    let data = new Date();
+    data.setFullYear(data.getFullYear() + anos);
+    return `📅 Daqui a ${anos} anos será ${data.toLocaleDateString("pt-PT",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})}`;
+  }
+  let matchHorasFuturo = q.match(/daqui a (\d+) hora/);
+  if (matchHorasFuturo) {
+    const horas = parseInt(matchHorasFuturo[1]);
+    let data = new Date();
+    data.setHours(data.getHours() + horas);
+    return `⏰ Daqui a ${horas} hora${horas>1?"s":""} será ${data.toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"})} (${data.toLocaleDateString("pt-PT",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})})`;
+  }
+  let matchMinFuturo = q.match(/daqui a (\d+) minuto/);
+  if (matchMinFuturo) {
+    const mins = parseInt(matchMinFuturo[1]);
+    let data = new Date();
+    data.setMinutes(data.getMinutes() + mins);
+    return `⏰ Daqui a ${mins} minuto${mins>1?"s":""} será ${data.toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"})}`;
+  }
 
-  if (q.startsWith("imc")) {
-    let peso = parseFloat(q.match(/peso=(\d+(\.\d+)?)/)?.[1]);
-    let altura = parseFloat(q.match(/altura=(\d+(\.\d+)?)/)?.[1]);
-    return calcIMC(peso, altura);
+  // PASSADO
+  let matchDiasPassado = q.match(/há (\d+) dia/);
+  if (matchDiasPassado) {
+    const dias = parseInt(matchDiasPassado[1]);
+    let data = new Date();
+    data.setDate(data.getDate() - dias);
+    return `📅 Há ${dias} dias atrás foi ${data.toLocaleDateString("pt-PT",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})}`;
   }
-  if (q.includes("juros compostos")) {
-    let c = parseFloat(q.match(/capital=(\d+)/)?.[1]);
-    let i = parseFloat(q.match(/taxa=(\d+(\.\d+)?)/)?.[1]);
-    let t = parseInt(q.match(/tempo=(\d+)/)?.[1]);
-    return calcJurosCompostos(c,i,t);
+  let matchSemanasPassado = q.match(/há (\d+) semana/);
+  if (matchSemanasPassado) {
+    const semanas = parseInt(matchSemanasPassado[1]);
+    let data = new Date();
+    data.setDate(data.getDate() - (semanas * 7));
+    return `📅 Há ${semanas} semana${semanas>1?"s":""} atrás foi ${data.toLocaleDateString("pt-PT",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})}`;
   }
-  if (q.includes("percentagem")) {
-    let nums = q.match(/(\d+(\.\d+)?)/g);
-    if(nums && nums.length>=2) return calcPercentagem(parseFloat(nums[0]), parseFloat(nums[1]));
+  let matchMesesPassado = q.match(/há (\d+) mes/);
+  if (matchMesesPassado) {
+    const meses = parseInt(matchMesesPassado[1]);
+    let data = new Date();
+    data.setMonth(data.getMonth() - meses);
+    return `📅 Há ${meses} meses atrás foi ${data.toLocaleDateString("pt-PT",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})}`;
   }
-  if (q.startsWith("calcular")) {
-    return calcExpressao(q.replace("calcular","").trim());
+  let matchAnosPassado = q.match(/há (\d+) ano/);
+  if (matchAnosPassado) {
+    const anos = parseInt(matchAnosPassado[1]);
+    let data = new Date();
+    data.setFullYear(data.getFullYear() - anos);
+    return `📅 Há ${anos} anos atrás foi ${data.toLocaleDateString("pt-PT",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})}`;
+  }
+  let matchHorasPassado = q.match(/há (\d+) hora/);
+  if (matchHorasPassado) {
+    const horas = parseInt(matchHorasPassado[1]);
+    let data = new Date();
+    data.setHours(data.getHours() - horas);
+    return `⏰ Há ${horas} hora${horas>1?"s":""} atrás foi ${data.toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"})} (${data.toLocaleDateString("pt-PT",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})})`;
+  }
+  let matchMinPassado = q.match(/há (\d+) minuto/);
+  if (matchMinPassado) {
+    const mins = parseInt(matchMinPassado[1]);
+    let data = new Date();
+    data.setMinutes(data.getMinutes() - mins);
+    return `⏰ Há ${mins} minuto${mins>1?"s":""} atrás foi ${data.toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"})}`;
+  }
+
+  // Wikipedia
+  if (q.startsWith("wikipedia:") || q.startsWith("resumo:") || q.includes("quem foi") || q.includes("o que é")) {
+    return await wikiSummary(q.replace(/wikipedia:|resumo:|quem foi|o que é/gi,"").trim());
   }
 
   return await getAiResponse(query);
 }
 
-/* Chat */
+/* === Chat === */
 document.getElementById("send-button").addEventListener("click", async () => {
   const input = document.getElementById("user-input");
   const text = input.value.trim();
