@@ -388,8 +388,8 @@
                 },
             };
 
-            for (let i = 0; i < MAX_RETRIES; i++) {
-                try {
+            try {
+                for (let i = 0; i < MAX_RETRIES; i++) {
                     const response = await fetch(API_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -397,7 +397,6 @@
                     });
 
                     if (!response.ok) {
-                        // Se for um erro HTTP, lança para tentar novamente
                         throw new Error(`Erro HTTP: ${response.status}`);
                     }
 
@@ -419,37 +418,31 @@
                                 .filter(source => source.uri && source.title);
                         }
                         
-                        // Sai do loop de retentativas se for bem-sucedido
                         break; 
                     } else {
-                        // Se a resposta for vazia, ainda conta como falha
                         throw new Error("Resposta da EVA inválida ou vazia.");
                     }
 
-                } catch (error) {
-                    console.error(`Tentativa ${i + 1} falhou:`, error.message);
-                    if (i === MAX_RETRIES - 1) {
-                        // Falha total, sai do loop
-                        break;
-                    }
-                    // Espera exponencialmente (1s, 2s, 4s, 8s, ...)
-                    const delay = Math.pow(2, i) * 1000;
-                    await new Promise(resolve => setTimeout(resolve, delay));
                 }
+            } catch (error) {
+                console.error(`Falha no envio ou processamento da API:`, error.message);
+                // Define responseSuccess como false em caso de qualquer erro fora do loop de tentativas
+                responseSuccess = false;
+            } finally {
+                // ESTE BLOCO GARANTE QUE A UI SEMPRE SERÁ LIBERADA
+                loadingIndicator.classList.add('hidden');
+                sendButton.disabled = false;
+                userInput.focus();
             }
-            // --- Fim da Lógica de Chamada da API ---
 
 
-            // Oculta o indicador de carregamento
-            loadingIndicator.classList.add('hidden');
-            
             // Adiciona a resposta da EVA ou trata a falha
             if (responseSuccess) {
                 addMessage('eva', evaResponse, sources);
                 // 2. Adiciona a resposta da EVA ao histórico para contexto futuro
                 chatHistoryData.push({ role: 'model', parts: [{ text: evaResponse }] });
             } else {
-                // TRATAMENTO DE FALHA (Sem jogo)
+                // TRATAMENTO DE FALHA
                 
                 // 3. Remove a pergunta do usuário do histórico (pois falhou em gerar resposta)
                 if (chatHistoryData.length > 0 && chatHistoryData[chatHistoryData.length - 1].role === 'user') {
@@ -457,23 +450,25 @@
                 }
                 
                 // 4. Exibe uma mensagem de erro na UI
-                errorMessageElement.textContent = "Oops! Não consegui processar a sua pergunta. Tente refazer, mas desta vez, tente algo que valha a pena.";
+                errorMessageElement.textContent = "Falha na conexão. Por favor, tente novamente."; 
                 errorMessageElement.classList.remove('hidden');
                 
                 // Remove a mensagem do usuário do DOM do chat também (já que não foi respondida)
                 const lastMessage = chatHistory.lastElementChild;
-                if (lastMessage && lastMessage.querySelector('.order-2')) { // Checa se é a bolha do usuário
+                if (lastMessage && lastMessage.querySelector('.order-2')) { 
                     chatHistory.removeChild(lastMessage);
                     // Volta para a tela de boas-vindas se o histórico ficar vazio
                     if (chatHistory.children.length === 0) {
                         updateLayout();
                     }
                 }
+                
+                // Adiciona um pequeno delay para remover a mensagem de erro da UI
+                setTimeout(() => {
+                    errorMessageElement.classList.add('hidden');
+                    errorMessageElement.textContent = '';
+                }, 4000); // Esconde a mensagem de erro após 4 segundos
             }
-
-            // Reabilita o input
-            sendButton.disabled = false;
-            userInput.focus();
         }
 
         // --- Event Listeners ---
