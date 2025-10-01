@@ -13,24 +13,37 @@
 </head>
 <body class="flex justify-center items-center min-h-screen">
 
-  <div class="w-full max-w-lg h-screen bg-white flex flex-col shadow-xl">
-    <header class="h-14 bg-white border-b flex items-center px-4 font-bold text-lg">EVA</header>
+  <!-- Container principal largo -->
+  <div class="w-full md:w-4/5 h-screen bg-white flex flex-col shadow-xl rounded-xl overflow-hidden">
     
-    <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-3">
+    <!-- Header -->
+    <header class="h-16 bg-white border-b flex items-center px-8 font-bold text-2xl shadow-sm">
+      EVA
+    </header>
+    
+    <!-- Área do Chat -->
+    <div id="chat-messages" class="flex-1 overflow-y-auto p-8 space-y-5">
       <div class="flex justify-start">
-        <div class="bubble-ai p-3">
-          Olá! Sou a EVA 🎭. Pergunta-me sobre <b>mercados</b>, <b>moedas</b>, <b>criptomoedas</b>, <b>futuros</b>, <b>escola</b> ou pede cálculos.
+        <div class="bubble-ai p-5 text-lg leading-relaxed">
+          Olá! Sou a EVA 🎭. Pergunta-me sobre <b>mercados</b>, <b>moedas</b>, <b>criptomoedas</b>, 
+          <b>futuros</b>, <b>escola</b> ou pede cálculos.
         </div>
       </div>
     </div>
 
-    <div class="p-3 bg-gray-100 flex items-center border-t">
-      <textarea id="user-input" placeholder="Mensagem..." class="flex-1 p-2 rounded-lg border"></textarea>
-      <button id="send-button" class="ml-2 px-4 py-2 bg-blue-600 text-white rounded-lg">Enviar</button>
+    <!-- Input -->
+    <div class="p-5 bg-gray-100 flex items-center border-t">
+      <textarea id="user-input" placeholder="Mensagem..." 
+        class="flex-1 p-3 rounded-lg border text-lg resize-none h-14"></textarea>
+      <button id="send-button" 
+        class="ml-4 px-8 py-3 bg-blue-600 text-white rounded-lg text-lg shadow-md hover:bg-blue-700 transition">
+        Enviar
+      </button>
     </div>
   </div>
 
 <script>
+/* === Configuração API === */
 const API_KEY_ALPHA = "A3GTH364FWCAJQC8"; // Alpha Vantage
 const API_KEY_GEMINI = "AIzaSyBBaANH7WwPwdCw5lzkuhxTGtX77r6u5QQ"; // Gemini
 
@@ -42,7 +55,7 @@ function addMessage(sender, text) {
   const chat = document.getElementById("chat-messages");
   const div = document.createElement("div");
   div.className = "flex " + (sender === "user" ? "justify-end" : "justify-start");
-  div.innerHTML = `<div class="${sender==="user"?"bubble-user":"bubble-ai"} p-3">${text}</div>`;
+  div.innerHTML = `<div class="${sender==="user"?"bubble-user":"bubble-ai"} p-5 text-lg leading-relaxed">${text}</div>`;
   chat.appendChild(div);
   scrollToBottom();
 }
