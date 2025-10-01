@@ -10,87 +10,152 @@
       background: #fff;
       font-family: 'Inter', sans-serif;
     }
+    header {
+      font-size: 26px;
+    }
+    .chat-bubble {
+      font-size: 23px;
+      line-height: 1.4;
+    }
+    footer {
+      font-size: 23px;
+    }
+    input, textarea {
+      font-size: 18px;
+    }
+    button {
+      font-size: 18px;
+      font-weight: bold;
+    }
     @media (prefers-color-scheme: dark) {
       body { background: #111827; color: #e5e7eb; }
+    }
+    /* Animação para o splash */
+    .fade-out {
+      opacity: 0;
+      transition: opacity 1s ease;
     }
   </style>
 </head>
 <body class="flex flex-col min-h-screen">
 
-  <!-- Header -->
-  <header class="p-4 text-lg font-semibold">EVA</header>
-
-  <!-- Tela inicial estilo ChatGPT -->
-  <main class="flex-1 flex flex-col items-center justify-center px-4" id="welcome">
-    <h1 class="text-2xl font-semibold mb-6">Em que posso ajudar?</h1>
-
-    <!-- Input central -->
-    <div class="w-full max-w-2xl">
-      <div class="flex items-center bg-gray-100 dark:bg-gray-800 rounded-full px-4 py-2 shadow">
-        <input id="user-input" type="text" placeholder="Pergunte qualquer coisa"
-          class="flex-1 bg-transparent outline-none text-gray-800 dark:text-gray-100 placeholder-gray-500" />
-        <button class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-          🎤
-        </button>
-      </div>
-    </div>
-  </main>
-
-  <!-- Área de chat -->
-  <section id="chat-section" class="hidden flex-1 flex flex-col">
-    <div id="chat-messages" class="flex-1 flex flex-col px-4 py-6 space-y-2 overflow-y-auto max-w-3xl mx-auto w-full"></div>
-
-    <!-- Input no modo chat -->
-    <div class="w-full max-w-3xl mx-auto px-4 pb-4">
-      <div class="flex items-center bg-gray-100 dark:bg-gray-800 rounded-full shadow px-4 py-2">
-        <input id="chat-input" type="text" placeholder="Mensagem..."
-          class="flex-1 bg-transparent outline-none text-gray-800 dark:text-gray-100 placeholder-gray-500" />
-        <button id="chat-send" class="ml-3 bg-[#0078ff] hover:bg-blue-600 text-white px-4 py-1.5 rounded-full text-sm font-medium">
-          Enviar
-        </button>
-      </div>
-    </div>
+  <!-- SPLASH SCREEN -->
+  <section id="splash" class="flex flex-col items-center justify-center h-screen text-center space-y-6">
+    <img src="EVA.png" alt="EVA Logo" class="w-28 h-28 rounded-full border shadow" />
+    <h1 class="text-5xl font-extrabold">EVA</h1>
+    <p class="max-w-md">EVA é uma assistente virtual simples, direta e confiável, pronta para responder a qualquer pergunta.</p>
+    <p class="text-gray-500">🔒 Encriptada ponto a ponto</p>
   </section>
 
-  <!-- Rodapé -->
-  <footer class="text-center text-gray-400 text-xs py-3">EVA © 2025</footer>
+  <!-- APLICAÇÃO DO CHAT -->
+  <section id="chat-app" class="hidden flex flex-col min-h-screen">
+    <!-- Header -->
+    <header class="p-4 font-semibold">EVA</header>
+
+    <!-- Área do chat -->
+    <section class="flex-1 flex flex-col">
+      <div id="chat-messages" class="flex-1 flex flex-col px-4 py-6 space-y-2 overflow-y-auto max-w-3xl mx-auto w-full"></div>
+
+      <!-- Input chat -->
+      <div class="w-full max-w-3xl mx-auto px-4 pb-4">
+        <div class="flex items-center bg-gray-100 dark:bg-gray-800 rounded-full shadow px-4 py-2">
+          <input id="chat-input" type="text" placeholder="Mensagem..."
+            class="flex-1 bg-transparent outline-none text-gray-800 dark:text-gray-100 placeholder-gray-500" />
+          <button id="chat-send" class="ml-3 bg-[#0078ff] hover:bg-blue-600 text-white px-4 py-1.5 rounded-full">
+            Enviar
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Rodapé -->
+    <footer class="text-center text-gray-400 py-3">EVA © 2025</footer>
+  </section>
 
   <script>
-    const welcome = document.getElementById("welcome");
-    const chatSection = document.getElementById("chat-section");
+    // Controle da splash screen
+    const splash = document.getElementById("splash");
+    const chatApp = document.getElementById("chat-app");
+
+    setTimeout(() => {
+      splash.classList.add("fade-out");
+      setTimeout(() => {
+        splash.classList.add("hidden");
+        chatApp.classList.remove("hidden");
+      }, 1000); // tempo da animação
+    }, 2500); // tempo que fica visível (2,5s)
+
+    // Chat
     const chatMessages = document.getElementById("chat-messages");
-    const input = document.getElementById("user-input");
     const chatInput = document.getElementById("chat-input");
     const chatSend = document.getElementById("chat-send");
 
     function addMessage(sender, text) {
       const div = document.createElement("div");
       div.className = sender === "user"
-        ? "self-end bg-blue-500 text-white rounded-lg px-4 py-2 max-w-[80%]"
-        : "self-start bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-lg px-4 py-2 max-w-[80%]";
+        ? "self-end bg-blue-500 text-white rounded-lg px-4 py-2 max-w-[80%] chat-bubble"
+        : "self-start bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-lg px-4 py-2 max-w-[80%] chat-bubble";
       div.textContent = text;
       chatMessages.appendChild(div);
       chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    function handleSend(msg, fromWelcome=false) {
-      if (!msg.trim()) return;
+    async function handleQuestion(msg) {
+      msg = msg.toLowerCase();
 
-      if (fromWelcome) {
-        welcome.classList.add("hidden");
-        chatSection.classList.remove("hidden");
+      // 📅 Calendário
+      if (msg.includes("ano estamos")) {
+        return `Estamos no ano de ${new Date().getFullYear()}.`;
+      }
+      if (msg.includes("dia de hoje") || msg.includes("data de hoje")) {
+        return `Hoje é ${new Date().toLocaleDateString("pt-PT", { weekday:"long", day:"numeric", month:"long", year:"numeric" })}.`;
+      }
+      if (msg.includes("hora")) {
+        return `Agora são ${new Date().toLocaleTimeString("pt-PT")}.`;
       }
 
-      addMessage("user", msg);
-      setTimeout(() => addMessage("ai", "Aqui está uma resposta clara e objetiva para: " + msg), 800);
+      // 🧮 Calculadora
+      if (/[\d\+\-\*\/]/.test(msg)) {
+        try {
+          let result = eval(msg.replace(",", "."));
+          return `O resultado é: ${result}`;
+        } catch {
+          return "Não consegui calcular isso.";
+        }
+      }
+
+      // 📚 Wikipedia
+      if (msg.includes("quem é") || msg.includes("o que é") || msg.includes("wikipedia")) {
+        let query = msg.replace("quem é", "").replace("o que é", "").replace("wikipedia", "").trim();
+        let res = await fetch(`https://pt.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`);
+        if (res.ok) {
+          let data = await res.json();
+          if (data.extract) return data.extract;
+        }
+        return "Não encontrei nada na Wikipedia.";
+      }
+
+      // 🩺 Orphadata
+      if (msg.includes("doença rara") || msg.includes("orpha")) {
+        let res = await fetch(`https://api.orphadata.com/rd-cross-referencing/orphacodes`);
+        if (res.ok) {
+          return "Consultei a base Orphadata: existem milhares de doenças raras catalogadas. Pode especificar o nome da doença?";
+        }
+        return "Não consegui aceder à base de doenças raras agora.";
+      }
+
+      // 🔄 Fallback
+      return "Ainda não tenho dados específicos para isso, mas posso tentar explicar de outra forma se quiser.";
     }
 
-    input.addEventListener("keydown", e => {
-      if (e.key === "Enter") {
-        handleSend(input.value, true);
-        input.value = "";
-      }
-    });
+    function handleSend(msg) {
+      if (!msg.trim()) return;
+      addMessage("user", msg);
+      setTimeout(async () => {
+        let reply = await handleQuestion(msg);
+        addMessage("ai", reply);
+      }, 600);
+    }
 
     chatInput.addEventListener("keydown", e => {
       if (e.key === "Enter") {
