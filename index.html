@@ -163,8 +163,9 @@
 
         // Configuração da API
         const API_MODEL = "gemini-2.5-flash-preview-05-20";
-        // A chave da API será fornecida automaticamente no ambiente de execução.
-        const apiKey = ""; 
+        
+        // CORREÇÃO: Usando a chave de API fornecida pelo usuário diretamente para resolver o erro 403.
+        const apiKey = "AIzaSyBBaANH7WwPwdCw5lzkuhxTGtX77r6u5QQ"; 
         const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${API_MODEL}:generateContent?key=${apiKey}`;
 
         // Elementos DOM
