@@ -4,317 +4,134 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EVA - Assistente de IA</title>
-  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Phosphor Icons -->
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <style>
-    body { background-color: #f0f2f5; font-family: 'Inter', sans-serif; }
-    .chat-background { background-color: white; }
-    .bubble-ai { border-radius: 1.5rem; border-top-left-radius: 0.5rem; background-color: #e4e6eb; color: #1c1e21; }
-    .bubble-user { border-radius: 1.5rem; border-top-right-radius: 0.5rem; background-color: #0078FF; color: white; }
-    @keyframes pulse-fade { 0%,100%{opacity:.5}50%{opacity:1} }
-    .typing-indicator span { animation:pulse-fade 1.5s infinite; display:inline-block; width:8px;height:8px;background:#0078FF;border-radius:50%;margin-right:4px }
-    .typing-indicator span:nth-child(2){animation-delay:.2s}
-    .typing-indicator span:nth-child(3){animation-delay:.4s}
-    .eva-avatar { background: linear-gradient(45deg, #a855f7, #3b82f6); }
+    body { background: #f0f2f5; }
+    .bubble-ai { border-radius: 1.5rem; border-top-left-radius: 0.5rem; background: #e4e6eb; color: #1c1e21; }
+    .bubble-user { border-radius: 1.5rem; border-top-right-radius: 0.5rem; background: #0078FF; color: white; }
   </style>
 </head>
-
-<body>
-  <main class="flex justify-center items-center min-h-screen">
-    <div class="w-full max-w-3xl h-screen md:h-[95vh] bg-white rounded-none md:rounded-3xl shadow-xl flex flex-col overflow-hidden">
-
-      <!-- Header -->
-      <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 shadow-sm">
-        <div class="flex items-center space-x-3 text-gray-900">
-          <div class="w-10 h-10 rounded-full eva-avatar flex items-center justify-center border-2 border-white/50 shadow-md">
-            <i class="ph-sparkle-fill text-white text-xl"></i>
-          </div>
-          <div><div class="font-bold text-lg">EVA</div></div>
+<body class="flex justify-center items-center min-h-screen">
+  <div class="w-full max-w-3xl h-screen md:h-[90vh] bg-white rounded-none md:rounded-3xl shadow-xl flex flex-col overflow-hidden">
+    
+    <!-- Header -->
+    <header class="h-16 bg-white border-b border-gray-200 flex items-center px-4 shadow-sm">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center text-white">
+          EVA
         </div>
-        <div class="flex items-center space-x-3">
-          <!-- Upload de avatar -->
-          <label class="cursor-pointer text-sm text-blue-500 hover:text-blue-700">
-            <i class="ph-image text-xl"></i>
-            <input type="file" id="avatar-upload" accept="image/*" class="hidden">
-          </label>
-          <!-- Limpar histórico -->
-          <button id="clear-history" class="text-sm text-red-500 hover:text-red-700 flex items-center space-x-1">
-            <i class="ph-trash"></i><span>Limpar</span>
-          </button>
-        </div>
-      </header>
-
-      <!-- Mensagens -->
-      <div id="chat-messages" class="flex-1 overflow-y-auto p-6 chat-background flex flex-col space-y-4">
-        <div class="flex items-start space-x-2">
-          <div class="w-8 h-8 rounded-full eva-avatar flex items-center justify-center text-white text-sm">
-            <i class="ph-sparkle-fill text-xs"></i>
-          </div>
-          <div class="max-w-[85%] p-3 bubble-ai text-gray-800">
-            <p>Olá. Sou a EVA. Já vens com choradeira ou com piada?</p>
-          </div>
-        </div>
+        <span class="font-bold text-lg">Assistente EVA</span>
       </div>
+    </header>
 
-      <!-- Input -->
-      <div class="p-4 bg-white flex-shrink-0 flex items-end border-t border-gray-200">
-        <div class="w-full flex items-end">
-          <textarea id="user-input"
-            class="flex-1 resize-none text-gray-800 placeholder-gray-500 py-2 px-4 focus:ring-0 border-none h-12 text-base bg-gray-100 rounded-full mr-3"
-            placeholder="Mensagem..." rows="1"></textarea>
-          <button id="send-button"
-            class="px-6 h-12 flex items-center justify-center text-white bg-[#0078FF] rounded-full hover:bg-blue-600 transition disabled:bg-gray-400 disabled:cursor-not-allowed text-sm font-semibold">
-            ENVIAR
-          </button>
+    <!-- Chat -->
+    <div id="chat-messages" class="flex-1 overflow-y-auto p-6 flex flex-col space-y-3">
+      <div class="flex justify-start">
+        <div class="max-w-[85%] p-3 bubble-ai">
+          <p>Olá. Sou a EVA 🎭. Já vens com choradeira ou com piada?</p>
         </div>
       </div>
     </div>
-  </main>
 
-  <script>
-    const API_KEY = "AIzaSyBBaANH7WwPwdCw5lzkuhxTGtX77r6u5QQ"; // Gemini
-    const WEATHER_KEY = "AQUI_A_TUA_CHAVE_DO_OPENWEATHER"; // substitui pela tua
-    const STORAGE_KEY = "eva_chat_history";
-    const AVATAR_KEY = "user_avatar";
+    <!-- Input -->
+    <div class="p-3 bg-white border-t border-gray-200 flex items-center space-x-2">
+      <textarea id="user-input" class="flex-1 resize-none bg-gray-100 rounded-full px-4 py-2 h-10" placeholder="Mensagem..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage();}"></textarea>
+      <button id="send-button" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-full">Enviar</button>
+    </div>
+  </div>
 
-    let userAvatar = localStorage.getItem(AVATAR_KEY) || null;
+<script>
+/* ===========================
+   Configuração Spotify
+=========================== */
+const SPOTIFY_CLIENT_ID = "09a366bc19514cd89621fd065766f6e5";
+const SPOTIFY_CLIENT_SECRET = "e50cba0478f543bb938dbf4bed99ec16";
+let spotifyToken = null;
 
-    function scrollToBottom() {
-      const chatMessages = document.getElementById("chat-messages");
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
+async function getSpotifyToken() {
+  if (spotifyToken) return spotifyToken;
+  const result = await fetch("https://accounts.spotify.com/api/token", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      "Authorization": "Basic " + btoa(SPOTIFY_CLIENT_ID + ":" + SPOTIFY_CLIENT_SECRET),
+    },
+    body: "grant_type=client_credentials"
+  });
+  const data = await result.json();
+  spotifyToken = data.access_token;
+  setTimeout(() => spotifyToken = null, (data.expires_in - 60) * 1000);
+  return spotifyToken;
+}
 
-    function createMessageHtml(sender, text, timestamp = Date.now()) {
-      const timeString = new Date(timestamp).toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
-      let avatarHtml;
+async function searchSpotifyTrack(query) {
+  const token = await getSpotifyToken();
+  const res = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=1`, {
+    headers: { "Authorization": "Bearer " + token }
+  });
+  const data = await res.json();
+  if (!data.tracks || data.tracks.items.length === 0) return "Não encontrei nada no Spotify 🎶";
+  const track = data.tracks.items[0];
+  return `🎵 ${track.name} - ${track.artists.map(a => a.name).join(", ")}<br>
+  🔗 <a href="${track.external_urls.spotify}" target="_blank">Ouvir no Spotify</a><br>
+  ${track.preview_url ? "▶️ Preview: <a href='" + track.preview_url + "' target='_blank'>link</a>" : "Sem preview disponível"}`;
+}
 
-      if (sender === "user") {
-        avatarHtml = userAvatar
-          ? `<img src="${userAvatar}" class="w-8 h-8 rounded-full object-cover">`
-          : `<div class="w-8 h-8 rounded-full bg-gray-400 flex items-center justify-center text-white"><i class="ph-user text-sm"></i></div>`;
-        return `
-          <div class="flex items-end space-x-2 justify-end">
-            <div class="flex flex-col items-end">
-              <div class="max-w-[90%] p-3 bubble-user bg-[#0078FF] text-white"><p>${text}</p></div>
-              <span class="text-[10px] text-gray-400 mt-1">${timeString}</span>
-            </div>
-            ${avatarHtml}
-          </div>`;
-      } else if (sender === "ai") {
-        avatarHtml = `<div class="w-8 h-8 rounded-full eva-avatar flex items-center justify-center text-white"><i class="ph-sparkle-fill text-xs"></i></div>`;
-        return `
-          <div class="flex items-end space-x-2">
-            ${avatarHtml}
-            <div class="flex flex-col items-start">
-              <div class="max-w-[90%] p-3 bubble-ai bg-[#e4e6eb] text-gray-900"><p>${text}</p></div>
-              <span class="text-[10px] text-gray-400 mt-1">${timeString}</span>
-            </div>
-          </div>`;
-      } else {
-        return `<div class="flex justify-start"><div class="p-3 bg-red-200 text-red-800 rounded-xl">${text}</div></div>`;
-      }
-    }
+/* ===========================
+   Wikipedia
+=========================== */
+async function wikiSummary(topic) {
+  const url = `https://pt.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(topic)}`;
+  const res = await fetch(url, { headers: { "User-Agent": "EVA-Bot/1.0 (https://vennuta-coder.github.io/eva/)" } });
+  if (!res.ok) return "Não encontrei nada na Wikipedia 📚";
+  const data = await res.json();
+  return `📖 <b>${data.title}</b><br>${data.extract}<br>🔗 <a href="${data.content_urls.desktop.page}" target="_blank">Ler mais</a>`;
+}
 
-    function saveMessage(sender, text) {
-      const history = loadHistory();
-      history.push({ sender, text, timestamp: Date.now() });
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
-    }
+/* ===========================
+   Chat
+=========================== */
+function createMessageHtml(sender, text) {
+  const alignment = sender === "user" ? "justify-end" : "justify-start";
+  const bubbleClass = sender === "user" ? "bubble-user" : "bubble-ai";
+  return `<div class="flex ${alignment}">
+      <div class="max-w-[85%] p-3 ${bubbleClass}">
+        <p>${text}</p>
+      </div>
+    </div>`;
+}
 
-    function loadHistory() {
-      return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-    }
+async function sendMessage() {
+  const input = document.getElementById("user-input");
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = "";
 
-    function renderHistory() {
-      const chatMessages = document.getElementById("chat-messages");
-      chatMessages.innerHTML = "";
-      loadHistory().forEach(msg => {
-        chatMessages.innerHTML += createMessageHtml(msg.sender, msg.text, msg.timestamp);
-      });
-      scrollToBottom();
-    }
+  const chat = document.getElementById("chat-messages");
+  chat.innerHTML += createMessageHtml("user", text);
 
-    // --- Clima ---
-    async function getWeather(city) {
-      const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&units=metric&lang=pt&appid=${WEATHER_KEY}`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error("Cidade não encontrada");
-      const data = await res.json();
-      const temp = Math.round(data.main.temp);
-      const desc = data.weather[0].description;
-      const hum = data.main.humidity;
-      const wind = Math.round(data.wind.speed);
-      return `🌡️ ${temp}°C, ${desc}, 💧 ${hum}% humidade, 💨 vento ${wind} km/h em ${city}`;
-    }
+  let response = null;
 
-    // --- Comandos locais ---
-    function processLocalCommand(query) {
-      const q = query.toLowerCase();
+  // Wikipedia
+  if (text.toLowerCase().startsWith("wikipedia:") || text.toLowerCase().startsWith("quem foi") || text.toLowerCase().startsWith("o que é")) {
+    const topic = text.replace(/wikipedia:|quem foi|o que é/gi, "").trim();
+    response = await wikiSummary(topic);
+  }
+  // Spotify
+  else if (text.toLowerCase().startsWith("procura música") || text.toLowerCase().startsWith("spotify")) {
+    const song = text.replace(/procura música|spotify/gi, "").trim();
+    response = await searchSpotifyTrack(song);
+  }
+  else {
+    response = "Ainda não aprendi isso 🤖. Tenta pedir uma música ou 'Wikipedia: ...'";
+  }
 
-      // Calculadora
-      try {
-        if (/^[0-9+\-*/().\s]+$/.test(q)) {
-          const result = Function("return " + q)();
-          return `O resultado é: ${result}`;
-        }
-      } catch (e) {}
+  chat.innerHTML += createMessageHtml("ai", response);
+  chat.scrollTop = chat.scrollHeight;
+}
 
-      // Raiz quadrada
-      if (q.includes("raiz quadrada")) {
-        const num = parseFloat(q.replace(/[^\d.]/g, ""));
-        if (!isNaN(num)) return `A raiz quadrada de ${num} é ${Math.sqrt(num)}`;
-      }
-
-      // Km ↔ Milhas
-      if (q.includes("km") && q.includes("milha")) {
-        const num = parseFloat(q.replace(/[^\d.]/g, ""));
-        if (!isNaN(num)) return `${num} km = ${(num * 0.621371).toFixed(2)} milhas`;
-      }
-      if (q.includes("milha") && q.includes("km")) {
-        const num = parseFloat(q.replace(/[^\d.]/g, ""));
-        if (!isNaN(num)) return `${num} milhas = ${(num / 0.621371).toFixed(2)} km`;
-      }
-
-      // Celsius ↔ Fahrenheit
-      if (q.includes("c") && q.includes("f")) {
-        const num = parseFloat(q.replace(/[^\d.-]/g, ""));
-        if (!isNaN(num)) return `${num} °C = ${(num * 9/5 + 32).toFixed(1)} °F`;
-      }
-      if (q.includes("f") && q.includes("c")) {
-        const num = parseFloat(q.replace(/[^\d.-]/g, ""));
-        if (!isNaN(num)) return `${num} °F = ${((num - 32) * 5/9).toFixed(1)} °C`;
-      }
-
-      // Clima
-      if (q.includes("tempo em") || q.includes("clima em") || q.includes("temperatura em")) {
-        const city = q.replace(/.*em\s+/i, "").trim();
-        if (city) return { type: "weather", city };
-      }
-
-      return null;
-    }
-
-    async function sendMessage() {
-      const input = document.getElementById("user-input");
-      const chatMessages = document.getElementById("chat-messages");
-      const sendBtn = document.getElementById("send-button");
-      const userText = input.value.trim();
-      if (!userText) return;
-
-      input.value = "";
-      sendBtn.disabled = true;
-
-      chatMessages.innerHTML += createMessageHtml("user", userText);
-      saveMessage("user", userText);
-      scrollToBottom();
-
-      chatMessages.innerHTML += `
-        <div id="typing-indicator" class="flex items-start space-x-2">
-          <div class="w-8 h-8 rounded-full eva-avatar flex items-center justify-center text-white"><i class="ph-sparkle-fill text-xs"></i></div>
-          <div class="p-3 bubble-ai bg-[#e4e6eb] text-gray-800 text-base">
-            <div class="typing-indicator"><span></span><span></span><span></span></div>
-          </div>
-        </div>`;
-      scrollToBottom();
-
-      const localResult = processLocalCommand(userText);
-      if (localResult) {
-        document.getElementById("typing-indicator").remove();
-        if (typeof localResult === "string") {
-          chatMessages.innerHTML += createMessageHtml("ai", localResult);
-          saveMessage("ai", localResult);
-        } else if (localResult.type === "weather") {
-          try {
-            const weatherInfo = await getWeather(localResult.city);
-            chatMessages.innerHTML += createMessageHtml("ai", weatherInfo);
-            saveMessage("ai", weatherInfo);
-          } catch {
-            const errText = "Não consegui obter o clima para essa cidade 🌧️";
-            chatMessages.innerHTML += createMessageHtml("system", errText);
-            saveMessage("system", errText);
-          }
-        }
-        scrollToBottom();
-        sendBtn.disabled = false;
-        return;
-      }
-
-      // Caso não seja comando local → vai para a API
-      try {
-        const aiResponse = await getAiResponse(userText);
-        document.getElementById("typing-indicator").remove();
-        chatMessages.innerHTML += createMessageHtml("ai", aiResponse.text);
-        saveMessage("ai", aiResponse.text);
-      } catch (e) {
-        console.error(e);
-        document.getElementById("typing-indicator").remove();
-        const errText = "Erro: não consegui responder agora. Tenta outra vez.";
-        chatMessages.innerHTML += createMessageHtml("system", errText);
-        saveMessage("system", errText);
-      } finally {
-        scrollToBottom();
-        sendBtn.disabled = false;
-      }
-    }
-
-    async function getAiResponse(userQuery) {
-      const systemPrompt = `
-        Você é EVA, uma assistente sarcástica e bem-humorada. Responda em português de Portugal. 
-        Se o utilizador perguntar pela data, hora ou ano, use a seguinte informação real do sistema:
-
-        📅 Data: ${new Date().toLocaleDateString("pt-PT", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
-        ⏰ Hora: ${new Date().toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" })}
-        📆 Ano: ${new Date().getFullYear()}
-      `;
-
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`;
-      const payload = {
-        contents: [{ parts: [{ text: userQuery }] }],
-        systemInstruction: { parts: [{ text: systemPrompt }] }
-      };
-
-      const response = await fetch(apiUrl, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-
-      const result = await response.json();
-      const candidate = result.candidates?.[0];
-      if (candidate && candidate.content?.parts?.[0]?.text) {
-        return { text: candidate.content.parts[0].text };
-      } else {
-        throw new Error("Resposta inválida");
-      }
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-      renderHistory();
-
-      document.getElementById("send-button").addEventListener("click", sendMessage);
-      document.getElementById("user-input").addEventListener("keydown", e => {
-        if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-      });
-
-      document.getElementById("clear-history").addEventListener("click", () => {
-        localStorage.removeItem(STORAGE_KEY);
-        document.getElementById("chat-messages").innerHTML = "";
-      });
-
-      document.getElementById("avatar-upload").addEventListener("change", e => {
-        const file = e.target.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = function(evt) {
-            userAvatar = evt.target.result;
-            localStorage.setItem(AVATAR_KEY, userAvatar);
-            renderHistory();
-          };
-          reader.readAsDataURL(file);
-        }
-      });
-    });
-  </script>
+document.getElementById("send-button").addEventListener("click", sendMessage);
+</script>
 </body>
 </html>
