@@ -2,209 +2,220 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>EVA - Assistente Virtual</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EVA Assistente</title>
   <style>
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background-color: #121212;
-      color: #f1f1f1;
+      background: #f9f9f9;
+      color: #333;
       display: flex;
       flex-direction: column;
       height: 100vh;
     }
+
     header {
-      background-color: #1e1e1e;
-      padding: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-bottom: 2px solid #ff7b00;
+      text-align: center;
+      padding: 15px;
+      background: #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
+
     header img {
       height: 40px;
-      margin-right: 10px;
     }
-    header h1 {
-      font-size: 22px;
-      color: #fff;
-    }
-    #chat {
+
+    .chat-container {
       flex: 1;
-      padding: 20px;
+      padding: 15px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
+      gap: 10px;
     }
+
     .message {
-      max-width: 70%;
-      padding: 12px;
-      margin: 8px;
-      border-radius: 12px;
+      max-width: 75%;
+      padding: 12px 16px;
+      border-radius: 16px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
       font-size: 15px;
-      line-height: 1.4em;
+      line-height: 1.4;
     }
-    .user {
-      background-color: #ff7b00;
-      color: #fff;
-      align-self: flex-end;
-      border-bottom-right-radius: 0;
-    }
-    .eva {
-      background-color: #2a2a2a;
-      color: #f1f1f1;
+
+    .eva-message {
       align-self: flex-start;
-      border-bottom-left-radius: 0;
+      background: #fff;
       display: flex;
+      gap: 10px;
       align-items: flex-start;
     }
-    .eva img {
-      height: 28px;
-      width: 28px;
-      margin-right: 8px;
+
+    .eva-message img {
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
     }
-    #inputArea {
+
+    .user-message {
+      align-self: flex-end;
+      background: #e8f5e9;
+      border: 1px solid #4CAF50;
+    }
+
+    .input-area {
       display: flex;
       padding: 12px;
-      background-color: #1e1e1e;
-      border-top: 2px solid #ff7b00;
+      background: #fff;
+      box-shadow: 0 -2px 6px rgba(0,0,0,0.1);
     }
-    #userInput {
+
+    .input-area input {
       flex: 1;
-      padding: 10px;
-      border: none;
-      border-radius: 6px;
+      padding: 12px 16px;
+      border: 1px solid #ddd;
+      border-radius: 25px;
       outline: none;
-      background-color: #2a2a2a;
-      color: #fff;
+      font-size: 15px;
     }
-    #sendBtn {
+
+    .input-area button {
       margin-left: 10px;
-      padding: 10px 20px;
+      padding: 12px 20px;
+      background: #4CAF50;
+      color: white;
       border: none;
-      background-color: #ff7b00;
-      color: #fff;
-      border-radius: 6px;
+      border-radius: 25px;
       cursor: pointer;
+      font-size: 15px;
+      transition: background 0.3s;
     }
+
+    .input-area button:hover {
+      background: #43a047;
+    }
+
     footer {
       text-align: center;
       padding: 10px;
-      font-size: 13px;
-      background-color: #1e1e1e;
-      border-top: 2px solid #ff7b00;
+      font-size: 14px;
+      background: #fff;
+      box-shadow: 0 -2px 4px rgba(0,0,0,0.05);
     }
+
     footer span {
       font-weight: bold;
-      color: #fff;
     }
-    footer .orange {
-      color: #ff7b00;
+
+    footer .v {
+      color: orange;
     }
   </style>
 </head>
 <body>
   <header>
-    <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" alt="EVA Logo">
-    <h1>EVA</h1>
+    <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" alt="Logo EVA">
   </header>
 
-  <div id="chat"></div>
+  <div class="chat-container" id="chat">
+    <div class="eva-message message">
+      <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" alt="EVA">
+      <div>Olá! Eu sou a <b>EVA</b>, sua assistente. Pergunte sobre clima, erotismo, tradução (sob pedido) ou o que quiser.</div>
+    </div>
+  </div>
 
-  <div id="inputArea">
+  <div class="input-area">
     <input type="text" id="userInput" placeholder="Digite sua mensagem...">
-    <button id="sendBtn">Enviar</button>
+    <button onclick="sendMessage()">Enviar</button>
   </div>
 
   <footer>
-    <span>E</span><span class="orange">V</span><span>A</span> © 2025
+    <span>E</span><span class="v">V</span><span>A</span> © 2025
   </footer>
 
   <script>
-    const chat = document.getElementById('chat');
-    const input = document.getElementById('userInput');
-    const sendBtn = document.getElementById('sendBtn');
-
-    // API Keys
-    const WEATHER_KEY = "7db838cde261492656dc201d1d17e4aa"; 
+    const WEATHER_KEY = "7db838cde261492656dc201d1d17e4aa";
     const GOOGLE_KEY = "AIzaSyD3OOOrDwc5KtuiUAzg1Pq2dGGVaRJjU3s";
 
-    function addMessage(text, sender = "eva") {
-      const msg = document.createElement("div");
-      msg.classList.add("message", sender);
+    async function sendMessage() {
+      const input = document.getElementById("userInput");
+      const chat = document.getElementById("chat");
 
-      if (sender === "eva") {
-        msg.innerHTML = `<img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png"/> <div>${text}</div>`;
-      } else {
-        msg.textContent = text;
+      if (input.value.trim() === "") return;
+
+      // Mostra mensagem do usuário
+      const userMsg = document.createElement("div");
+      userMsg.className = "user-message message";
+      userMsg.innerText = input.value;
+      chat.appendChild(userMsg);
+
+      // Decide resposta da EVA
+      const text = input.value.toLowerCase();
+      let response = "Vai ver se está a chover 🌧️ enquanto penso numa resposta melhor.";
+
+      // Clima
+      if (text.includes("clima") || text.includes("tempo") || text.includes("clima em")) {
+        const cidade = text.replace("clima em", "").replace("tempo em", "").trim() || "Lisboa";
+        response = await getWeather(cidade);
       }
 
-      chat.appendChild(msg);
+      // Tradução sob pedido
+      else if (text.startsWith("traduza")) {
+        const frase = text.replace("traduza", "").trim();
+        response = await translateText(frase, "en"); // traduz para inglês por padrão
+      }
+
+      // Erotismo
+      else if (text.includes("sexo") || text.includes("erotismo") || text.includes("intimidade")) {
+        response = "O erotismo é uma forma de conexão íntima, que envolve desejo, prazer e cumplicidade.";
+      }
+
+      // Exibe resposta EVA
+      setTimeout(() => {
+        const evaMsg = document.createElement("div");
+        evaMsg.className = "eva-message message";
+        evaMsg.innerHTML = '<img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" alt="EVA"><div>' + response + '</div>';
+        chat.appendChild(evaMsg);
+        chat.scrollTop = chat.scrollHeight;
+      }, 800);
+
+      input.value = "";
       chat.scrollTop = chat.scrollHeight;
     }
 
     async function getWeather(city) {
-      const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${WEATHER_KEY}&units=metric&lang=pt_br`;
-      const res = await fetch(url);
-      if (!res.ok) return "Não consegui pegar o clima agora 😕";
-      const data = await res.json();
-      return `O clima em ${data.name}: ${data.weather[0].description}, 🌡 ${data.main.temp}°C`;
+      try {
+        const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${WEATHER_KEY}&units=metric&lang=pt`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.main) {
+          return `O clima em ${city} está ${data.weather[0].description}, temperatura de ${data.main.temp}°C 🌡️`;
+        } else {
+          return "Não consegui encontrar o clima dessa cidade.";
+        }
+      } catch {
+        return "Erro ao buscar clima.";
+      }
     }
 
-    async function translateText(text, target = "en") {
-      const url = `https://translation.googleapis.com/language/translate/v2?key=${GOOGLE_KEY}`;
-      const res = await fetch(url, {
-        method: "POST",
-        body: JSON.stringify({ q: text, target }),
-        headers: { "Content-Type": "application/json" }
-      });
-      const data = await res.json();
-      return data.data.translations[0].translatedText;
+    async function translateText(text, targetLang) {
+      try {
+        const url = `https://translation.googleapis.com/language/translate/v2?key=${GOOGLE_KEY}`;
+        const res = await fetch(url, {
+          method: "POST",
+          body: JSON.stringify({
+            q: text,
+            target: targetLang
+          }),
+          headers: { "Content-Type": "application/json" }
+        });
+        const data = await res.json();
+        return data.data.translations[0].translatedText;
+      } catch {
+        return "Erro ao traduzir.";
+      }
     }
-
-    async function evaRespond(inputText) {
-      const text = inputText.toLowerCase();
-
-      // Tradução (se pedir explicitamente)
-      if (text.startsWith("traduz")) {
-        const parts = text.split(" ");
-        const target = parts[1] || "en";
-        const phrase = inputText.replace(/^traduz\s+\w+\s*/i, "");
-        const translated = await translateText(phrase, target);
-        return `Tradução para ${target}: ${translated}`;
-      }
-
-      // Clima
-      if (text.includes("clima") || text.includes("tempo")) {
-        const city = inputText.split("em ")[1] || "Lisboa";
-        return await getWeather(city.trim());
-      }
-
-      // Sexo / erotismo
-      if (text.includes("sexo") || text.includes("erotismo") || text.includes("prazer")) {
-        return "O erotismo é a expressão da intimidade e da imaginação, um encontro entre desejo e emoção.";
-      }
-
-      // Fallback
-      return "Vai ver se está a chover 🌧️";
-    }
-
-    sendBtn.addEventListener("click", async () => {
-      const text = input.value.trim();
-      if (!text) return;
-      addMessage(text, "user");
-      input.value = "";
-      const reply = await evaRespond(text);
-      addMessage(reply, "eva");
-    });
-
-    input.addEventListener("keypress", e => {
-      if (e.key === "Enter") sendBtn.click();
-    });
-
-    // Mensagem inicial
-    addMessage("Olá! Eu sou a EVA. O que deseja saber?", "eva");
   </script>
 </body>
 </html>
