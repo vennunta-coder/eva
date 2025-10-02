@@ -1,226 +1,217 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EVA - Assistente</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"/>
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { background: #f9fafb; font-family: 'Inter', sans-serif; }
-    .chat-container { max-width: 900px; margin: 0 auto; height: 90vh; display: flex; flex-direction: column; }
-    .messages { flex: 1; overflow-y: auto; padding: 1rem; }
-    .msg { display: flex; margin-bottom: 1rem; }
-    .msg.user { justify-content: flex-end; }
-    .msg.eva { justify-content: flex-start; }
-    .bubble { padding: 0.75rem 1rem; border-radius: 1rem; max-width: 70%; }
-    .user .bubble { background: #0078FF; color: white; border-bottom-right-radius: 0.25rem; }
-    .eva .bubble { background: #e5e7eb; color: #111827; border-bottom-left-radius: 0.25rem; }
-    footer { text-align: center; padding: 0.75rem; font-size: 0.9rem; background: #f3f4f6; }
-    .eva-logo { width: 32px; height: 32px; border-radius: 50%; margin-right: 0.5rem; }
-    .typing span {
-      display: inline-block; width: 6px; height: 6px; margin: 0 1px;
-      background: #555; border-radius: 50%;
-      animation: blink 1.4s infinite both;
+    body { font-family: 'Inter', sans-serif; }
+    .bubble-eva {
+      border-radius: 1.5rem;
+      border-top-left-radius: 0.5rem;
+      background-color: #f1f1f1;
+      color: #1c1e21;
     }
-    .typing span:nth-child(2){ animation-delay:0.2s; }
-    .typing span:nth-child(3){ animation-delay:0.4s; }
-    @keyframes blink {0%{opacity:.2;}20%{opacity:1;}100%{opacity:.2;}}
+    .bubble-user {
+      border-radius: 1.5rem;
+      border-top-right-radius: 0.5rem;
+      background-color: #0078FF;
+      color: white;
+    }
+    .typing-indicator span {
+      animation: pulse-fade 1.5s infinite;
+      display: inline-block;
+      width: 8px; height: 8px;
+      background-color: #0078FF;
+      border-radius: 50%; margin-right: 4px;
+    }
+    @keyframes pulse-fade {
+      0%,100% { opacity: .5 } 50% { opacity: 1 }
+    }
   </style>
 </head>
-<body>
-  <div class="chat-container">
-    <!-- Header -->
-    <header class="bg-white shadow p-4 flex items-center">
-      <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" alt="EVA" class="w-10 h-10 mr-3"/>
-      <h1 class="text-2xl font-bold"><span style="color:black">E</span><span style="color:orange">V</span><span style="color:black">A</span></h1>
-    </header>
+<body class="bg-gray-100 flex flex-col min-h-screen">
 
-    <!-- Messages -->
-    <div id="messages" class="messages">
-      <div class="msg eva">
-        <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" class="eva-logo" alt="EVA"/>
-        <div class="bubble">Olá! Eu sou a EVA.<br/>Já vens com choradeira ou com piada?</div>
+  <!-- HEADER -->
+  <header class="bg-white shadow-sm border-b border-gray-200 flex items-center justify-between px-6 h-16">
+    <div class="flex items-center space-x-3">
+      <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" class="w-10 h-10">
+      <span class="text-2xl font-bold">
+        <span style="color:black">E</span><span style="color:orange">V</span><span style="color:black">A</span>
+      </span>
+    </div>
+  </header>
+
+  <!-- CHAT -->
+  <main class="flex-1 flex flex-col max-w-3xl w-full mx-auto p-4 space-y-4 overflow-y-auto" id="chat-messages">
+    <div class="flex justify-start">
+      <div class="max-w-[80%] p-3 bubble-eva flex space-x-2">
+        <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" class="w-6 h-6 rounded-full">
+        <p>Olá! Eu sou a EVA.<br>Já vens com choradeira ou com piada?</p>
       </div>
     </div>
+  </main>
 
-    <!-- Input -->
-    <div class="p-4 bg-white border-t flex">
-      <textarea id="userInput" rows="1" placeholder="Escreve a tua mensagem..." 
-        class="flex-1 resize-none border rounded-l-lg p-2"></textarea>
-      <button onclick="sendMessage()" 
-        class="bg-blue-600 text-white px-4 rounded-r-lg">Enviar</button>
-    </div>
+  <!-- INPUT -->
+  <div class="bg-white border-t border-gray-200 p-4 flex items-center space-x-2">
+    <textarea id="user-input"
+      class="flex-1 resize-none border rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+      placeholder="Escreve a tua mensagem..." rows="1"></textarea>
+    <button id="send-button" class="bg-blue-500 hover:bg-blue-600 text-white rounded-full px-5 py-2">Enviar</button>
   </div>
 
-  <footer>
-    <span style="color:black">E</span><span style="color:orange">V</span><span style="color:black">A</span> © 2025
+  <!-- FOOTER -->
+  <footer class="bg-gray-50 text-center text-sm py-2 border-t">
+    <span class="font-bold">
+      <span style="color:black">E</span><span style="color:orange">V</span><span style="color:black">A</span>
+    </span> © 2025
   </footer>
 
   <script>
-    const OPENWEATHER_KEY = "7db838cde261492656dc201d1d17e4aa";
     const GOOGLE_KEY = "AIzaSyD3OOOrDwc5KtuiUAzg1Pq2dGGVaRJjU3s";
+    const WEATHER_KEY = "7db838cde261492656dc201d1d17e4aa";
 
-    let awaitingCity = false;
-    let awaitingYoutubeConfirm = false;
-    let awaitingTranslation = false;
-    let lastQuery = "";
+    const chat = document.getElementById("chat-messages");
+    const input = document.getElementById("user-input");
+    const sendBtn = document.getElementById("send-button");
 
-    function appendMessage(sender, text, isHTML=false) {
-      const msgContainer = document.getElementById("messages");
-      const msg = document.createElement("div");
-      msg.className = "msg " + sender;
-
-      let avatar = "";
-      if(sender === "eva") {
-        avatar = `<img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" class="eva-logo" alt="EVA"/>`;
-      }
-
-      msg.innerHTML = avatar + `<div class="bubble">${isHTML ? text : text.replace(/\n/g,"<br>")}</div>`;
-      msgContainer.appendChild(msg);
-      msgContainer.scrollTop = msgContainer.scrollHeight;
-    }
-
-    function addTyping() {
-      const id = "typing-" + Date.now();
-      const chat = document.getElementById("messages");
+    function appendMessage(sender, text) {
       const div = document.createElement("div");
-      div.id = id; div.className = "msg eva";
+      div.className = "flex " + (sender === "user" ? "justify-end" : "justify-start");
       div.innerHTML = `
-        <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" class="eva-logo"/>
-        <div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>`;
+        <div class="max-w-[80%] p-3 ${sender==="user"?"bubble-user":"bubble-eva"} flex space-x-2">
+          ${sender==="eva" ? `<img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" class="w-6 h-6 rounded-full">` : ""}
+          <p>${text}</p>
+        </div>`;
       chat.appendChild(div);
       chat.scrollTop = chat.scrollHeight;
-      return id;
     }
-    function removeTyping(id){const el=document.getElementById(id);if(el)el.remove();}
 
-    async function sendMessage() {
-      const input = document.getElementById("userInput");
-      const text = input.value.trim();
-      if(!text) return;
-      appendMessage("user", text);
-      input.value = "";
+    function showTyping() {
+      const div = document.createElement("div");
+      div.id = "typing";
+      div.className = "flex justify-start";
+      div.innerHTML = `
+        <div class="max-w-[80%] p-3 bubble-eva flex space-x-2">
+          <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" class="w-6 h-6 rounded-full">
+          <div class="typing-indicator flex mt-1">
+            <span></span><span></span><span></span>
+          </div>
+        </div>`;
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+    }
 
-      const typingId = addTyping();
+    function removeTyping() {
+      const typing = document.getElementById("typing");
+      if (typing) typing.remove();
+    }
+
+    async function getWeather(city) {
+      try {
+        const r = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&lang=pt&appid=${WEATHER_KEY}`);
+        const d = await r.json();
+        if (d.main) return `🌡️ ${d.name}: ${d.main.temp}°C, ${d.weather[0].description}`;
+        return "Não encontrei o clima dessa cidade.";
+      } catch { return "Erro ao obter clima."; }
+    }
+
+    async function getWiki(query) {
+      try {
+        const r = await fetch(`https://pt.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`);
+        if (!r.ok) return null;
+        const d = await r.json();
+        return d.extract ? `${d.extract} <br><a href="${d.content_urls.desktop.page}" target="_blank">🔗 Ler mais</a>` : null;
+      } catch { return null; }
+    }
+
+    async function getYouTube(query) {
+      try {
+        const r = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=1&q=${encodeURIComponent(query)}&key=${GOOGLE_KEY}`);
+        const d = await r.json();
+        if (d.items && d.items.length > 0) {
+          const v = d.items[0];
+          return `🎥 Encontrei um vídeo: <a href="https://www.youtube.com/watch?v=${v.id.videoId}" target="_blank">${v.snippet.title}</a>`;
+        }
+        return null;
+      } catch { return null; }
+    }
+
+    async function translateText(text, targetLang) {
+      try {
+        const resp = await fetch(`https://translation.googleapis.com/language/translate/v2?key=${GOOGLE_KEY}`, {
+          method: "POST",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({ q: text, target: targetLang })
+        });
+        const data = await resp.json();
+        return data.data?.translations[0]?.translatedText || "Não consegui traduzir.";
+      } catch { return "Erro ao traduzir."; }
+    }
+
+    async function processMessage(text) {
+      showTyping();
 
       setTimeout(async () => {
-        removeTyping(typingId);
-        await processMessage(text);
-      }, 1200);
-    }
+        removeTyping();
 
-    async function processMessage(text){
-      // Estado: cidade pedida
-      if(awaitingCity){ awaitingCity=false; return getWeatherByCity(text); }
-      // Estado: YouTube
-      if(awaitingYoutubeConfirm){ awaitingYoutubeConfirm=false;
-        if(text.toLowerCase().includes("sim")) return searchYoutube(lastQuery);
-        else return appendMessage("eva","Ok, não procurei no YouTube. Podes perguntar outra coisa.");
-      }
-      // Estado: tradução
-      if(awaitingTranslation){ awaitingTranslation=false;
-        const translation=await translateText(text,"en");
-        return appendMessage("eva","Tradução: "+translation);
-      }
-
-      // Clima
-      if(text.toLowerCase().includes("clima")||text.toLowerCase().includes("tempo")){
-        const match=text.match(/em ([A-Za-zÀ-ÿ\s]+)/i);
-        if(match){return getWeatherByCity(match[1].trim());}
-        else{
-          if(navigator.geolocation){
-            navigator.geolocation.getCurrentPosition(
-              pos=>getWeatherByCoords(pos.coords.latitude,pos.coords.longitude),
-              ()=>{appendMessage("eva","Qual cidade queres saber o clima?"); awaitingCity=true;}
-            );
-          } else {appendMessage("eva","Qual cidade queres saber o clima?"); awaitingCity=true;}
-        } return;
-      }
-
-      // Tradução
-      if(text.toLowerCase().startsWith("traduz")){
-        const match=text.match(/para (\w+)/i);
-        let targetLang="en";
-        if(match){
-          const lang=match[1].toLowerCase();
-          if(lang.includes("ingl")) targetLang="en";
-          else if(lang.includes("fran")) targetLang="fr";
-          else if(lang.includes("espa")) targetLang="es";
-          else if(lang.includes("ital")) targetLang="it";
-          else if(lang.includes("alem")) targetLang="de";
-          else return appendMessage("eva","Não reconheço esse idioma. Usa inglês, francês, espanhol, italiano ou alemão.");
+        // Bloqueio de temas restritos
+        if (text.toLowerCase().includes("sexo") || text.toLowerCase().includes("erotismo") || text.toLowerCase().includes("intim")) {
+          appendMessage("eva", "⚠️ Esse tema não está disponível aqui. Tenta outro assunto.");
+          return;
         }
-        const phrase=text.replace(/traduz/i,"").replace(/para \w+/i,"").trim();
-        if(phrase===""){ appendMessage("eva","O que queres que eu traduza?"); awaitingTranslation=true; }
-        else {
-          const translation=await translateText(phrase,targetLang);
-          appendMessage("eva","Tradução: "+translation);
+
+        // Clima
+        if (text.toLowerCase().includes("clima em")) {
+          const city = text.split("clima em")[1].trim();
+          appendMessage("eva", await getWeather(city)); return;
         }
-        return;
-      }
 
-      // Erotismo
-      if(text.toLowerCase().includes("sexo")||text.toLowerCase().includes("erotismo")||text.toLowerCase().includes("intim")){
-        return appendMessage("eva","O tema das relações íntimas faz parte da natureza humana. Pergunta direta, resposta direta 😉");
-      }
-
-      // Wikipedia
-      lastQuery=text;
-      try{
-        const resp=await fetch(`https://pt.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(text)}`);
-        if(resp.ok){
-          const data=await resp.json();
-          if(data.extract){
-            return appendMessage("eva",`${data.extract}<br><a href="${data.content_urls.desktop.page}" target="_blank">[Mais info]</a>`,true);
-          } else { appendMessage("eva","Não encontrei nada na Wikipedia. Queres que eu procure no YouTube?"); awaitingYoutubeConfirm=true; return;}
+        // Tradução
+        if (text.toLowerCase().startsWith("traduz")) {
+          const match = text.match(/para (\w+)/i);
+          let target = "en";
+          if (match) {
+            const lang = match[1].toLowerCase();
+            if (lang.includes("ingl")) target="en";
+            else if (lang.includes("fran")) target="fr";
+            else if (lang.includes("espa")) target="es";
+            else if (lang.includes("ital")) target="it";
+            else if (lang.includes("alem")) target="de";
+            else { appendMessage("eva","Idioma não suportado."); return; }
+          }
+          const phrase = text.replace(/traduz/i,"").replace(/para \w+/i,"").trim();
+          if (!phrase) { appendMessage("eva","O que queres que eu traduza?"); return; }
+          appendMessage("eva",`Tradução: ${await translateText(phrase,target)}`); return;
         }
-      } catch(e){ appendMessage("eva","Erro ao consultar a Wikipedia. Queres que eu procure no YouTube?"); awaitingYoutubeConfirm=true; return;}
 
-      // fallback
-      appendMessage("eva","🤷‍♀️ Não encontrei nada relevante desta vez. Tenta reformular a pergunta.");
+        // Wikipedia
+        const wiki = await getWiki(text);
+        if (wiki) { appendMessage("eva", wiki); return; }
+
+        // YouTube fallback
+        const yt = await getYouTube(text);
+        if (yt) { appendMessage("eva", yt); return; }
+
+        // Educado fallback
+        appendMessage("eva","🤷‍♀️ Não encontrei nada útil desta vez. Tenta reformular a pergunta.");
+      }, 1200); // atraso para parecer natural
     }
 
-    async function getWeatherByCity(city){
-      try{
-        const resp=await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${OPENWEATHER_KEY}&units=metric&lang=pt`);
-        const data=await resp.json();
-        if(data.weather){ appendMessage("eva",`Clima em ${city}: ${data.weather[0].description}, ${data.main.temp}°C`);}
-        else appendMessage("eva","Não consegui obter o clima dessa cidade.");
-      }catch(e){appendMessage("eva","Erro ao consultar o clima.");}
-    }
+    sendBtn.addEventListener("click", () => {
+      const text = input.value.trim();
+      if (!text) return;
+      appendMessage("user", text);
+      input.value = "";
+      processMessage(text);
+    });
 
-    async function getWeatherByCoords(lat,lon){
-      try{
-        const resp=await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_KEY}&units=metric&lang=pt`);
-        const data=await resp.json();
-        if(data.weather){ appendMessage("eva",`Clima em ${data.name}: ${data.weather[0].description}, ${data.main.temp}°C`);}
-        else appendMessage("eva","Não consegui obter o clima agora.");
-      }catch(e){appendMessage("eva","Erro ao consultar o clima.");}
-    }
-
-    async function searchYoutube(query){
-      try{
-        const ytResp=await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&key=${GOOGLE_KEY}&maxResults=1`);
-        const ytData=await ytResp.json();
-        if(ytData.items&&ytData.items.length>0){
-          const video=ytData.items[0]; const videoId=video.id.videoId; const title=video.snippet.title;
-          appendMessage("eva",`Encontrei este vídeo que pode ajudar:<br><a href="https://www.youtube.com/watch?v=${videoId}" target="_blank">🎥 ${title}</a>`,true);
-        } else appendMessage("eva","Nem no YouTube encontrei algo útil. Queres tentar outra pergunta?");
-      }catch(e){appendMessage("eva","Erro ao consultar o YouTube.");}
-    }
-
-    async function translateText(text,targetLang){
-      try{
-        const resp=await fetch(`https://translation.googleapis.com/language/translate/v2?key=${GOOGLE_KEY}`,{
-          method:"POST",headers:{"Content-Type":"application/json"},
-          body:JSON.stringify({q:text,target:targetLang})
-        });
-        const data=await resp.json();
-        if(data.data&&data.data.translations&&data.data.translations.length>0){
-          return data.data.translations[0].translatedText;
-        } else return "Não consegui traduzir agora.";
-      }catch(e){return "Erro ao usar a API de tradução.";}
-    }
+    input.addEventListener("keydown", e => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault(); sendBtn.click();
+      }
+    });
   </script>
 </body>
 </html>
