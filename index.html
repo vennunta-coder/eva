@@ -1,179 +1,28 @@
-<!DOCTYPE html>
-<html lang="pt">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EVA - Assistente</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body { font-family: 'Inter', sans-serif; }
-    .eva-logo { width: 32px; height: 32px; border-radius: 50%; }
-    footer { font-size: 14px; text-align: center; margin-top: 10px; color: #555; }
-    .eva-text { font-size: 23px; }
-  </style>
-</head>
-<body class="bg-gray-100 text-gray-800 flex flex-col h-screen">
-
-  <!-- Header -->
-  <header class="bg-white border-b shadow-sm p-4 flex items-center space-x-3">
-    <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/evalogo.png" alt="EVA Logo" class="eva-logo">
-    <h1 class="text-xl font-bold">
-      <span style="color:black">E</span><span style="color:orange">V</span><span style="color:black">A</span>
-    </h1>
-  </header>
-
-  <!-- Chat -->
-  <main id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4">
-    <div class="flex items-start space-x-2">
-      <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/evalogo.png" class="eva-logo">
-      <div class="bg-gray-200 rounded-lg p-3 eva-text">Olá! Eu sou a EVA.<br>Já vens com choradeira ou com piada?</div>
-    </div>
-  </main>
-
-  <!-- Input -->
-  <div class="p-4 bg-white border-t">
-    <div class="flex">
-      <textarea id="user-input" rows="1" placeholder="Escreve aqui..." 
-        class="flex-1 resize-none border rounded-l-lg p-2 focus:outline-none"></textarea>
-      <button id="send-button" class="bg-blue-500 hover:bg-blue-600 text-white px-4 rounded-r-lg">Enviar</button>
-    </div>
-  </div>
-
-  <!-- Footer -->
-  <footer>
-    <span style="color:black">E</span><span style="color:orange">V</span><span style="color:black">A</span> © 2025
-  </footer>
-
-  <script>
-    const API_WEATHER = "7db838cde261492656dc201d1d17e4aa"; // OpenWeather key
-    let insistCount = 0;
-
-    function addMessage(sender, text) {
-      const chat = document.getElementById("chat-messages");
-      const msg = document.createElement("div");
-      msg.className = "flex items-start space-x-2";
-      msg.innerHTML = sender === "user"
-        ? `<div class="ml-auto bg-blue-500 text-white rounded-lg p-3">${text}</div>`
-        : `<img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/evalogo.png" class="eva-logo"><div class="bg-gray-200 rounded-lg p-3">${text}</div>`;
-      chat.appendChild(msg);
-      chat.scrollTop = chat.scrollHeight;
+// Tradução sob pedido
+if (text.toLowerCase().startsWith("traduz")) {
+  const match = text.match(/para (\w+)/i);
+  let targetLang = "en"; // padrão inglês
+  if (match) {
+    const lang = match[1].toLowerCase();
+    if (lang.includes("ingl")) targetLang = "en";
+    else if (lang.includes("fran")) targetLang = "fr";
+    else if (lang.includes("espa")) targetLang = "es";
+    else if (lang.includes("ital")) targetLang = "it";
+    else if (lang.includes("alem")) targetLang = "de";
+    else {
+      appendMessage("eva", "Não reconheço esse idioma. Tenta inglês, francês, espanhol, italiano ou alemão.");
+      return;
     }
+  }
 
-    async function handleEVA(userText) {
-      const lower = userText.toLowerCase();
-
-      // 💕 Amor
-      const loveWords = ["amor","apaixonado","namoro","relacionamento","sentimento","paixão","coração"];
-      if (loveWords.some(word => lower.includes(word))) {
-        insistCount = 0;
-        const frasesAmor = [
-          "L’amour est une promesse silencieuse. (O amor é uma promessa silenciosa.) 💫",
-          "Aimer, c’est se perdre pour mieux se retrouver. (Amar é perder-se para melhor se reencontrar.) ❤️",
-          "Le cœur parle quand les mots se taisent. (O coração fala quando as palavras se calam.) 🌙",
-          "Amar é tocar a eternidade num instante. ✨",
-          "O amor é a poesia da alma. 💕",
-          "Quem ama, escuta até o silêncio. 🌹",
-          "No amor, a vulnerabilidade é força. ❤️"
-        ];
-        return frasesAmor[Math.floor(Math.random() * frasesAmor.length)];
-      }
-
-      // 🔥 Erotismo
-      const erotWords = ["sexo","erotismo","intimidade","prazer","desejo"];
-      if (erotWords.some(word => lower.includes(word))) {
-        insistCount = 0;
-        const frasesErot = [
-          "Intimidade nasce do respeito e do desejo mútuo. 😏💋",
-          "Desejo é fogo, mas precisa de cuidado para não queimar. 🔥😉",
-          "Sexo é muito mais sobre conexão do que técnica. 💦😏"
-        ];
-        return frasesErot[Math.floor(Math.random() * frasesErot.length)];
-      }
-
-      // ☁️ Clima
-      if (lower.includes("clima") || lower.includes("tempo")) {
-        try {
-          const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=Lisboa&appid=${API_WEATHER}&units=metric&lang=pt`);
-          if (res.ok) {
-            const data = await res.json();
-            return `☁️ O clima em ${data.name} está ${data.weather[0].description}, temperatura ${data.main.temp}°C. <br>
-              <a href="https://openweathermap.org/city/${data.id}" target="_blank" class="text-blue-600 underline">[fonte: OpenWeather]</a>`;
-          }
-        } catch (e) { return "Não consegui buscar o clima agora."; }
-      }
-
-      // 🌍 Tradução
-      if (lower.startsWith("traduz")) {
-        const match = userText.match(/traduz (.+) para (.+)/i);
-        if (match) {
-          const palavra = match[1].trim();
-          const lingua = match[2].trim();
-          try {
-            const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(palavra)}&langpair=pt|${encodeURIComponent(lingua)}`);
-            if (res.ok) {
-              const data = await res.json();
-              if (data.responseData.translatedText) {
-                return `“${palavra}” em ${lingua} é “${data.responseData.translatedText}” 🌍`;
-              }
-            }
-          } catch { return "Não consegui traduzir agora."; }
-        }
-      }
-
-      // 🏥 Saúde / Doenças raras
-      if (lower.includes("doença") || lower.includes("síndrome")) {
-        const termo = userText.replace(/doença|síndrome/gi,"").trim();
-        if (termo.length > 0) {
-          try {
-            const res = await fetch(`https://api.orphadata.com/data?name=${encodeURIComponent(termo)}`);
-            if (res.ok) {
-              const data = await res.json();
-              if (data && data[0] && data[0].definition) {
-                return `🩺 <strong>${data[0].name}</strong>: ${data[0].definition} <br>
-                        <a href="https://www.orpha.net/consor/cgi-bin/OC_Exp.php?Lng=PT&Expert=${data[0].OrphaCode}" target="_blank" class="text-blue-600 underline">[fonte: Orphadata]</a>`;
-              }
-            }
-            return "Não encontrei nada nos registos de doenças raras. 🤔";
-          } catch { return "Erro ao aceder à base de saúde."; }
-        }
-      }
-
-      // 🌍 Wikipedia
-      if (lower.startsWith("o que é") || lower.startsWith("quem é") || lower.startsWith("define")) {
-        const termo = userText.replace(/o que é|quem é|define/gi,"").trim();
-        if (termo.length > 0) {
-          try {
-            const res = await fetch(`https://pt.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(termo)}`);
-            if (res.ok) {
-              const data = await res.json();
-              if (data.extract) {
-                return `${data.extract} <br>
-                        <a href="https://pt.wikipedia.org/wiki/${encodeURIComponent(data.title)}" target="_blank" class="text-blue-600 underline">[fonte: Wikipedia]</a>`;
-              }
-            }
-          } catch { return "Falhei em buscar na Wikipedia."; }
-        }
-      }
-
-      // 🤷 Fallback
-      insistCount++;
-      if (insistCount === 1) {
-        return "Vai ver se eu estou lá fora... 🙄";
-      } else {
-        return `Ainda aqui? Então vai de Google 👉 
-          <a href="https://www.google.com/search?q=${encodeURIComponent(userText)}" target="_blank" class="text-blue-600 underline">pesquisa aqui</a>`;
-      }
-    }
-
-    document.getElementById("send-button").addEventListener("click", async () => {
-      const input = document.getElementById("user-input");
-      const text = input.value.trim();
-      if (!text) return;
-      addMessage("user", text);
-      input.value = "";
-      const resposta = await handleEVA(text);
-      addMessage("eva", resposta);
-    });
-  </script>
-</body>
-</html>
+  const phrase = text.replace(/traduz/i, "").replace(/para \w+/i, "").trim();
+  if (phrase === "") {
+    appendMessage("eva", "O que queres que eu traduza?");
+    awaitingTranslation = true;
+    return;
+  } else {
+    const translation = await translateText(phrase, targetLang);
+    appendMessage("eva", `Tradução: ${translation}`);
+  }
+  return;
+}
