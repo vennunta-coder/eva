@@ -1,100 +1,181 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chat com EVA</title>
+  <title>EVA - Assistente</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { background: #f3f4f6; }
-    .chat-container { max-width: 600px; margin: 2rem auto; background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-    .msg { padding: 10px 15px; margin: 8px; border-radius: 10px; max-width: 80%; }
-    .user { background: #22c55e; color: white; margin-left: auto; }
-    .eva { background: #e5e7eb; color: #111; display: flex; align-items: center; }
-    .eva img { width: 24px; height: 24px; margin-right: 8px; border-radius: 50%; }
+    body { font-family: 'Inter', sans-serif; background:#f9fafb; }
+    .chat-container { max-width: 900px; margin: auto; }
+    .bubble-user {
+      background: #0078FF; color: #fff;
+      border-radius: 1.5rem 0.5rem 1.5rem 1.5rem;
+      padding: 10px 15px; max-width: 80%;
+    }
+    .bubble-ai {
+      background: #e4e6eb; color: #000;
+      border-radius: 0.5rem 1.5rem 1.5rem 1.5rem;
+      padding: 10px 15px; max-width: 80%;
+    }
+    .search-card {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+    .search-card .title {
+      font-weight: bold;
+      color: #0078ff;
+      text-decoration: none;
+    }
+    .search-card .title:hover { text-decoration: underline; }
+    .search-card .snippet { margin: 6px 0; color: #333; }
+    .search-card .url { font-size: 12px; color: gray; }
+    footer {
+      text-align: center; padding: 15px; margin-top: 10px;
+      font-size: 14px; color: #444;
+    }
+    footer span.v-orange { color: orange; }
   </style>
 </head>
-<body>
-  <div class="chat-container">
-    <div class="p-4 border-b text-lg font-bold">Chat com <span class="text-green-600">EVA</span></div>
-    <div id="chat" class="p-4 h-96 overflow-y-auto">
-      <div class="msg eva"><img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png"> Olá! Eu sou a EVA. Pergunte-me algo 🌸</div>
+<body class="flex flex-col min-h-screen">
+
+  <!-- Header -->
+  <header class="bg-white shadow flex items-center px-4 py-3">
+    <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" alt="EVA Logo" class="w-10 h-10 mr-3">
+    <h1 class="text-2xl font-bold">
+      <span style="color:black;">E</span><span class="v-orange">V</span><span style="color:black;">A</span>
+    </h1>
+  </header>
+
+  <!-- Chat -->
+  <main class="flex-1 flex flex-col chat-container p-4">
+    <div id="chat-messages" class="flex-1 overflow-y-auto space-y-4">
+      <!-- Mensagem de boas-vindas -->
+      <div class="flex items-start space-x-2">
+        <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" class="w-8 h-8">
+        <div class="bubble-ai">Olá! Eu sou a EVA.<br>Já vens com choradeira ou com piada?</div>
+      </div>
     </div>
-    <div class="p-4 border-t flex">
-      <input id="input" type="text" placeholder="Digite sua mensagem..." class="flex-1 border rounded px-3 py-2">
-      <button onclick="sendMsg()" class="ml-2 bg-green-500 text-white px-4 py-2 rounded">Enviar</button>
+
+    <!-- Input -->
+    <div class="mt-4 flex items-center">
+      <textarea id="user-input" rows="1" placeholder="Escreve a tua mensagem..."
+        class="flex-1 border rounded-full px-4 py-2 resize-none"></textarea>
+      <button id="send-button" class="ml-2 bg-blue-500 text-white px-4 py-2 rounded-full">Enviar</button>
     </div>
-  </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <span style="color:black;">E</span><span class="v-orange">V</span><span style="color:black;">A</span> © 2025
+  </footer>
 
   <script>
-    const chat = document.getElementById("chat");
-    const input = document.getElementById("input");
+    const apiKey = "AIzaSyD3OOOrDwc5KtuiUAzg1Pq2dGGVaRJjU3s";
+    const chatMessages = document.getElementById("chat-messages");
+    const input = document.getElementById("user-input");
+    const sendBtn = document.getElementById("send-button");
 
-    // 🔑 Config Google Custom Search
-    const API_KEY = "AIzaSyD3OOOrDwc5KtuiUAzg1Pq2dGGVaRJjU3s";
-    const CX = "81b1c6566b6be4ccf"; // seu motor custom search
-
-    function addMessage(text, sender="eva") {
-      const msg = document.createElement("div");
-      msg.className = "msg " + sender;
-      if (sender === "eva") {
-        msg.innerHTML = `<img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png"> ${text}`;
-      } else {
-        msg.textContent = text;
-      }
-      chat.appendChild(msg);
-      chat.scrollTop = chat.scrollHeight;
+    function addMessage(sender, text, isHtml=false) {
+      const div = document.createElement("div");
+      div.className = "flex items-start space-x-2 " + (sender==="user" ? "justify-end" : "");
+      div.innerHTML = sender==="user"
+        ? `<div class="bubble-user">${text}</div>`
+        : `<img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" class="w-8 h-8"><div class="bubble-ai">${isHtml?text:escapeHtml(text)}</div>`;
+      chatMessages.appendChild(div);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    async function sendMsg() {
-      const text = input.value.trim();
-      if (!text) return;
-      addMessage(text, "user");
-      input.value = "";
-
-      // Lógica local primeiro
-      let resposta = getLocalResponse(text);
-
-      if (!resposta) {
-        resposta = await searchGoogle(text);
-      }
-
-      addMessage(resposta);
+    function escapeHtml(text) {
+      return text.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
     }
 
-    // 🔹 Respostas locais básicas
-    function getLocalResponse(msg) {
-      msg = msg.toLowerCase();
+    async function processMessage(query) {
+      query = query.trim();
+      if(!query) return;
 
-      if (msg.includes("clima") || msg.includes("tempo")) {
-        return "☁️ O clima hoje está agradável, perfeito para um bom café.";
-      }
-      if (msg.includes("traduz")) {
-        return "🔤 Peça assim: 'traduza para inglês: bom dia'.";
-      }
-      if (msg.includes("sexo") || msg.includes("erotismo")) {
-        return "🔥 O erotismo é uma expressão íntima e criativa das relações humanas.";
-      }
+      addMessage("user", query);
 
-      return null; // se não encontrou, cai no Google
-    }
+      let respostaFinal = null;
 
-    // 🔹 Busca no Google Custom Search
-    async function searchGoogle(query) {
+      // 🌍 Wikipedia
       try {
-        const url = `https://www.googleapis.com/customsearch/v1?key=${API_KEY}&cx=${CX}&q=${encodeURIComponent(query)}`;
-        const res = await fetch(url);
-        const data = await res.json();
-        if (data.items && data.items.length > 0) {
-          return `🔎 ${data.items[0].snippet}`;
-        } else {
-          return "Não encontrei nada relevante no Google. 🤔";
+        const wiki = await fetch(`https://pt.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`);
+        if (wiki.ok) {
+          const data = await wiki.json();
+          if (data.extract) {
+            respostaFinal = `
+              <div class="search-card">
+                <a href="https://pt.wikipedia.org/wiki/${encodeURIComponent(data.title)}" target="_blank" class="title">${data.title}</a>
+                <p class="snippet">${data.extract}</p>
+                <span class="url">pt.wikipedia.org</span>
+              </div>
+            `;
+          }
         }
-      } catch (e) {
-        console.error(e);
-        return "⚠️ Erro ao consultar o Google.";
+      } catch(e){}
+
+      // 🔎 Google Custom Search
+      if (!respostaFinal) {
+        try {
+          const google = await fetch(`https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=81b1c6566b6be4ccf&q=${encodeURIComponent(query)}`);
+          if (google.ok) {
+            const dados = await google.json();
+            if (dados.items && dados.items.length > 0) {
+              respostaFinal = "🔎 Resultados no Google:<br><br>";
+              dados.items.slice(0,3).forEach(item=>{
+                respostaFinal += `
+                  <div class="search-card">
+                    <a href="${item.link}" target="_blank" class="title">${item.title}</a>
+                    <p class="snippet">${item.snippet}</p>
+                    <span class="url">${item.displayLink}</span>
+                  </div>
+                `;
+              });
+            }
+          }
+        } catch(e){}
       }
+
+      // 🌐 Tradução (só a pedido)
+      if (/^traduz(ir)?\s/i.test(query.toLowerCase())) {
+        const parts = query.split(" ");
+        if(parts.length>=3){
+          const target = parts[1];
+          const texto = parts.slice(2).join(" ");
+          try {
+            const trans = await fetch(`https://translation.googleapis.com/language/translate/v2?key=${apiKey}`, {
+              method:"POST",
+              headers:{"Content-Type":"application/json"},
+              body: JSON.stringify({q:texto, target})
+            });
+            const data = await trans.json();
+            if(data.data && data.data.translations[0]){
+              respostaFinal = `🔤 Tradução: ${data.data.translations[0].translatedText}`;
+            }
+          } catch(e){}
+        }
+      }
+
+      if(!respostaFinal){
+        respostaFinal = "❌ Não encontrei nada credível para te responder agora.";
+      }
+
+      addMessage("eva", respostaFinal, true);
     }
+
+    sendBtn.addEventListener("click", ()=>processMessage(input.value));
+    input.addEventListener("keydown", e=>{
+      if(e.key==="Enter" && !e.shiftKey){
+        e.preventDefault();
+        processMessage(input.value);
+        input.value="";
+      }
+    });
   </script>
 </body>
 </html>
