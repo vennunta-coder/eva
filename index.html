@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EVA - Assistente</title>
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { font-family: 'Inter', sans-serif; background:#f9fafb; }
@@ -11,34 +13,57 @@
     .bubble-user {
       background: #0078FF; color: #fff;
       border-radius: 1.5rem 0.5rem 1.5rem 1.5rem;
-      padding: 10px 15px; max-width: 80%;
+      padding: 12px 18px; max-width: 80%;
+      font-size: 23px;
+      word-wrap: break-word;
     }
     .bubble-ai {
       background: #e4e6eb; color: #000;
       border-radius: 0.5rem 1.5rem 1.5rem 1.5rem;
-      padding: 10px 15px; max-width: 80%;
+      padding: 12px 18px; max-width: 80%;
+      font-size: 23px;
+      word-wrap: break-word;
     }
     .search-card {
       background: #fff;
       border: 1px solid #ddd;
       border-radius: 8px;
-      padding: 10px;
-      margin-bottom: 10px;
-      font-size: 14px;
+      padding: 12px;
+      margin-bottom: 12px;
+      font-size: 23px; 
+      line-height: 1.4;
     }
     .search-card .title {
       font-weight: bold;
       color: #0078ff;
       text-decoration: none;
+      font-size: 23px;
     }
     .search-card .title:hover { text-decoration: underline; }
-    .search-card .snippet { margin: 6px 0; color: #333; }
-    .search-card .url { font-size: 12px; color: gray; }
+    .search-card .snippet { margin: 6px 0; color: #333; font-size: 23px; }
+    .search-card .url { font-size: 20px; color: gray; }
+    textarea { font-size: 23px !important; }
+    #send-button { font-size: 23px !important; }
     footer {
-      text-align: center; padding: 15px; margin-top: 10px;
+      text-align: center; padding: 15px;
       font-size: 14px; color: #444;
     }
     footer span.v-orange { color: orange; }
+
+    /* 📱 Mobile fix input at bottom */
+    @media (max-width: 768px) {
+      main { padding-bottom: 80px; } /* espaço para input fixo */
+      .input-bar {
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        background: #fff;
+        border-top: 1px solid #ddd;
+        padding: 8px;
+        display: flex;
+        align-items: center;
+      }
+      footer { margin-bottom: 60px; } /* evita sobreposição */
+    }
   </style>
 </head>
 <body class="flex flex-col min-h-screen">
@@ -60,14 +85,14 @@
         <div class="bubble-ai">Olá! Eu sou a EVA.<br>Já vens com choradeira ou com piada?</div>
       </div>
     </div>
-
-    <!-- Input -->
-    <div class="mt-4 flex items-center">
-      <textarea id="user-input" rows="1" placeholder="Escreve a tua mensagem..."
-        class="flex-1 border rounded-full px-4 py-2 resize-none"></textarea>
-      <button id="send-button" class="ml-2 bg-blue-500 text-white px-4 py-2 rounded-full">Enviar</button>
-    </div>
   </main>
+
+  <!-- Input (desktop normal, mobile fixo em baixo via CSS) -->
+  <div class="input-bar w-full chat-container">
+    <textarea id="user-input" rows="1" placeholder="Escreve a tua mensagem..."
+      class="flex-1 border rounded-full px-4 py-2 resize-none"></textarea>
+    <button id="send-button" class="ml-2 bg-blue-500 text-white px-5 py-2 rounded-full">Enviar</button>
+  </div>
 
   <!-- Footer -->
   <footer>
@@ -168,7 +193,7 @@
       addMessage("eva", respostaFinal, true);
     }
 
-    sendBtn.addEventListener("click", ()=>processMessage(input.value));
+    sendBtn.addEventListener("click", ()=>{ processMessage(input.value); input.value=""; });
     input.addEventListener("keydown", e=>{
       if(e.key==="Enter" && !e.shiftKey){
         e.preventDefault();
