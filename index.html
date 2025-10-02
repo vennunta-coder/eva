@@ -1,221 +1,497 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EVA Assistente</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f9f9f9;
-      color: #333;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-    }
-
-    header {
-      text-align: center;
-      padding: 15px;
-      background: #fff;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    header img {
-      height: 40px;
-    }
-
-    .chat-container {
-      flex: 1;
-      padding: 15px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .message {
-      max-width: 75%;
-      padding: 12px 16px;
-      border-radius: 16px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      font-size: 15px;
-      line-height: 1.4;
-    }
-
-    .eva-message {
-      align-self: flex-start;
-      background: #fff;
-      display: flex;
-      gap: 10px;
-      align-items: flex-start;
-    }
-
-    .eva-message img {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-    }
-
-    .user-message {
-      align-self: flex-end;
-      background: #e8f5e9;
-      border: 1px solid #4CAF50;
-    }
-
-    .input-area {
-      display: flex;
-      padding: 12px;
-      background: #fff;
-      box-shadow: 0 -2px 6px rgba(0,0,0,0.1);
-    }
-
-    .input-area input {
-      flex: 1;
-      padding: 12px 16px;
-      border: 1px solid #ddd;
-      border-radius: 25px;
-      outline: none;
-      font-size: 15px;
-    }
-
-    .input-area button {
-      margin-left: 10px;
-      padding: 12px 20px;
-      background: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 25px;
-      cursor: pointer;
-      font-size: 15px;
-      transition: background 0.3s;
-    }
-
-    .input-area button:hover {
-      background: #43a047;
-    }
-
-    footer {
-      text-align: center;
-      padding: 10px;
-      font-size: 14px;
-      background: #fff;
-      box-shadow: 0 -2px 4px rgba(0,0,0,0.05);
-    }
-
-    footer span {
-      font-weight: bold;
-    }
-
-    footer .v {
-      color: orange;
-    }
-  </style>
-</head>
-<body>
-  <header>
-    <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" alt="Logo EVA">
-  </header>
-
-  <div class="chat-container" id="chat">
-    <div class="eva-message message">
-      <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" alt="EVA">
-      <div>Olá! Eu sou a <b>EVA</b>, sua assistente. Pergunte sobre clima, erotismo, tradução (sob pedido) ou o que quiser.</div>
-    </div>
-  </div>
-
-  <div class="input-area">
-    <input type="text" id="userInput" placeholder="Digite sua mensagem...">
-    <button onclick="sendMessage()">Enviar</button>
-  </div>
-
-  <footer>
-    <span>E</span><span class="v">V</span><span>A</span> © 2025
-  </footer>
-
-  <script>
-    const WEATHER_KEY = "7db838cde261492656dc201d1d17e4aa";
-    const GOOGLE_KEY = "AIzaSyD3OOOrDwc5KtuiUAzg1Pq2dGGVaRJjU3s";
-
-    async function sendMessage() {
-      const input = document.getElementById("userInput");
-      const chat = document.getElementById("chat");
-
-      if (input.value.trim() === "") return;
-
-      // Mostra mensagem do usuário
-      const userMsg = document.createElement("div");
-      userMsg.className = "user-message message";
-      userMsg.innerText = input.value;
-      chat.appendChild(userMsg);
-
-      // Decide resposta da EVA
-      const text = input.value.toLowerCase();
-      let response = "Vai ver se está a chover 🌧️ enquanto penso numa resposta melhor.";
-
-      // Clima
-      if (text.includes("clima") || text.includes("tempo") || text.includes("clima em")) {
-        const cidade = text.replace("clima em", "").replace("tempo em", "").trim() || "Lisboa";
-        response = await getWeather(cidade);
-      }
-
-      // Tradução sob pedido
-      else if (text.startsWith("traduza")) {
-        const frase = text.replace("traduza", "").trim();
-        response = await translateText(frase, "en"); // traduz para inglês por padrão
-      }
-
-      // Erotismo
-      else if (text.includes("sexo") || text.includes("erotismo") || text.includes("intimidade")) {
-        response = "O erotismo é uma forma de conexão íntima, que envolve desejo, prazer e cumplicidade.";
-      }
-
-      // Exibe resposta EVA
-      setTimeout(() => {
-        const evaMsg = document.createElement("div");
-        evaMsg.className = "eva-message message";
-        evaMsg.innerHTML = '<img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" alt="EVA"><div>' + response + '</div>';
-        chat.appendChild(evaMsg);
-        chat.scrollTop = chat.scrollHeight;
-      }, 800);
-
-      input.value = "";
-      chat.scrollTop = chat.scrollHeight;
-    }
-
-    async function getWeather(city) {
-      try {
-        const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${WEATHER_KEY}&units=metric&lang=pt`;
-        const res = await fetch(url);
-        const data = await res.json();
-        if (data.main) {
-          return `O clima em ${city} está ${data.weather[0].description}, temperatura de ${data.main.temp}°C 🌡️`;
-        } else {
-          return "Não consegui encontrar o clima dessa cidade.";
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EVA - Assistente Virtual</title>
+    <!-- Tailwind CSS for utility classes and responsiveness -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Define custom theme and structural elements */
+        :root {
+            --color-primary: #4ADE80;    /* Vibrant Green for the button/strong accent */
+            --color-secondary: #7EE399;  /* Softer Green for User Message Bubble */
+            --color-background: #FFFFFF; /* Pure White for App Container */
+            --color-text: #1F2937;
         }
-      } catch {
-        return "Erro ao buscar clima.";
-      }
-    }
+        body {
+            font-family: 'Inter', sans-serif;
+            /* NOVO: Fundo Ciano/Verde suave para harmonizar com a cor primária */
+            background-color: #e8f5e9; /* Light Mint Green */
+            background-image: linear-gradient(135deg, #e0f2f1 0%, #e8f5e9 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 1rem;
+        }
 
-    async function translateText(text, targetLang) {
-      try {
-        const url = `https://translation.googleapis.com/language/translate/v2?key=${GOOGLE_KEY}`;
-        const res = await fetch(url, {
-          method: "POST",
-          body: JSON.stringify({
-            q: text,
-            target: targetLang
-          }),
-          headers: { "Content-Type": "application/json" }
+        /* Main application container (simulating a phone) */
+        #app-container {
+            background-color: var(--color-background);
+            color: var(--color-text);
+            /* Altura dinâmica removida e substituída por proporção de tela */
+            aspect-ratio: 9 / 16; /* Força a proporção 9:16 (mobile portrait) */
+            width: 100%;
+            max-width: 420px; /* Max width of a typical mobile screen */
+            border-radius: 2rem; /* Large rounded corners */
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* Ensures rounded corners look perfect */
+        }
+        
+        /* Chat area overrides */
+        #chat {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            padding: 1rem;
+            background-color: var(--color-background);
+            scroll-behavior: smooth;
+        }
+        
+        /* Message styling */
+        .message {
+            max-width: 85%; 
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 1.25rem; /* Rounded corners for messages */
+            font-size: 15px;
+            line-height: 1.4em;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); /* Subtle shadow */
+        }
+        .user {
+            background-color: var(--color-secondary);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 0.5rem; 
+            border-top-right-radius: 1.25rem;
+        }
+        .eva {
+            background-color: #F3F4F6; /* Gray-100, very light */
+            color: var(--color-text);
+            align-self: flex-start;
+            border-bottom-left-radius: 0.5rem;
+            border-top-left-radius: 1.25rem;
+            display: flex;
+            align-items: flex-start;
+        }
+        .eva img {
+            height: 28px;
+            width: 28px;
+            margin-right: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        /* Loading animation */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--color-primary);
+            border-radius: 50%;
+            width: 14px;
+            height: 14px;
+            animation: spin 1s linear infinite;
+            margin-top: 3px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Sources style */
+        .sources {
+            margin-top: 8px;
+            border-top: 1px solid #E5E7EB; /* Very light gray line */
+            padding-top: 5px;
+            font-size: 0.75rem;
+            color: #6B7280; /* Gray-500 */
+        }
+        .sources a {
+            color: var(--color-primary);
+            text-decoration: none;
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div id="app-container">
+        <!-- HEADER -->
+        <header class="p-4 flex items-center justify-between bg-white border-b border-gray-100 shadow-sm">
+            <h1 class="text-lg font-semibold text-gray-800 flex items-center">
+                <span class="text-xl text-gray-400 mr-2">&lt;</span>
+                Chat com <span class="text-xl font-extrabold ml-1" style="color: var(--color-primary);">EVA</span>
+            </h1>
+            <div class="flex flex-col items-end">
+                <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" alt="EVA Logo" class="h-8 w-8 rounded-full shadow-md">
+                <!-- Hora Local -->
+                <span id="local-time-display" class="text-xs text-gray-400 font-mono mt-1">--:--</span>
+            </div>
+        </header>
+
+        <!-- CHAT AREA -->
+        <div id="chat" class="flex-1 space-y-4">
+            <!-- Messages will be injected here -->
+        </div>
+
+        <!-- INPUT AREA (Redesenhada para o estilo da última imagem) -->
+        <div id="inputArea" class="p-4 bg-white">
+            <div class="flex items-center space-x-3">
+                <div class="relative flex-1">
+                    <input type="text" id="userInput" placeholder="Escreva uma mensagem..." 
+                        class="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-full outline-none bg-white text-gray-800 
+                               focus:border-[#4ADE80] focus:ring-1 focus:ring-[#4ADE80] transition duration-150 shadow-md">
+                    
+                    <!-- Ícone de lupa (Search) -->
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" 
+                         class="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                    </svg>
+                </div>
+                
+                <button id="sendBtn" 
+                    class="w-12 h-12 flex items-center justify-center border-none text-white font-bold rounded-full cursor-pointer 
+                           hover:opacity-90 transition duration-150 active:scale-90"
+                    style="background-color: var(--color-primary); 
+                           box-shadow: 0 10px 15px -3px rgba(74, 222, 128, 0.4), 0 4px 6px -2px rgba(74, 222, 128, 0.2);">
+                    <!-- Send Icon (SVG) -->
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 transform">
+                        <path fill-rule="evenodd" d="M3.75 12a.75.75 0 01.75-.75h14.717l-1.92-1.92a.75.75 0 111.06-1.06l3.25 3.25a.75.75 0 010 1.06l-3.25 3.25a.75.75 0 11-1.06-1.06l1.92-1.92H4.5a.75.75 0 01-.75-.75z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- O FOOTER / NAV BAR foi removido para priorizar o layout da área de input -->
+        <!-- <footer id="navBar" class="p-4 bg-white border-t border-gray-100 shadow-2xl">...</footer> -->
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global variables provided by the Canvas environment
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        const chat = document.getElementById('chat');
+        const input = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        // Renomeado para refletir a nova função
+        const localTimeDisplay = document.getElementById('local-time-display');
+
+        const EVA_LOGO = "https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png";
+        const MESSAGES_COLLECTION = 'chat_messages';
+
+        let db = null;
+        let auth = null;
+        let userId = null;
+        let isAuthReady = false;
+        let loadingMessage = null;
+
+        // --- Utility Functions (Time) ---
+
+        /**
+         * Atualiza o display de hora local.
+         * Usa 'pt-BR' como base de formatação, mas o fuso horário é do usuário.
+         */
+        function updateTimeDisplay() {
+            const now = new Date();
+            // Formata a hora no padrão 24 horas (ex: 15:30)
+            const timeString = now.toLocaleTimeString('pt-BR', { 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                hour12: false 
+            });
+            localTimeDisplay.textContent = timeString;
+        }
+
+
+        // --- Firebase Initialization and Auth ---
+
+        async function initFirebase() {
+            try {
+                // setLogLevel('Debug'); // Uncomment to debug Firebase issues
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                // Authenticate
+                await new Promise((resolve) => {
+                    onAuthStateChanged(auth, async (user) => {
+                        if (user) {
+                            userId = user.uid;
+                        } else {
+                            if (initialAuthToken) {
+                                await signInWithCustomToken(auth, initialAuthToken);
+                                userId = auth.currentUser.uid;
+                            } else {
+                                await signInAnonymously(auth);
+                                userId = auth.currentUser.uid;
+                            }
+                        }
+                        isAuthReady = true;
+                        resolve();
+                    });
+                });
+
+                loadMessages();
+                
+                // Inicia o relógio e define a atualização a cada segundo
+                updateTimeDisplay(); 
+                setInterval(updateTimeDisplay, 1000);
+                
+            } catch (error) {
+                console.error("Erro na inicialização do Firebase:", error);
+                localTimeDisplay.textContent = 'Erro';
+                addMessageToUI("Erro ao conectar com o serviço de chat. Verifique o console.", "eva", Date.now());
+            }
+        }
+
+        // --- Utility Functions (Chat) ---
+
+        function showLoading() {
+            // Remove any existing loading message
+            removeLoading();
+
+            const msg = document.createElement("div");
+            msg.classList.add("message", "eva", "eva-loading");
+
+            // Use flex-row for loader inside eva bubble
+            msg.innerHTML = `<img src="${EVA_LOGO}" alt="EVA"/> <div class="flex items-center space-x-2"><span>Digitando...</span><div class="loader"></div></div>`;
+            chat.appendChild(msg);
+            loadingMessage = msg;
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        function removeLoading() {
+            if (loadingMessage && loadingMessage.parentNode) {
+                loadingMessage.parentNode.removeChild(loadingMessage);
+                loadingMessage = null;
+            }
+        }
+
+        function addMessageToUI(text, sender, timestamp, id = null, sources = []) {
+            // If message exists, do nothing (handled by onSnapshot clearing/re-rendering)
+            if (id && document.querySelector(`[data-id="${id}"]`)) return;
+            
+            const msg = document.createElement("div");
+            msg.classList.add("message", sender);
+            
+            if (id) {
+                msg.setAttribute('data-id', id);
+            }
+
+            let messageContent = text;
+            if (sender === "eva") {
+                let sourceHtml = '';
+                if (sources && sources.length > 0) {
+                    const uniqueSources = Array.from(new Map(sources.map(item => [item['uri'], item])).values());
+                    sourceHtml = `
+                        <div class="sources mt-2 pt-2 border-t border-gray-300">
+                            <p class="text-xs mb-1 text-gray-500">Fontes:</p>
+                            ${uniqueSources.map(source => 
+                                `<a href="${source.uri}" target="_blank" title="${source.title}">${source.title || 'Link'}</a>`
+                            ).join('')}
+                        </div>
+                    `;
+                }
+                messageContent = `<img src="${EVA_LOGO}" alt="EVA"/> <div>${text}${sourceHtml}</div>`;
+            }
+
+            msg.innerHTML = messageContent;
+            chat.appendChild(msg);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        // --- Firestore Realtime Listener ---
+
+        function loadMessages() {
+            if (!db || !isAuthReady) return;
+
+            // Public path for collaborative/shared chat history
+            const chatRef = collection(db, 'artifacts', appId, 'public', 'data', MESSAGES_COLLECTION);
+            
+            // Order by timestamp to maintain correct chat flow
+            const q = query(chatRef, orderBy("timestamp", "asc"));
+
+            onSnapshot(q, (snapshot) => {
+                // Get the current scroll position before clearing
+                const isScrolledToBottom = chat.scrollHeight - chat.clientHeight <= chat.scrollTop + 1;
+                
+                // Clear the chat to re-render the whole history efficiently
+                chat.innerHTML = ''; 
+                
+                let isInitialWelcomeAdded = false;
+
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    if (data.sender === 'initial') {
+                        isInitialWelcomeAdded = true;
+                    }
+                    addMessageToUI(
+                        data.text, 
+                        data.sender, 
+                        data.timestamp?.toMillis(), 
+                        doc.id, 
+                        data.sources
+                    );
+                });
+                
+                // If the database is empty, add the initial welcome message without saving it
+                if (snapshot.empty && !isInitialWelcomeAdded) {
+                    addMessageToUI("Olá! Eu sou a EVA. No que posso ajudar você hoje? 😉", "eva", Date.now(), 'initial');
+                }
+                
+                // Keep scroll position if it was at the bottom
+                if (isScrolledToBottom) {
+                    chat.scrollTop = chat.scrollHeight;
+                }
+            });
+        }
+        
+        // --- Firestore Save Function ---
+        
+        async function saveMessageToDB(text, sender, sources = []) {
+            if (!db || !userId) {
+                console.error("Firestore não está pronto.");
+                return;
+            }
+            
+            const chatRef = collection(db, 'artifacts', appId, 'public', 'data', MESSAGES_COLLECTION);
+            
+            try {
+                await addDoc(chatRef, {
+                    text: text,
+                    sender: sender,
+                    userId: userId,
+                    timestamp: serverTimestamp(),
+                    sources: sources
+                });
+            } catch (e) {
+                console.error("Erro ao adicionar documento: ", e);
+            }
+        }
+
+        // --- Gemini API Call ---
+
+        async function evaRespond(inputText) {
+            const apiKey = ""; // Canvas provides this automatically
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+            // Define a persona and instructions for the model in Portuguese
+            const systemInstruction = "Você é a EVA, uma assistente virtual amigável, prestativa e inteligente, que responde em Português. Suas respostas devem ser concisas e diretas. Use emojis ocasionalmente. Use o Google Search para garantir que suas informações sejam atuais e factuais. Evite mencionar explicitamente que você usou o Google Search.";
+
+            const payload = {
+                contents: [{ parts: [{ text: inputText }] }],
+                // Enable Google Search grounding
+                tools: [{ "google_search": {} }], 
+                systemInstruction: {
+                    parts: [{ text: systemInstruction }]
+                },
+            };
+
+            const MAX_RETRIES = 3;
+            let responseData = null;
+
+            for (let i = 0; i < MAX_RETRIES; i++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    responseData = await response.json();
+
+                    if (response.ok) {
+                        break; // Success, exit loop
+                    } else if (response.status === 429 && i < MAX_RETRIES - 1) {
+                        // Rate limit exceeded, apply exponential backoff
+                        const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                    } else {
+                        // Log detailed error information from the API response
+                        const errorMsg = responseData.error?.message || response.statusText;
+                        console.error(`Tentativa ${i + 1} falhou com status ${response.status}: ${errorMsg}`, responseData);
+                        throw new Error(`API Error: ${response.status} ${errorMsg}`);
+                    }
+                } catch (error) {
+                    if (i === MAX_RETRIES - 1) {
+                        console.error("Gemini API falhou após todas as tentativas:", error);
+                        // Return a more descriptive error message to the user
+                        return { text: "Desculpe, a conexão com a inteligência artificial falhou após várias tentativas. Por favor, verifique o console para detalhes técnicos.", sources: [] };
+                    }
+                }
+            }
+            
+            removeLoading(); // Ensure loading indicator is removed after all retries
+
+            if (!responseData || !responseData.candidates || responseData.candidates.length === 0) {
+                 console.error("API Gemini retornou resposta vazia ou inválida:", responseData);
+                 // Return a more descriptive error message to the user
+                 return { text: "Não consegui gerar uma resposta. A IA retornou dados vazios. Por favor, tente reformular.", sources: [] };
+            }
+
+            const candidate = responseData.candidates[0];
+            const text = candidate.content?.parts?.[0]?.text || "Não consegui gerar uma resposta significativa.";
+            
+            let sources = [];
+            const groundingMetadata = candidate.groundingMetadata;
+            if (groundingMetadata && groundingMetadata.groundingAttributions) {
+                sources = groundingMetadata.groundingAttributions
+                    .map(attribution => ({
+                        uri: attribution.web?.uri,
+                        title: attribution.web?.title,
+                    }))
+                    .filter(source => source.uri); // Only keep valid sources
+            }
+
+            return { text, sources };
+        }
+
+        // --- Event Handlers ---
+
+        sendBtn.addEventListener("click", handleSend);
+        input.addEventListener("keypress", e => {
+            if (e.key === "Enter") handleSend();
         });
-        const data = await res.json();
-        return data.data.translations[0].translatedText;
-      } catch {
-        return "Erro ao traduzir.";
-      }
-    }
-  </script>
+
+        async function handleSend() {
+            const text = input.value.trim();
+            if (!text || !isAuthReady) return;
+
+            input.value = "";
+            sendBtn.disabled = true; // Disable button while processing
+
+            // 1. Save User Message to DB (onSnapshot will render it)
+            await saveMessageToDB(text, "user");
+
+            // 2. Show Loading Indicator
+            showLoading();
+
+            // 3. Get Gemini Response
+            const reply = await evaRespond(text);
+
+            // 4. Save EVA Response to DB (onSnapshot will render it, including sources)
+            await saveMessageToDB(reply.text, "eva", reply.sources);
+            
+            // 5. Cleanup
+            removeLoading();
+            sendBtn.disabled = false;
+        }
+
+        // Start the application
+        initFirebase();
+    </script>
 </body>
 </html>
