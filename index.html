@@ -3,204 +3,287 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EVA - Assistente</title>
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png">
+  <title>EVA - Assistente Virtual</title>
+  <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/evafavicon.ico">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { font-family: 'Inter', sans-serif; background:#f9fafb; }
-    .chat-container { max-width: 900px; margin: auto; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f5f6fa;
+    }
     .bubble-user {
-      background: #0078FF; color: #fff;
-      border-radius: 1.5rem 0.5rem 1.5rem 1.5rem;
-      padding: 12px 18px; max-width: 80%;
-      font-size: 23px;
-      word-wrap: break-word;
+      background: #0078FF;
+      color: white;
+      border-radius: 1.2rem;
+      border-top-right-radius: 0.4rem;
+      padding: 0.6rem 1rem;
+      max-width: 75%;
     }
     .bubble-ai {
-      background: #e4e6eb; color: #000;
-      border-radius: 0.5rem 1.5rem 1.5rem 1.5rem;
-      padding: 12px 18px; max-width: 80%;
-      font-size: 23px;
-      word-wrap: break-word;
+      background: #e4e6eb;
+      color: #111;
+      border-radius: 1.2rem;
+      border-top-left-radius: 0.4rem;
+      padding: 0.6rem 1rem;
+      max-width: 75%;
     }
-    .search-card {
-      background: #fff;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      padding: 12px;
-      margin-bottom: 12px;
-      font-size: 23px; 
-      line-height: 1.4;
-    }
-    .search-card .title {
-      font-weight: bold;
-      color: #0078ff;
-      text-decoration: none;
-      font-size: 23px;
-    }
-    .search-card .title:hover { text-decoration: underline; }
-    .search-card .snippet { margin: 6px 0; color: #333; font-size: 23px; }
-    .search-card .url { font-size: 20px; color: gray; }
-    textarea { font-size: 23px !important; }
-    #send-button { font-size: 23px !important; }
     footer {
-      text-align: center; padding: 15px;
-      font-size: 14px; color: #444;
+      font-size: 14px;
+      color: #666;
+      text-align: center;
+      padding: 0.8rem;
     }
-    footer span.v-orange { color: orange; }
+    footer span.orange { color: orange; }
 
-    /* 📱 Mobile fix input at bottom */
-    @media (max-width: 768px) {
-      main { padding-bottom: 80px; } /* espaço para input fixo */
-      .input-bar {
-        position: fixed;
-        bottom: 0; left: 0; right: 0;
-        background: #fff;
-        border-top: 1px solid #ddd;
-        padding: 8px;
-        display: flex;
-        align-items: center;
-      }
-      footer { margin-bottom: 60px; } /* evita sobreposição */
+    /* Indicador digitando */
+    .typing-indicator {
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
+    .typing-indicator span {
+      width: 8px;
+      height: 8px;
+      background: #555;
+      border-radius: 50%;
+      display: inline-block;
+      animation: blink 1.4s infinite both;
+    }
+    .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes blink {
+      0% { opacity: .2; }
+      20% { opacity: 1; }
+      100% { opacity: .2; }
+    }
+
+    /* === ESTILOS ANIMADOS EXTRA === */
+    @keyframes shine {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .gradient-text {
+      background: linear-gradient(
+        90deg,
+        #60a5fa,
+        #3b82f6,
+        #2563eb,
+        #4f46e5,
+        #3b82f6,
+        #60a5fa
+      );
+      background-size: 200% auto;
+      animation: shine 3s linear infinite;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    @keyframes slideInLeft {
+      0% { transform: translateX(-20px); opacity: 0; }
+      100% { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideInRight {
+      0% { transform: translateX(20px); opacity: 0; }
+      100% { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes fadeInUp {
+      0% { transform: translateY(10px); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+    .typing-cursor::after {
+      content: '|';
+      margin-left: 1px;
+      animation: cursor 1s infinite step-end;
+    }
+    .typing-cursor-hidden::after {
+      visibility: hidden;
+    }
+    @keyframes cursor {
+      50% { opacity: 0; }
+    }
+    .slide-in-left { animation: slideInLeft 0.7s ease forwards; }
+    .slide-in-right { animation: slideInRight 0.7s ease forwards; }
+    .fade-in-up { opacity: 0; animation: fadeInUp 0.7s ease forwards; }
   </style>
 </head>
 <body class="flex flex-col min-h-screen">
 
   <!-- Header -->
-  <header class="bg-white shadow flex items-center px-4 py-3">
-    <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" alt="EVA Logo" class="w-10 h-10 mr-3">
-    <h1 class="text-2xl font-bold">
-      <span style="color:black;">E</span><span class="v-orange">V</span><span style="color:black;">A</span>
-    </h1>
+  <header class="bg-white border-b p-4 flex items-center space-x-2 shadow-sm">
+    <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" alt="EVA" class="w-10 h-10">
+    <h1 class="text-2xl font-bold gradient-text">EVA</h1>
   </header>
 
   <!-- Chat -->
-  <main class="flex-1 flex flex-col chat-container p-4">
-    <div id="chat-messages" class="flex-1 overflow-y-auto space-y-4">
-      <!-- Mensagem de boas-vindas -->
-      <div class="flex items-start space-x-2">
-        <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" class="w-8 h-8">
-        <div class="bubble-ai">Olá! Eu sou a EVA.<br>Já vens com choradeira ou com piada?</div>
+  <main id="chat" class="flex-1 overflow-y-auto p-4 space-y-4">
+    <!-- Mensagem inicial da EVA -->
+    <div class="flex items-start space-x-2 slide-in-left">
+      <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" class="w-8 h-8">
+      <div class="bubble-ai">
+        Olá! Eu sou a EVA.<br>Estou pronta para responder às tuas perguntas.
       </div>
     </div>
   </main>
 
-  <!-- Input (desktop normal, mobile fixo em baixo via CSS) -->
-  <div class="input-bar w-full chat-container">
-    <textarea id="user-input" rows="1" placeholder="Escreve a tua mensagem..."
-      class="flex-1 border rounded-full px-4 py-2 resize-none"></textarea>
-    <button id="send-button" class="ml-2 bg-blue-500 text-white px-5 py-2 rounded-full">Enviar</button>
+  <!-- Input -->
+  <div class="bg-white border-t p-3 flex space-x-2">
+    <textarea id="userInput" rows="1" placeholder="Escreve aqui..." 
+      class="flex-1 resize-none border rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"></textarea>
+    <button onclick="handleSend()" 
+      class="bg-blue-500 text-white rounded-full px-5 py-2 font-semibold hover:bg-blue-600">
+      Enviar
+    </button>
   </div>
 
   <!-- Footer -->
   <footer>
-    <span style="color:black;">E</span><span class="v-orange">V</span><span style="color:black;">A</span> © 2025
+    <span class="text-black">E</span><span class="orange">V</span><span class="text-black">A</span> © 2025
   </footer>
 
   <script>
-    const apiKey = "AIzaSyD3OOOrDwc5KtuiUAzg1Pq2dGGVaRJjU3s";
-    const chatMessages = document.getElementById("chat-messages");
-    const input = document.getElementById("user-input");
-    const sendBtn = document.getElementById("send-button");
+    const chatMessages = document.getElementById("chat");
 
-    function addMessage(sender, text, isHtml=false) {
+    const WEATHER_KEY = "7db838cde261492656dc201d1d17e4aa";
+    const GOOGLE_KEY = "AIzaSyD3OOOrDwc5KtuiUAzg1Pq2dGGVaRJjU3s";
+
+    function addMessage(sender, text) {
       const div = document.createElement("div");
-      div.className = "flex items-start space-x-2 " + (sender==="user" ? "justify-end" : "");
-      div.innerHTML = sender==="user"
-        ? `<div class="bubble-user">${text}</div>`
-        : `<img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" class="w-8 h-8"><div class="bubble-ai">${isHtml?text:escapeHtml(text)}</div>`;
+      div.className = "flex items-start space-x-2 " + 
+                      (sender === "user" ? "justify-end slide-in-right" : "slide-in-left");
+      if (sender === "eva") {
+        div.innerHTML = `
+          <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" class="w-8 h-8">
+          <div class="bubble-ai fade-in-up">${text}</div>`;
+      } else {
+        div.innerHTML = `<div class="bubble-user fade-in-up">${text}</div>`;
+      }
       chatMessages.appendChild(div);
       chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    function escapeHtml(text) {
-      return text.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+    function showTyping() {
+      const div = document.createElement("div");
+      div.id = "typing";
+      div.className = "flex items-start space-x-2";
+      div.innerHTML = `
+        <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" class="w-8 h-8">
+        <div class="bubble-ai typing-indicator">
+          <span></span><span></span><span></span>
+        </div>`;
+      chatMessages.appendChild(div);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function hideTyping() {
+      const typingDiv = document.getElementById("typing");
+      if (typingDiv) typingDiv.remove();
+    }
+
+    async function handleSend() {
+      const input = document.getElementById("userInput");
+      const text = input.value.trim();
+      if (!text) return;
+      addMessage("user", text);
+      input.value = "";
+      
+      showTyping();
+
+      setTimeout(async () => {
+        const reply = await processMessage(text);
+        hideTyping();
+        addMessage("eva", reply);
+      }, 1500);
+    }
+
+    async function getWeather(city) {
+      try {
+        const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${WEATHER_KEY}&units=metric&lang=pt`);
+        const data = await res.json();
+        if (data.cod === 200) {
+          return `Clima em ${city}: ${data.weather[0].description}, 🌡️ ${data.main.temp}°C (sensação ${data.main.feels_like}°C).`;
+        } else {
+          return "Não consegui encontrar o clima dessa cidade.";
+        }
+      } catch (e) {
+        return "Erro ao aceder ao clima.";
+      }
+    }
+
+    async function translateText(text, targetLang) {
+      try {
+        const resp = await fetch(`https://translation.googleapis.com/language/translate/v2?key=${GOOGLE_KEY}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ q: text, target: targetLang })
+        });
+        const data = await resp.json();
+        if (data.data?.translations?.[0]?.translatedText) {
+          return data.data.translations[0].translatedText;
+        } else {
+          return "Não consegui traduzir agora.";
+        }
+      } catch {
+        return "Erro ao usar a API de tradução.";
+      }
+    }
+
+    async function getWikipediaSummary(query) {
+      try {
+        const title = query.replace(/(wikipedia|quem é|o que é)/i, "").trim();
+        const res = await fetch(`https://pt.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`);
+        if (!res.ok) return "Não encontrei nada no Wikipedia.";
+        const data = await res.json();
+        return data.extract ? data.extract : "Não encontrei um resumo no Wikipedia.";
+      } catch {
+        return "Erro ao aceder ao Wikipedia.";
+      }
     }
 
     async function processMessage(query) {
-      query = query.trim();
-      if(!query) return;
+      const lower = query.toLowerCase();
 
-      addMessage("user", query);
-
-      let respostaFinal = null;
-
-      // 🌍 Wikipedia
-      try {
-        const wiki = await fetch(`https://pt.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`);
-        if (wiki.ok) {
-          const data = await wiki.json();
-          if (data.extract) {
-            respostaFinal = `
-              <div class="search-card">
-                <a href="https://pt.wikipedia.org/wiki/${encodeURIComponent(data.title)}" target="_blank" class="title">${data.title}</a>
-                <p class="snippet">${data.extract}</p>
-                <span class="url">pt.wikipedia.org</span>
-              </div>
-            `;
-          }
+      // 🌤️ Clima
+      if (lower.includes("clima") || lower.includes("tempo")) {
+        const match = query.match(/em ([a-zA-ZÀ-ÿ\s]+)/i);
+        if (match) {
+          const city = match[1];
+          return await getWeather(city);
         }
-      } catch(e){}
-
-      // 🔎 Google Custom Search
-      if (!respostaFinal) {
-        try {
-          const google = await fetch(`https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=81b1c6566b6be4ccf&q=${encodeURIComponent(query)}`);
-          if (google.ok) {
-            const dados = await google.json();
-            if (dados.items && dados.items.length > 0) {
-              respostaFinal = "🔎 Resultados no Google:<br><br>";
-              dados.items.slice(0,3).forEach(item=>{
-                respostaFinal += `
-                  <div class="search-card">
-                    <a href="${item.link}" target="_blank" class="title">${item.title}</a>
-                    <p class="snippet">${item.snippet}</p>
-                    <span class="url">${item.displayLink}</span>
-                  </div>
-                `;
-              });
-            }
-          }
-        } catch(e){}
+        return "Diz-me a cidade para eu ver o clima.";
       }
 
-      // 🌐 Tradução (só a pedido)
-      if (/^traduz(ir)?\s/i.test(query.toLowerCase())) {
-        const parts = query.split(" ");
-        if(parts.length>=3){
-          const target = parts[1];
-          const texto = parts.slice(2).join(" ");
-          try {
-            const trans = await fetch(`https://translation.googleapis.com/language/translate/v2?key=${apiKey}`, {
-              method:"POST",
-              headers:{"Content-Type":"application/json"},
-              body: JSON.stringify({q:texto, target})
-            });
-            const data = await trans.json();
-            if(data.data && data.data.translations[0]){
-              respostaFinal = `🔤 Tradução: ${data.data.translations[0].translatedText}`;
-            }
-          } catch(e){}
+      // 🌍 Tradução sob pedido
+      if (lower.startsWith("traduz")) {
+        const match = query.match(/para (\w+)/i);
+        let targetLang = "en"; 
+        if (match) {
+          const lang = match[1].toLowerCase();
+          if (lang.includes("ingl")) targetLang = "en";
+          else if (lang.includes("fran")) targetLang = "fr";
+          else if (lang.includes("espa")) targetLang = "es";
+          else if (lang.includes("ital")) targetLang = "it";
+          else if (lang.includes("alem")) targetLang = "de";
+          else return "Não reconheço esse idioma. Usa inglês, francês, espanhol, italiano ou alemão.";
         }
+        const phrase = query.replace(/traduz/i, "").replace(/para \w+/i, "").trim();
+        if (!phrase) return "O que queres que eu traduza?";
+        return "Tradução: " + await translateText(phrase, targetLang);
       }
 
-      if(!respostaFinal){
-        respostaFinal = "❌ Não encontrei nada credível para te responder agora.";
+      // ❤️ Erotismo/sexo
+      if (lower.includes("sexo") || lower.includes("erotismo")) {
+        return "Esse é um tema íntimo. Posso dar-te informações educativas sobre sexualidade, relações e saúde.";
       }
 
-      addMessage("eva", respostaFinal, true);
+      // 📚 Wikipedia
+      if (lower.includes("wikipedia") || lower.includes("quem é") || lower.includes("o que é")) {
+        return await getWikipediaSummary(query);
+      }
+
+      // 🤷 Fallback
+      return "Não encontrei em fontes externas, mas posso dar-te uma explicação geral. Faz outra pergunta se quiseres.";
     }
-
-    sendBtn.addEventListener("click", ()=>{ processMessage(input.value); input.value=""; });
-    input.addEventListener("keydown", e=>{
-      if(e.key==="Enter" && !e.shiftKey){
-        e.preventDefault();
-        processMessage(input.value);
-        input.value="";
-      }
-    });
   </script>
 </body>
 </html>
