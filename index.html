@@ -1,289 +1,377 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EVA - Assistente Virtual</title>
-  <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/evafavicon.ico">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background: #f5f6fa;
-    }
-    .bubble-user {
-      background: #0078FF;
-      color: white;
-      border-radius: 1.2rem;
-      border-top-right-radius: 0.4rem;
-      padding: 0.6rem 1rem;
-      max-width: 75%;
-    }
-    .bubble-ai {
-      background: #e4e6eb;
-      color: #111;
-      border-radius: 1.2rem;
-      border-top-left-radius: 0.4rem;
-      padding: 0.6rem 1rem;
-      max-width: 75%;
-    }
-    footer {
-      font-size: 14px;
-      color: #666;
-      text-align: center;
-      padding: 0.8rem;
-    }
-    footer span.orange { color: orange; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EVA - Assistente Virtual</title>
+  <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/evafavicon.ico">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f5f6fa;
+    }
+    .bubble-user {
+      background: #0078FF;
+      color: white;
+      border-radius: 1.2rem;
+      border-top-right-radius: 0.4rem;
+      padding: 0.6rem 1rem;
+      max-width: 75%;
+      word-wrap: break-word; /* Garante que o texto quebre corretamente */
+    }
+    .bubble-ai {
+      background: #e4e6eb;
+      color: #111;
+      border-radius: 1.2rem;
+      border-top-left-radius: 0.4rem;
+      padding: 0.6rem 1rem;
+      max-width: 75%;
+      word-wrap: break-word;
+    }
+    footer {
+      font-size: 14px;
+      color: #666;
+      text-align: center;
+      padding: 0.8rem;
+    }
+    footer span.orange { color: orange; }
 
-    /* Indicador digitando */
-    .typing-indicator {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .typing-indicator span {
-      width: 8px;
-      height: 8px;
-      background: #555;
-      border-radius: 50%;
-      display: inline-block;
-      animation: blink 1.4s infinite both;
-    }
-    .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
-    .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
-    @keyframes blink {
-      0% { opacity: .2; }
-      20% { opacity: 1; }
-      100% { opacity: .2; }
-    }
+    /* Indicador digitando */
+    .typing-indicator {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .typing-indicator span {
+      width: 8px;
+      height: 8px;
+      background: #555;
+      border-radius: 50%;
+      display: inline-block;
+      animation: blink 1.4s infinite both;
+    }
+    .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes blink {
+      0% { opacity: .2; }
+      20% { opacity: 1; }
+      100% { opacity: .2; }
+    }
 
-    /* === ESTILOS ANIMADOS EXTRA === */
-    @keyframes shine {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-    .gradient-text {
-      background: linear-gradient(
-        90deg,
-        #60a5fa,
-        #3b82f6,
-        #2563eb,
-        #4f46e5,
-        #3b82f6,
-        #60a5fa
-      );
-      background-size: 200% auto;
-      animation: shine 3s linear infinite;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    @keyframes slideInLeft {
-      0% { transform: translateX(-20px); opacity: 0; }
-      100% { transform: translateX(0); opacity: 1; }
-    }
-    @keyframes slideInRight {
-      0% { transform: translateX(20px); opacity: 0; }
-      100% { transform: translateX(0); opacity: 1; }
-    }
-    @keyframes fadeInUp {
-      0% { transform: translateY(10px); opacity: 0; }
-      100% { transform: translateY(0); opacity: 1; }
-    }
-    .typing-cursor::after {
-      content: '|';
-      margin-left: 1px;
-      animation: cursor 1s infinite step-end;
-    }
-    .typing-cursor-hidden::after {
-      visibility: hidden;
-    }
-    @keyframes cursor {
-      50% { opacity: 0; }
-    }
-    .slide-in-left { animation: slideInLeft 0.7s ease forwards; }
-    .slide-in-right { animation: slideInRight 0.7s ease forwards; }
-    .fade-in-up { opacity: 0; animation: fadeInUp 0.7s ease forwards; }
-  </style>
+    /* === ESTILOS ANIMADOS EXTRA === */
+    @keyframes shine {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .gradient-text {
+      background: linear-gradient(
+        90deg,
+        #60a5fa,
+        #3b82f6,
+        #2563eb,
+        #4f46e5,
+        #3b82f6,
+        #60a5fa
+      );
+      background-size: 200% auto;
+      animation: shine 3s linear infinite;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    @keyframes slideInLeft {
+      0% { transform: translateX(-20px); opacity: 0; }
+      100% { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideInRight {
+      0% { transform: translateX(20px); opacity: 0; }
+      100% { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes fadeInUp {
+      0% { transform: translateY(10px); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+    .slide-in-left { animation: slideInLeft 0.7s ease forwards; }
+    .slide-in-right { animation: slideInRight 0.7s ease forwards; }
+    .fade-in-up { opacity: 0; animation: fadeInUp 0.7s ease forwards; }
+    .source-link {
+      display: block;
+      font-size: 0.7rem;
+      color: #3b82f6;
+      text-decoration: none;
+      margin-top: 0.5rem;
+      opacity: 0.8;
+      transition: opacity 0.2s;
+    }
+    .source-link:hover {
+      opacity: 1;
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body class="flex flex-col min-h-screen">
 
-  <!-- Header -->
-  <header class="bg-white border-b p-4 flex items-center space-x-2 shadow-sm">
-    <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" alt="EVA" class="w-10 h-10">
-    <h1 class="text-2xl font-bold gradient-text">EVA</h1>
-  </header>
+  <!-- Header -->
+  <header class="bg-white border-b p-4 flex items-center space-x-2 shadow-sm">
+    <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" alt="EVA" class="w-10 h-10">
+    <h1 class="text-2xl font-bold gradient-text">EVA</h1>
+  </header>
 
-  <!-- Chat -->
-  <main id="chat" class="flex-1 overflow-y-auto p-4 space-y-4">
-    <!-- Mensagem inicial da EVA -->
-    <div class="flex items-start space-x-2 slide-in-left">
-      <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" class="w-8 h-8">
-      <div class="bubble-ai">
-        Olá! Eu sou a EVA.<br>Estou pronta para responder às tuas perguntas.
-      </div>
-    </div>
-  </main>
+  <!-- Chat -->
+  <main id="chat" class="flex-1 overflow-y-auto p-4 space-y-4">
+    <!-- Mensagem inicial da EVA -->
+    <div class="flex items-start space-x-2 slide-in-left">
+      <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" class="w-8 h-8">
+      <div class="bubble-ai">
+        Olá! Eu sou a EVA.<br>Estou pronta para responder às tuas perguntas.
+      </div>
+    </div>
+  </main>
 
-  <!-- Input -->
-  <div class="bg-white border-t p-3 flex space-x-2">
-    <textarea id="userInput" rows="1" placeholder="Escreve aqui..." 
-      class="flex-1 resize-none border rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"></textarea>
-    <button onclick="handleSend()" 
-      class="bg-blue-500 text-white rounded-full px-5 py-2 font-semibold hover:bg-blue-600">
-      Enviar
-    </button>
-  </div>
+  <!-- Input -->
+  <div class="bg-white border-t p-3 flex space-x-2">
+    <textarea id="userInput" rows="1" placeholder="Escreve aqui..." 
+      class="flex-1 resize-none border rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"></textarea>
+    <button onclick="handleSend()" 
+      class="bg-blue-500 text-white rounded-full px-5 py-2 font-semibold hover:bg-blue-600">
+      Enviar
+    </button>
+  </div>
 
-  <!-- Footer -->
-  <footer>
-    <span class="text-black">E</span><span class="orange">V</span><span class="text-black">A</span> © 2025
-  </footer>
+  <!-- Footer -->
+  <footer>
+    <span class="text-black">E</span><span class="orange">V</span><span class="text-black">A</span> © 2025
+  </footer>
 
-  <script>
-    const chatMessages = document.getElementById("chat");
+  <script>
+    const chatMessages = document.getElementById("chat");
 
-    const WEATHER_KEY = "7db838cde261492656dc201d1d17e4aa";
-    const GOOGLE_KEY = "AIzaSyD3OOOrDwc5KtuiUAzg1Pq2dGGVaRJjU3s";
+    // Chave para a API de Clima - Mantida para função específica
+    const WEATHER_KEY = "7db838cde261492656dc201d1d17e4aa";
 
-    function addMessage(sender, text) {
-      const div = document.createElement("div");
-      div.className = "flex items-start space-x-2 " + 
-                      (sender === "user" ? "justify-end slide-in-right" : "slide-in-left");
-      if (sender === "eva") {
-        div.innerHTML = `
-          <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" class="w-8 h-8">
-          <div class="bubble-ai fade-in-up">${text}</div>`;
-      } else {
-        div.innerHTML = `<div class="bubble-user fade-in-up">${text}</div>`;
-      }
-      chatMessages.appendChild(div);
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
+    // Configuração da API Gemini (A chave será injetada em tempo de execução)
+    const GEMINI_API_KEY = "";
+    const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent";
 
-    function showTyping() {
-      const div = document.createElement("div");
-      div.id = "typing";
-      div.className = "flex items-start space-x-2";
-      div.innerHTML = `
-        <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" class="w-8 h-8">
-        <div class="bubble-ai typing-indicator">
-          <span></span><span></span><span></span>
-        </div>`;
-      chatMessages.appendChild(div);
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
+    // Variável para rastrear o histórico de conversas (para contexto)
+    const chatHistory = [{ role: "model", parts: [{ text: "Olá! Eu sou a EVA. Estou pronta para responder às tuas perguntas." }] }];
 
-    function hideTyping() {
-      const typingDiv = document.getElementById("typing");
-      if (typingDiv) typingDiv.remove();
-    }
+    // Função para converter Markdown para HTML
+    function formatText(text) {
+      // Remove todos os tipos de asteriscos (usados para negrito/itálico em Markdown)
+      let cleanedText = text.replace(/\*+/g, '');
+      // Converte quebras de linha para <br>
+      return cleanedText.replace(/\n/g, '<br>');
+    }
 
-    async function handleSend() {
-      const input = document.getElementById("userInput");
-      const text = input.value.trim();
-      if (!text) return;
-      addMessage("user", text);
-      input.value = "";
-      
-      showTyping();
+    // Função para adicionar uma mensagem à interface
+    function addMessage(sender, text, sources = []) {
+      const div = document.createElement("div");
+      div.className = "flex items-start space-x-2 " + 
+                      (sender === "user" ? "justify-end slide-in-right" : "slide-in-left");
+      
+      let content = formatText(text);
 
-      setTimeout(async () => {
-        const reply = await processMessage(text);
-        hideTyping();
-        addMessage("eva", reply);
-      }, 1500);
-    }
+      // Adiciona fontes de citação se existirem
+      if (sources.length > 0) {
+        const sourceHtml = sources.map(source => 
+          `<a href="${source.uri}" target="_blank" class="source-link">Fonte: ${source.title}</a>`
+        ).join('');
+        content += sourceHtml;
+      }
 
-    async function getWeather(city) {
-      try {
-        const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${WEATHER_KEY}&units=metric&lang=pt`);
-        const data = await res.json();
-        if (data.cod === 200) {
-          return `Clima em ${city}: ${data.weather[0].description}, 🌡️ ${data.main.temp}°C (sensação ${data.main.feels_like}°C).`;
-        } else {
-          return "Não consegui encontrar o clima dessa cidade.";
-        }
-      } catch (e) {
-        return "Erro ao aceder ao clima.";
-      }
-    }
+      if (sender === "eva") {
+        div.innerHTML = `
+          <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" class="w-8 h-8">
+          <div class="bubble-ai fade-in-up">${content}</div>`;
+      } else {
+        div.innerHTML = `<div class="bubble-user fade-in-up">${content}</div>`;
+      }
 
-    async function translateText(text, targetLang) {
-      try {
-        const resp = await fetch(`https://translation.googleapis.com/language/translate/v2?key=${GOOGLE_KEY}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ q: text, target: targetLang })
-        });
-        const data = await resp.json();
-        if (data.data?.translations?.[0]?.translatedText) {
-          return data.data.translations[0].translatedText;
-        } else {
-          return "Não consegui traduzir agora.";
-        }
-      } catch {
-        return "Erro ao usar a API de tradução.";
-      }
-    }
+      chatMessages.appendChild(div);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
 
-    async function getWikipediaSummary(query) {
-      try {
-        const title = query.replace(/(wikipedia|quem é|o que é)/i, "").trim();
-        const res = await fetch(`https://pt.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`);
-        if (!res.ok) return "Não encontrei nada no Wikipedia.";
-        const data = await res.json();
-        return data.extract ? data.extract : "Não encontrei um resumo no Wikipedia.";
-      } catch {
-        return "Erro ao aceder ao Wikipedia.";
-      }
-    }
+    function showTyping() {
+      const div = document.createElement("div");
+      div.id = "typing";
+      div.className = "flex items-start space-x-2";
+      div.innerHTML = `
+        <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" class="w-8 h-8">
+        <div class="bubble-ai typing-indicator">
+          <span></span><span></span><span></span>
+        </div>`;
+      chatMessages.appendChild(div);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
 
-    async function processMessage(query) {
-      const lower = query.toLowerCase();
+    function hideTyping() {
+      const typingDiv = document.getElementById("typing");
+      if (typingDiv) typingDiv.remove();
+    }
 
-      // 🌤️ Clima
-      if (lower.includes("clima") || lower.includes("tempo")) {
-        const match = query.match(/em ([a-zA-ZÀ-ÿ\s]+)/i);
-        if (match) {
-          const city = match[1];
-          return await getWeather(city);
-        }
-        return "Diz-me a cidade para eu ver o clima.";
-      }
+    // === Funções de API ===
 
-      // 🌍 Tradução sob pedido
-      if (lower.startsWith("traduz")) {
-        const match = query.match(/para (\w+)/i);
-        let targetLang = "en"; 
-        if (match) {
-          const lang = match[1].toLowerCase();
-          if (lang.includes("ingl")) targetLang = "en";
-          else if (lang.includes("fran")) targetLang = "fr";
-          else if (lang.includes("espa")) targetLang = "es";
-          else if (lang.includes("ital")) targetLang = "it";
-          else if (lang.includes("alem")) targetLang = "de";
-          else return "Não reconheço esse idioma. Usa inglês, francês, espanhol, italiano ou alemão.";
-        }
-        const phrase = query.replace(/traduz/i, "").replace(/para \w+/i, "").trim();
-        if (!phrase) return "O que queres que eu traduza?";
-        return "Tradução: " + await translateText(phrase, targetLang);
-      }
+    // 1. Função específica para Clima (Mantida)
+    async function getWeather(city) {
+      try {
+        const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${WEATHER_KEY}&units=metric&lang=pt`);
+        const data = await res.json();
+        if (data.cod === 200) {
+          return {
+            text: `Clima em ${city}: ${data.weather[0].description}, 🌡️ ${data.main.temp}°C (sensação ${data.main.feels_like}°C).`,
+            sources: []
+          };
+        } else {
+          return {
+            text: "Não consegui encontrar o clima dessa cidade. Por favor, verifica o nome.",
+            sources: []
+          };
+        }
+      } catch (e) {
+        console.error("Erro ao aceder ao clima:", e);
+        return { text: "Erro ao aceder ao clima.", sources: [] };
+      }
+    }
 
-      // ❤️ Erotismo/sexo
-      if (lower.includes("sexo") || lower.includes("erotismo")) {
-        return "Esse é um tema íntimo. Posso dar-te informações educativas sobre sexualidade, relações e saúde.";
-      }
+    // 2. Função principal para Gemini (Substitui Wikipedia, Tradução e Fallback)
+    async function getGeminiResponse(query) {
+      
+      // Adiciona a nova mensagem do usuário ao histórico ANTES de enviar
+      chatHistory.push({ role: "user", parts: [{ text: query }] });
+      
+      const payload = {
+        contents: chatHistory,
+        // Usa o Google Search para respostas factuais (Grounding)
+        tools: [{ "google_search": {} }],
+        // Garante que a resposta seja em Português
+        systemInstruction: {
+          parts: [{ text: "Tu és a EVA, uma assistente virtual amigável e prestável. Responde sempre em Português (Portugal)." }]
+        },
+      };
 
-      // 📚 Wikipedia
-      if (lower.includes("wikipedia") || lower.includes("quem é") || lower.includes("o que é")) {
-        return await getWikipediaSummary(query);
-      }
+      try {
+        // Configuração de reintentativa (Exponential Backoff)
+        let response;
+        const maxRetries = 3;
+        for (let i = 0; i < maxRetries; i++) {
+          response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
 
-      // 🤷 Fallback
-      return "Não encontrei em fontes externas, mas posso dar-te uma explicação geral. Faz outra pergunta se quiseres.";
-    }
-  </script>
+          if (response.ok) break;
+
+          const delay = Math.pow(2, i) * 1000;
+          console.warn(`API call failed (status: ${response.status}). Retrying in ${delay / 1000}s...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+
+          if (i === maxRetries - 1) throw new Error("API call failed after max retries.");
+        }
+
+        const result = await response.json();
+        const candidate = result.candidates?.[0];
+
+        if (candidate && candidate.content?.parts?.[0]?.text) {
+          const text = candidate.content.parts[0].text;
+          
+          // Extrai fontes de citação
+          let sources = [];
+          const groundingMetadata = candidate.groundingMetadata;
+          if (groundingMetadata && groundingMetadata.groundingAttributions) {
+              sources = groundingMetadata.groundingAttributions
+                .map(attribution => ({
+                    uri: attribution.web?.uri,
+                    title: attribution.web?.title,
+                }))
+                .filter(source => source.uri && source.title); // Garante que as fontes são válidas
+          }
+          
+          // Adiciona a resposta do modelo ao histórico
+          chatHistory.push({ role: "model", parts: [{ text: text }] });
+          
+          return { text, sources };
+
+        } else {
+          chatHistory.pop(); // Remove a última mensagem do usuário se não houver resposta
+          return { text: "Não consegui gerar uma resposta. Tenta reformular a tua pergunta.", sources: [] };
+        }
+      } catch (error) {
+        console.error("Erro na chamada da API Gemini:", error);
+        chatHistory.pop();
+        return { text: "Ups! Ocorreu um erro de comunicação. Por favor, tenta novamente mais tarde.", sources: [] };
+      }
+    }
+
+    // === Lógica de Processamento de Mensagens ===
+
+    async function processMessage(query) {
+      const lower = query.toLowerCase();
+
+      // 1. 🌤️ Clima (Lógica específica)
+      if (lower.includes("clima") || lower.includes("tempo")) {
+        const match = query.match(/em ([a-zA-ZÀ-ÿ\s]+)/i);
+        if (match) {
+          const city = match[1];
+          return await getWeather(city);
+        }
+        // Se não souber a cidade, usa Gemini para perguntar de forma mais natural
+        return getGeminiResponse("Em que cidade queres saber o clima?");
+      }
+
+      // 2. ❤️ Conteúdo Sensível (Mantido)
+      if (lower.includes("sexo") || lower.includes("erotismo")) {
+        return {
+          text: "Esse é um tema íntimo. Posso dar-te informações educativas sobre sexualidade, relações e saúde, mas não conteúdo erótico.",
+          sources: []
+        };
+      }
+
+      // 3. 🧠 Resposta Geral (Usa Gemini para todas as outras perguntas)
+      return await getGeminiResponse(query);
+    }
+    
+    // === Lógica de Envio (HandleSend) ===
+
+    async function handleSend() {
+      const input = document.getElementById("userInput");
+      const text = input.value.trim();
+      
+      if (!text) return;
+      
+      // Adiciona a mensagem do usuário ao chat (UI)
+      addMessage("user", text);
+      input.value = "";
+      input.style.height = 'auto'; // Reset a altura do textarea
+
+      showTyping();
+
+      const { text: replyText, sources } = await processMessage(text);
+        
+      hideTyping();
+      
+      // Adiciona a resposta da EVA ao chat (UI)
+      addMessage("eva", replyText, sources);
+    }
+
+    // Adiciona funcionalidade de redimensionamento automático e Enter
+    document.addEventListener('DOMContentLoaded', () => {
+      const input = document.getElementById('userInput');
+      input.addEventListener('input', () => {
+        input.style.height = 'auto';
+        input.style.height = (input.scrollHeight) + 'px';
+      });
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          handleSend();
+        }
+      });
+    });
+
+  </script>
 </body>
 </html>
