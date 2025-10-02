@@ -1,335 +1,227 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EVA - Assistente</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-        /* Estilos EVA bubble */
-        .bubble-eva {
-            border-radius: 1.5rem;
-            border-top-left-radius: 0.5rem;
-            background-color: #f1f1f1;
-            color: #1c1e21;
-        }
-        /* Estilos User bubble */
-        .bubble-user {
-            border-radius: 1.5rem;
-            border-top-right-radius: 0.5rem;
-            background-color: #0078FF;
-            color: white;
-        }
-        /* Indicador de escrita */
-        .typing-indicator span {
-            animation: pulse-fade 1.5s infinite;
-            display: inline-block;
-            width: 8px; height: 8px;
-            background-color: #0078FF;
-            border-radius: 50%; margin-right: 4px;
-        }
-        @keyframes pulse-fade {
-            0%,100% { opacity: .5 } 50% { opacity: 1 }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EVA - Assistente</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      justify-content: center;
+      align-items: center;
+    }
+
+    header {
+      position: absolute;
+      top: 15px;
+      left: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    header img {
+      height: 40px;
+    }
+
+    header h1 {
+      font-size: 22px;
+      margin: 0;
+    }
+
+    .search-box {
+      display: flex;
+      justify-content: center;
+      margin-top: 100px;
+      gap: 10px;
+    }
+
+    .search-box input {
+      width: 420px;
+      padding: 12px 15px;
+      font-size: 16px;
+      border-radius: 25px;
+      border: 1px solid #ccc;
+      outline: none;
+    }
+
+    .search-box button {
+      padding: 12px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 25px;
+      background: #0078d7;
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .search-box button:hover {
+      background: #005fa3;
+    }
+
+    .quick-actions {
+      margin-top: 20px;
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .quick-actions button {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 20px;
+      padding: 8px 16px;
+      cursor: pointer;
+      transition: 0.3s;
+      font-size: 14px;
+    }
+
+    .quick-actions button:hover {
+      background: #0078d7;
+      color: white;
+      border-color: #0078d7;
+    }
+
+    .response-card {
+      margin-top: 40px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      padding: 20px;
+      width: 500px;
+      text-align: left;
+      font-size: 16px;
+      display: none;
+      animation: fadeIn 0.4s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    footer {
+      margin-top: auto;
+      padding: 20px;
+      text-align: center;
+      font-size: 14px;
+      color: #777;
+    }
+
+    footer span.black { color: black; font-weight: bold; }
+    footer span.orange { color: orange; font-weight: bold; }
+  </style>
 </head>
-<body class="bg-gray-100 flex flex-col min-h-screen">
+<body>
 
-    <!-- HEADER -->
-    <header class="bg-white shadow-sm border-b border-gray-200 flex items-center justify-between px-6 h-16">
-        <div class="flex items-center space-x-3">
-            <!-- Nota: Usei uma URL de imagem de domínio público/placeholder, já que a URL original falha. -->
-            <img src="https://placehold.co/40x40/0078FF/ffffff?text=E" onerror="this.src='https://placehold.co/40x40/0078FF/ffffff?text=E'" class="w-10 h-10 rounded-full">
-            <span class="text-2xl font-bold">
-                <span style="color:black">E</span><span style="color:orange">V</span><span style="color:black">A</span>
-            </span>
-        </div>
-    </header>
+  <header>
+    <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" alt="Logo EVA">
+    <h1><span class="black">E</span><span class="orange">V</span><span class="black">A</span></h1>
+  </header>
 
-    <!-- CHAT CONTAINER -->
-    <main class="flex-1 flex flex-col max-w-3xl w-full mx-auto p-4 space-y-4 overflow-y-auto" id="chat-messages">
-        <!-- Mensagem de boas-vindas inicial da EVA -->
-        <div class="flex justify-start">
-            <div class="max-w-[80%] p-3 bubble-eva flex space-x-2">
-                <img src="https://placehold.co/24x24/0078FF/ffffff?text=E" onerror="this.src='https://placehold.co/24x24/0078FF/ffffff?text=E'" class="w-6 h-6 rounded-full">
-                <p>Olá! Eu sou a EVA. 👋<br>Já vens com choradeira ou com piada?</p>
-            </div>
-        </div>
-    </main>
+  <div class="search-box">
+    <input type="text" id="userInput" placeholder="O que você quer saber?">
+    <button onclick="processInput()">Perguntar</button>
+  </div>
 
-    <!-- INPUT AREA -->
-    <div class="bg-white border-t border-gray-200 p-4 flex items-center space-x-2">
-        <textarea id="user-input"
-            class="flex-1 resize-none border rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            placeholder="Escreve a tua mensagem..." rows="1"></textarea>
-        <button id="send-button" class="bg-blue-500 hover:bg-blue-600 text-white rounded-full px-5 py-2 transition duration-150 ease-in-out">Enviar</button>
-    </div>
+  <div class="quick-actions">
+    <button onclick="setQuick('Qual o clima em Lisboa?')">🌤️ Clima</button>
+    <button onclick="setQuick('Traduz O amor é lindo para inglês')">🌍 Traduzir</button>
+    <button onclick="setQuick('Quem foi Leonardo da Vinci?')">🔎 Pesquisar</button>
+  </div>
 
-    <!-- FOOTER -->
-    <footer class="bg-gray-50 text-center text-sm py-2 border-t">
-        <span class="font-bold">
-            <span style="color:black">E</span><span style="color:orange">V</span><span style="color:black">A</span>
-        </span> © 2025
-    </footer>
+  <div id="responseCard" class="response-card"></div>
 
-    <script>
-        // A chave API é deixada vazia. O ambiente Canvas fornecerá o token de forma segura.
-        const apiKey = ""; 
+  <footer>
+    <p><span class="black">E</span><span class="orange">V</span><span class="black">A</span> © 2025</p>
+  </footer>
 
-        const chat = document.getElementById("chat-messages");
-        const input = document.getElementById("user-input");
-        const sendBtn = document.getElementById("send-button");
-        const evaAvatarUrl = "https://placehold.co/24x24/0078FF/ffffff?text=E";
+  <script>
+    const API_KEY = "AIzaSyD3OOOrDwc5KtuiUAzg1Pq2dGGVaRJjU3s";
+    const WEATHER_KEY = "7db838cde261492656dc201d1d17e4aa";
 
-        // Funções Utilitárias de UI
+    function setQuick(text) {
+      document.getElementById("userInput").value = text;
+      processInput();
+    }
 
-        /** Adiciona uma nova mensagem ao chat. Suporta HTML no texto. */
-        function appendMessage(sender, text) {
-            const div = document.createElement("div");
-            div.className = "flex " + (sender === "user" ? "justify-end" : "justify-start");
+    async function processInput() {
+      const input = document.getElementById("userInput").value.trim();
+      if (!input) return;
 
-            // Para mensagens da EVA, verificamos se o texto contém HTML (como citações)
-            const contentHTML = sender === "user" 
-                ? `<p>${text}</p>` 
-                : `<img src="${evaAvatarUrl}" onerror="this.src='${evaAvatarUrl}'" class="w-6 h-6 rounded-full"> <div class="flex flex-col"><p>${text}</p></div>`;
+      const responseCard = document.getElementById("responseCard");
+      responseCard.style.display = "block";
+      responseCard.innerHTML = "⏳ Pensando...";
 
-            div.innerHTML = `
-                <div class="max-w-[80%] p-3 ${sender==="user"?"bubble-user":"bubble-eva"} flex space-x-2 items-start">
-                    ${contentHTML}
-                </div>`;
-            
-            chat.appendChild(div);
-            // Scroll para a última mensagem
-            chat.scrollTop = chat.scrollHeight;
+      let responseText = "";
+
+      try {
+        if (input.toLowerCase().includes("clima")) {
+          responseText = await getWeather("Lisboa");
+        } else if (input.toLowerCase().startsWith("traduz")) {
+          responseText = await translateText(input);
+        } else {
+          responseText = await askGemini(input);
         }
+      } catch (err) {
+        responseText = "⚠️ Ocorreu um erro. Tente novamente.";
+        console.error(err);
+      }
 
-        /** Mostra o indicador de que a EVA está a escrever. */
-        function showTyping() {
-            const div = document.createElement("div");
-            div.id = "typing";
-            div.className = "flex justify-start";
-            div.innerHTML = `
-                <div class="max-w-[80%] p-3 bubble-eva flex space-x-2">
-                    <img src="${evaAvatarUrl}" onerror="this.src='${evaAvatarUrl}'" class="w-6 h-6 rounded-full">
-                    <div class="typing-indicator flex mt-1">
-                        <span></span><span></span><span></span>
-                    </div>
-                </div>`;
-            chat.appendChild(div);
-            chat.scrollTop = chat.scrollHeight;
-        }
+      responseCard.innerHTML = responseText;
+    }
 
-        /** Remove o indicador de escrita. */
-        function removeTyping() {
-            const typing = document.getElementById("typing");
-            if (typing) typing.remove();
-        }
+    async function askGemini(query) {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${API_KEY}`;
+      const payload = { contents: [{ parts: [{ text: query }] }] };
 
-        // Funções Específicas (Comandos Customizados)
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
 
-        /** Formata as fontes de pesquisa do Gemini como HTML. */
-        function formatSources(sources) {
-            if (!sources || sources.length === 0) return '';
-            
-            const uniqueSources = Array.from(new Set(sources.map(s => s.uri)))
-                .map(uri => sources.find(s => s.uri === uri));
+      const data = await res.json();
+      return data.candidates?.[0]?.content?.parts?.[0]?.text || "Não encontrei resposta.";
+    }
 
-            let html = '<div class="mt-2 pt-2 border-t border-gray-300 text-xs text-gray-700">';
-            html += 'Fonte(s) consultada(s): ';
-            uniqueSources.forEach((source, index) => {
-                if (source.uri && source.title) {
-                    html += `<a href="${source.uri}" target="_blank" class="underline hover:text-blue-500">${source.title}</a>${index < uniqueSources.length - 1 ? ', ' : ''}`;
-                }
-            });
-            html += '</div>';
-            return html;
-        }
+    async function getWeather(city) {
+      const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${WEATHER_KEY}&units=metric&lang=pt`;
+      const res = await fetch(url);
+      const data = await res.json();
 
-        /** Comando customizado para o Clima (sem API Key funcional, é apenas um placeholder). */
-        async function getWeather(city) {
-            // Nota: Esta função é um placeholder. Para funcionar, precisaria de uma chave de API OpenWeather válida.
-            return `O Gemini é melhor para responder ao clima atual. Tenta perguntar: "Qual é o clima em ${city}?"`;
-        }
+      if (data.weather) {
+        return `🌤️ O clima em ${city}: ${data.weather[0].description}, ${data.main.temp}°C`;
+      } else {
+        return "Não consegui obter o clima.";
+      }
+    }
 
-        /** Comando customizado para Tradução (usando a Google Translate API com a chave do ambiente Canvas). */
-        async function translateText(text, targetLang) {
-            // O targetLang deve ser um código ISO 639-1 (ex: 'en', 'es', 'fr')
-            try {
-                const url = `https://translation.googleapis.com/language/translate/v2?key=${apiKey}`;
-                
-                // Nota: Usamos 'fetch' diretamente com a chave do ambiente.
-                const resp = await fetch(url, {
-                    method: "POST",
-                    headers: {"Content-Type":"application/json"},
-                    body: JSON.stringify({ q: text, target: targetLang })
-                });
-                
-                if (!resp.ok) throw new Error("Translation API call failed");
+    async function translateText(input) {
+      const parts = input.split(" ");
+      const textToTranslate = parts.slice(1, -2).join(" ") || "Olá mundo";
+      const targetLang = parts[parts.length - 1] || "en";
 
-                const data = await resp.json();
-                return data.data?.translations[0]?.translatedText || "Não consegui traduzir. O serviço de tradução pode estar indisponível.";
-            } catch (e) { 
-                console.error("Erro na tradução:", e);
-                return "Erro ao traduzir. Tenta reformular a frase."; 
-            }
-        }
+      const url = `https://translation.googleapis.com/language/translate/v2?key=${API_KEY}`;
+      const payload = { q: textToTranslate, target: targetLang };
 
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
 
-        // Integração com a API Gemini
+      const data = await res.json();
+      return `📝 Tradução (${targetLang}): ${data.data.translations[0].translatedText}`;
+    }
+  </script>
 
-        /** * Chama a API Gemini com grounding para pesquisa.
-         * Retorna: { text: string, sources: Array<{uri: string, title: string}> }
-         */
-        async function getGeminiResponse(userQuery) {
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-            const systemPrompt = "Você é EVA, uma assistente virtual com personalidade e senso de humor, falando sempre em Português (PT-PT). Responda às perguntas do utilizador de forma útil, concisa e direta. Use emojis. Não mencione que está a usar uma API ou um modelo de IA. Se precisar de informações em tempo real ou factuais, use a ferramenta de pesquisa.";
-
-            const payload = {
-                contents: [{ parts: [{ text: userQuery }] }],
-                // Habilitar a pesquisa Google para grounding
-                tools: [{ "google_search": {} }], 
-                systemInstruction: { parts: [{ text: systemPrompt }] },
-            };
-
-            let attempts = 0;
-            const maxAttempts = 5;
-
-            while (attempts < maxAttempts) {
-                try {
-                    const response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (!response.ok) {
-                        // Lançar erro para acionar a lógica de repetição (backoff)
-                        throw new Error(`API error: ${response.status}`);
-                    }
-
-                    const result = await response.json();
-                    const candidate = result.candidates?.[0];
-
-                    if (candidate && candidate.content?.parts?.[0]?.text) {
-                        const text = candidate.content.parts[0].text;
-                        let sources = [];
-                        const groundingMetadata = candidate.groundingMetadata;
-
-                        if (groundingMetadata && groundingMetadata.groundingAttributions) {
-                            sources = groundingMetadata.groundingAttributions
-                                .map(attribution => ({
-                                    uri: attribution.web?.uri,
-                                    title: attribution.web?.title,
-                                }))
-                                .filter(source => source.uri && source.title); // Garantir que as fontes são válidas
-                        }
-
-                        return { text, sources };
-
-                    } else {
-                        // Resposta inesperada
-                        return { text: "Ups, não consegui gerar uma resposta. Tenta de novo!", sources: [] };
-                    }
-
-                } catch (error) {
-                    attempts++;
-                    if (attempts >= maxAttempts) {
-                        console.error("Gemini API call failed after multiple retries:", error);
-                        return { text: "Ocorreu um erro na rede. Não consegui contactar os meus servidores. Tenta mais tarde!", sources: [] };
-                    }
-                    // Exponential backoff
-                    const delay = Math.pow(2, attempts) * 1000;
-                    await new Promise(resolve => setTimeout(resolve, delay));
-                }
-            }
-        }
-
-        // Lógica Principal de Processamento de Mensagens
-
-        async function processMessage(text) {
-            showTyping();
-
-            // Bloqueio de temas restritos
-            if (text.toLowerCase().includes("sexo") || text.toLowerCase().includes("erotismo") || text.toLowerCase().includes("intim")) {
-                removeTyping();
-                appendMessage("eva", "⚠️ Esse tema não está disponível aqui. Tenta outro assunto.");
-                return;
-            }
-
-            // 1. Comando Customizado: Clima (Mantido como um exemplo de ferramenta externa)
-            if (text.toLowerCase().includes("clima em")) {
-                const city = text.split("clima em")[1].trim();
-                const weatherResponse = await getWeather(city); 
-                removeTyping();
-                appendMessage("eva", weatherResponse);
-                return;
-            }
-
-            // 2. Comando Customizado: Tradução (Mantido como um exemplo de ferramenta externa)
-            if (text.toLowerCase().startsWith("traduz")) {
-                const match = text.match(/para (\w+)/i);
-                let target = "en";
-                
-                // Extração do idioma alvo
-                if (match) {
-                    const lang = match[1].toLowerCase();
-                    if (lang.includes("ingl")) target="en";
-                    else if (lang.includes("fran")) target="fr";
-                    else if (lang.includes("espa")) target="es";
-                    else if (lang.includes("ital")) target="it";
-                    else if (lang.includes("alem")) target="de";
-                    else if (lang.includes("portu")) target="pt"; // Adiciona PT
-                    else { removeTyping(); appendMessage("eva","Idioma de destino não suportado."); return; }
-                }
-                
-                // Extração da frase a traduzir
-                const phrase = text.replace(/traduz/i,"").replace(/para \w+/i,"").trim();
-                if (!phrase) { removeTyping(); appendMessage("eva","O que queres que eu traduza?"); return; }
-
-                const translated = await translateText(phrase,target);
-                removeTyping();
-                appendMessage("eva",`Tradução: ${translated}`); 
-                return;
-            }
-
-            // 3. Conversa Geral e Pesquisa (Gemini com Google Search Grounding)
-            const geminiResult = await getGeminiResponse(text);
-            removeTyping();
-
-            const responseText = geminiResult.text.replace(/\n/g, '<br>'); // Troca quebras de linha por <br> para HTML
-            const sourcesHtml = formatSources(geminiResult.sources);
-
-            // Adiciona a resposta da EVA e as citações no chat
-            appendMessage("eva", responseText + sourcesHtml);
-        }
-
-        // Event Listeners
-
-        /** Envia a mensagem ao clicar no botão. */
-        sendBtn.addEventListener("click", () => {
-            const text = input.value.trim();
-            if (!text) return;
-            appendMessage("user", text);
-            input.value = "";
-            input.style.height = 'auto'; // Reset a altura da textarea
-            processMessage(text);
-        });
-
-        /** Envia a mensagem ao pressionar Enter (sem Shift). */
-        input.addEventListener("keydown", e => {
-            if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault(); 
-                sendBtn.click();
-            }
-        });
-
-        /** Ajusta a altura da textarea conforme o conteúdo. */
-        input.addEventListener("input", function() {
-            this.style.height = 'auto';
-            this.style.height = (this.scrollHeight) + 'px';
-        });
-
-    </script>
 </body>
 </html>
