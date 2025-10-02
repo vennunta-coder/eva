@@ -4,224 +4,126 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EVA - Assistente</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f4f6f9;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-      justify-content: center;
-      align-items: center;
+      font-family: 'Inter', sans-serif;
+      background-color: #f9fafb;
     }
-
-    header {
-      position: absolute;
-      top: 15px;
-      left: 20px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
+    .eva-logo {
+      max-height: 80px;
+      margin: 20px auto;
     }
-
-    header img {
-      height: 40px;
-    }
-
-    header h1 {
-      font-size: 22px;
-      margin: 0;
-    }
-
-    .search-box {
-      display: flex;
-      justify-content: center;
-      margin-top: 100px;
-      gap: 10px;
-    }
-
-    .search-box input {
-      width: 420px;
-      padding: 12px 15px;
-      font-size: 16px;
-      border-radius: 25px;
-      border: 1px solid #ccc;
-      outline: none;
-    }
-
-    .search-box button {
-      padding: 12px 20px;
-      font-size: 16px;
-      border: none;
-      border-radius: 25px;
-      background: #0078d7;
-      color: white;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-
-    .search-box button:hover {
-      background: #005fa3;
-    }
-
-    .quick-actions {
-      margin-top: 20px;
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-    }
-
-    .quick-actions button {
-      background: #fff;
-      border: 1px solid #ddd;
-      border-radius: 20px;
-      padding: 8px 16px;
-      cursor: pointer;
-      transition: 0.3s;
-      font-size: 14px;
-    }
-
-    .quick-actions button:hover {
-      background: #0078d7;
-      color: white;
-      border-color: #0078d7;
-    }
-
-    .response-card {
-      margin-top: 40px;
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      padding: 20px;
-      width: 500px;
-      text-align: left;
-      font-size: 16px;
-      display: none;
-      animation: fadeIn 0.4s ease;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    footer {
-      margin-top: auto;
-      padding: 20px;
-      text-align: center;
-      font-size: 14px;
-      color: #777;
-    }
-
-    footer span.black { color: black; font-weight: bold; }
-    footer span.orange { color: orange; font-weight: bold; }
   </style>
 </head>
-<body>
+<body class="flex flex-col min-h-screen">
 
-  <header>
-    <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" alt="Logo EVA">
-    <h1><span class="black">E</span><span class="orange">V</span><span class="black">A</span></h1>
+  <!-- Header com logo -->
+  <header class="text-center py-6">
+    <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" alt="EVA Logo" class="eva-logo">
   </header>
 
-  <div class="search-box">
-    <input type="text" id="userInput" placeholder="O que você quer saber?">
-    <button onclick="processInput()">Perguntar</button>
-  </div>
+  <!-- Área principal -->
+  <main class="flex-grow flex flex-col items-center justify-start px-4">
 
-  <div class="quick-actions">
-    <button onclick="setQuick('Qual o clima em Lisboa?')">🌤️ Clima</button>
-    <button onclick="setQuick('Traduz O amor é lindo para inglês')">🌍 Traduzir</button>
-    <button onclick="setQuick('Quem foi Leonardo da Vinci?')">🔎 Pesquisar</button>
-  </div>
+    <!-- Área da resposta -->
+    <div id="response" class="w-full max-w-2xl bg-white shadow-md rounded-2xl p-6 text-center text-lg text-gray-800 hidden"></div>
 
-  <div id="responseCard" class="response-card"></div>
+    <!-- Campo de entrada -->
+    <div class="w-full max-w-2xl mt-6 flex flex-col items-center">
+      <textarea id="user-input"
+        class="w-full border border-gray-300 rounded-xl px-4 py-3 text-base focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        rows="2" placeholder="Faça a sua pergunta para a EVA..."></textarea>
 
-  <footer>
-    <p><span class="black">E</span><span class="orange">V</span><span class="black">A</span> © 2025</p>
+      <!-- Dropdown de idiomas -->
+      <div class="flex items-center mt-3 space-x-2 w-full">
+        <label for="lang-select" class="text-sm text-gray-600">Traduzir para:</label>
+        <select id="lang-select" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+          <option value="">Nenhum</option>
+          <option value="en">Inglês 🇬🇧</option>
+          <option value="es">Espanhol 🇪🇸</option>
+          <option value="fr">Francês 🇫🇷</option>
+          <option value="de">Alemão 🇩🇪</option>
+          <option value="it">Italiano 🇮🇹</option>
+          <option value="ja">Japonês 🇯🇵</option>
+          <option value="other">Outro idioma...</option>
+        </select>
+      </div>
+
+      <button id="send-button"
+        class="mt-4 px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg shadow-md">
+        Perguntar
+      </button>
+    </div>
+  </main>
+
+  <!-- Rodapé -->
+  <footer class="text-center py-4 text-gray-500 text-sm">
+    <span style="color:black">E</span><span style="color:orange">V</span><span style="color:black">A</span> © 2025
   </footer>
 
   <script>
-    const API_KEY = "AIzaSyD3OOOrDwc5KtuiUAzg1Pq2dGGVaRJjU3s";
-    const WEATHER_KEY = "7db838cde261492656dc201d1d17e4aa";
+    const GOOGLE_API_KEY = "AIzaSyD3OOOrDwc5KtuiUAzg1Pq2dGGVaRJjU3s";
+    const responseBox = document.getElementById("response");
 
-    function setQuick(text) {
-      document.getElementById("userInput").value = text;
-      processInput();
-    }
+    document.getElementById("send-button").addEventListener("click", async () => {
+      const userInput = document.getElementById("user-input").value.trim();
+      const langSelect = document.getElementById("lang-select").value;
 
-    async function processInput() {
-      const input = document.getElementById("userInput").value.trim();
-      if (!input) return;
+      if (!userInput) return;
 
-      const responseCard = document.getElementById("responseCard");
-      responseCard.style.display = "block";
-      responseCard.innerHTML = "⏳ Pensando...";
-
-      let responseText = "";
+      responseBox.classList.remove("hidden");
+      responseBox.innerHTML = "<p class='text-gray-500'>EVA está a pensar...</p>";
 
       try {
-        if (input.toLowerCase().includes("clima")) {
-          responseText = await getWeather("Lisboa");
-        } else if (input.toLowerCase().startsWith("traduz")) {
-          responseText = await translateText(input);
-        } else {
-          responseText = await askGemini(input);
+        // 1. Pergunta à API Gemini (resposta principal)
+        const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GOOGLE_API_KEY}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: userInput }] }]
+          })
+        });
+
+        const geminiData = await geminiResponse.json();
+        let answer = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || "Desculpe, não encontrei resposta.";
+
+        // 2. Se tradução foi pedida
+        if (langSelect) {
+          let targetLang = langSelect;
+          if (langSelect === "other") {
+            targetLang = prompt("Digite o código ISO do idioma (ex: ru para Russo, ar para Árabe):");
+          }
+
+          if (targetLang) {
+            const translateResp = await fetch(`https://translation.googleapis.com/language/translate/v2?key=${GOOGLE_API_KEY}`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                q: answer,
+                target: targetLang
+                // Sem "source" → Google detecta automaticamente
+              })
+            });
+            const translateData = await translateResp.json();
+            const translated = translateData.data?.translations?.[0];
+
+            if (translated) {
+              answer = `<div class="text-left">
+                <p class="text-gray-700"><strong>Texto detectado em:</strong> ${translated.detectedSourceLanguage}</p>
+                <p class="mt-2">${translated.translatedText}</p>
+              </div>`;
+            }
+          }
         }
+
+        responseBox.innerHTML = answer;
+
       } catch (err) {
-        responseText = "⚠️ Ocorreu um erro. Tente novamente.";
         console.error(err);
+        responseBox.innerHTML = "⚠️ Ocorreu um erro ao processar sua pergunta. Tente novamente.";
       }
-
-      responseCard.innerHTML = responseText;
-    }
-
-    async function askGemini(query) {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${API_KEY}`;
-      const payload = { contents: [{ parts: [{ text: query }] }] };
-
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-
-      const data = await res.json();
-      return data.candidates?.[0]?.content?.parts?.[0]?.text || "Não encontrei resposta.";
-    }
-
-    async function getWeather(city) {
-      const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${WEATHER_KEY}&units=metric&lang=pt`;
-      const res = await fetch(url);
-      const data = await res.json();
-
-      if (data.weather) {
-        return `🌤️ O clima em ${city}: ${data.weather[0].description}, ${data.main.temp}°C`;
-      } else {
-        return "Não consegui obter o clima.";
-      }
-    }
-
-    async function translateText(input) {
-      const parts = input.split(" ");
-      const textToTranslate = parts.slice(1, -2).join(" ") || "Olá mundo";
-      const targetLang = parts[parts.length - 1] || "en";
-
-      const url = `https://translation.googleapis.com/language/translate/v2?key=${API_KEY}`;
-      const payload = { q: textToTranslate, target: targetLang };
-
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-
-      const data = await res.json();
-      return `📝 Tradução (${targetLang}): ${data.data.translations[0].translatedText}`;
-    }
+    });
   </script>
-
 </body>
 </html>
