@@ -1,986 +1,330 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EVA - Super Assistente de Produtividade</title>
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png">
+  <title>Chat com EVA (Powered by Gemini)</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    /* Estilos Básicos e Fontes */
-    body { font-family: 'Inter', sans-serif; background:#f9fafb; }
-    .chat-container { max-width: 900px; margin: auto; }
-    .v-orange { color: #FF4500; } /* Usando Laranja */
-    
-    /* Bolhas de Chat */
-    .bubble-user {
-      background: #0078FF; color: #fff;
-      border-radius: 1.5rem 0.5rem 1.5rem 1.5rem;
-      padding: 12px 18px; max-width: 80%;
-      font-size: 23px; word-wrap: break-word;
-    }
-    .bubble-ai {
-      background: #e4e6eb; color: #000;
-      border-radius: 0.5rem 1.5rem 1.5rem 1.5rem;
-      padding: 12px 18px; max-width: 80%;
-      font-size: 23px; word-wrap: break-word;
-      position: relative; 
-    }
-    .bubble-system {
-      background: #f0fdf4; color: #15803d;
-      border-radius: 0.5rem;
-      padding: 8px 12px; max-width: 80%;
-      font-size: 18px; text-align: center; margin: 10px auto;
-    }
-    /* Componentes de Pesquisa e UI */
-    .search-card, .note-card, .appointment-card, .todo-card {
-      background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 12px;
-      margin-top: 10px; font-size: 23px; line-height: 1.4; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-    .search-card .title { font-weight: bold; color: #0078ff; text-decoration: none; font-size: 23px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .search-card .url { font-size: 18px; color: gray; display: block; margin-top: 4px; }
-    
-    /* Input */
-    textarea { font-size: 23px !important; padding-top: 10px; padding-bottom: 10px; min-height: 50px; }
-    #send-button { font-size: 23px !important; }
-    
-    /* Footer */
-    footer { text-align: center; padding: 15px; font-size: 14px; color: #444; }
-
-    /* Modal */
-    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; justify-content: center; align-items: center; }
-    .modal-content { background: #fff; padding: 25px; border-radius: 15px; width: 90%; max-width: 500px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-
-    /* Botão de Voz */
-    .tts-button {
-      position: absolute;
-      top: 5px; right: 5px;
-      padding: 4px;
-      border-radius: 9999px;
-      background: #c8c8c8;
-      color: white;
-      transition: background-color 0.2s, transform 0.2s;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
-    .tts-button:hover { background: #FF4500; transform: scale(1.05); }
-    .tts-button:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    /* Fixos para Mobile */
-    @media (max-width: 768px) {
-      main { padding-bottom: 100px; } 
-      .input-area {
-        position: fixed; bottom: 0; left: 0; right: 0;
-        background: #fff; border-top: 1px solid #ddd;
-        padding: 8px; z-index: 50;
-        display: flex; flex-direction: column;
+  <script>
+    // Configuração do Tailwind CSS
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+        }
       }
-      .input-bar { display: flex; align-items: flex-end; width: 100%; }
-      .bubble-ai, .bubble-user { max-width: 90%; }
-      .footer { margin-bottom: 80px; }
+    }
+  </script>
+  <style>
+    /* Importa a fonte Inter para um visual moderno */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+    body { 
+        background: #f3f4f6; 
+        font-family: 'Inter', sans-serif;
+    }
+    /* Contêiner principal, responsivo e centralizado */
+    .chat-container { 
+        width: 95%; 
+        max-width: 600px; 
+        margin: 1rem auto; 
+        background: white; 
+        border-radius: 12px; 
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+        display: flex;
+        flex-direction: column;
+        min-height: calc(100vh - 2rem); /* Ocupa a altura da tela no mobile */
+    }
+    /* Área de exibição do chat */
+    #chat {
+        flex-grow: 1;
+        overflow-y: auto;
+        padding: 1rem;
+        min-height: 400px; 
+    }
+    /* Estilo básico de todas as mensagens */
+    .msg { 
+        padding: 10px 15px; 
+        margin: 10px 0;
+        border-radius: 10px; 
+        max-width: 85%; 
+        line-height: 1.5;
+        font-size: 0.95rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        word-wrap: break-word;
+    }
+    /* Estilo para mensagens do usuário (verde, alinhado à direita) */
+    .user { 
+        background: #22c55e; 
+        color: white; 
+        margin-left: auto; 
+        border-bottom-right-radius: 2px;
+    }
+    /* Estilo para mensagens da EVA (cinza claro, alinhado à esquerda) */
+    .eva { 
+        background: #f0f0f0; 
+        color: #111; 
+        margin-right: auto;
+        display: flex; 
+        align-items: flex-start;
+        border-bottom-left-radius: 2px;
+    }
+    /* Ícone da EVA */
+    .eva img { 
+        width: 20px; 
+        height: 20px; 
+        min-width: 20px;
+        margin-right: 8px; 
+        border-radius: 50%; 
+        object-fit: cover;
+        margin-top: 2px;
+    }
+    /* Animação de carregamento (dots) */
+    .loading-dot {
+        width: 8px;
+        height: 8px;
+        background-color: #4CAF50;
+        border-radius: 50%;
+        display: inline-block;
+        margin: 0 2px;
+        animation: loading 1.4s infinite ease-in-out both;
+    }
+    .loading-dot:nth-child(1) { animation-delay: -0.32s; }
+    .loading-dot:nth-child(2) { animation-delay: -0.16s; }
+    .loading-dot:nth-child(3) { animation-delay: 0s; }
+    @keyframes loading {
+        0%, 80%, 100% { transform: scale(0); }
+        40% { transform: scale(1.0); }
+    }
+    /* Estilo para links de fonte de citação */
+    .source-link {
+        color: #1d4ed8;
+        text-decoration: underline;
+        font-size: 0.8rem;
+        margin-top: 5px;
+        display: block;
     }
   </style>
-
-  <!-- Firebase Imports -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, onSnapshot, collection, query, where, getDoc, setDoc, updateDoc, addDoc, serverTimestamp, getDocs, deleteDoc, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-    
-    // Variáveis Globais (Disponíveis para o script principal)
-    window.firebase = { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, getFirestore, doc, onSnapshot, collection, query, where, getDoc, setDoc, updateDoc, addDoc, serverTimestamp, getDocs, deleteDoc, setLogLevel };
-    window.__app_id_global = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-    window.__firebase_config_global = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-    window.__initial_auth_token_global = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-  </script>
 </head>
-<body class="flex flex-col min-h-screen">
-
-  <!-- Header -->
-  <header class="bg-white shadow flex items-center px-4 py-3">
-    <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" alt="EVA Logo" class="w-10 h-10 mr-3">
-    <h1 class="text-2xl font-bold">
-      <span style="color:black;">E</span><span class="v-orange">V</span><span style="color:black;">A</span>
-    </h1>
-    <div id="auth-status" class="ml-auto text-sm text-gray-500 hidden md:block"></div>
-  </header>
-
-  <!-- Chat -->
-  <main class="flex-1 flex flex-col chat-container p-4 overflow-y-auto">
-    <div id="chat-messages" class="flex-1 space-y-4">
-      <!-- Mensagem de boas-vindas -->
-      <div class="flex items-start space-x-2">
-        <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" class="w-8 h-8">
-        <div class="bubble-ai">Olá! Eu sou a EVA. Usa `/ajuda` para ver todos os meus truques!</div>
+<body>
+  <div class="chat-container">
+    <!-- Cabeçalho do Chat -->
+    <div class="p-4 border-b text-xl font-bold text-gray-800">Chat com <span class="text-green-600">EVA</span></div>
+    
+    <!-- Área de Mensagens -->
+    <div id="chat" class="flex flex-col">
+      <div class="msg eva">
+        <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" alt="EVA"> 
+        Olá! Eu sou a EVA, agora alimentada pela inteligência do Gemini. 
+        Pergunte-me algo, e eu uso a pesquisa do Google para te dar a melhor resposta! 🌸
       </div>
-      <div class="bubble-system">A sua ID de utilizador (para notas e agenda) será apresentada no rodapé quando a autenticação terminar.</div>
     </div>
-  </main>
-
-  <!-- Área de Input Fixo -->
-  <div class="input-area w-full chat-container">
-    <div class="input-bar">
-      <!-- Botões de Ação -->
-      <div class="flex space-x-1 p-2">
-        <button id="export-btn" class="p-2 text-gray-600 hover:text-blue-500 transition-colors rounded-full" title="Exportar Conversa (.txt)">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-        </button>
-        <button id="clear-btn" class="p-2 text-gray-600 hover:text-red-500 transition-colors rounded-full" title="Limpar Histórico">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-        </button>
-      </div>
-      
-      <!-- Textarea e Botão de Envio -->
-      <textarea id="user-input" rows="1" placeholder="Escreve a tua mensagem ou um comando como /ajuda..."
-        class="flex-1 border rounded-full px-4 py-2 resize-none"></textarea>
-      <button id="send-button" class="ml-2 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 transition-colors text-white px-5 py-2 rounded-full shadow-lg">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 transform -rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+    
+    <!-- Área de Input e Envio -->
+    <div class="p-4 border-t flex items-center bg-gray-50 rounded-b-xl">
+      <input 
+        id="input" 
+        type="text" 
+        placeholder="Digite sua mensagem ou pergunta..." 
+        class="flex-1 border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500 text-base" 
+        onkeydown="if(event.key === 'Enter') sendMsg()"
+      >
+      <button 
+        id="send-btn" 
+        onclick="sendMsg()" 
+        class="ml-3 bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded-lg transition duration-200 shadow-md active:shadow-none"
+      >
+        Enviar
       </button>
     </div>
   </div>
 
-  <!-- Footer Simplificado -->
-  <footer class="footer text-sm text-gray-500">
-    <span class="font-bold">ID de Utilizador:</span> <span id="user-id-display" class="font-mono text-xs">...</span>
-  </footer>
+  <script>
+    const chat = document.getElementById("chat");
+    const input = document.getElementById("input");
+    const sendButton = document.getElementById("send-btn");
 
-  <!-- Modal Container para Notas e Mensagens Personalizadas -->
-  <div id="modal-container" class="hidden"></div>
+    // Configuração do Gemini
+    const GEMINI_MODEL = "gemini-2.5-flash-preview-05-20";
+    const API_URL_BASE = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=`;
+    const apiKey = ""; // A chave é injetada automaticamente pelo ambiente de execução
+    const apiUrl = API_URL_BASE + apiKey;
 
+    // Variável para rastrear o estado de carregamento
+    let isLoading = false;
 
-<script type="module">
-  // Configurações e Variáveis Globais
-  const apiKey = ""; 
-  const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent";
-  const TTS_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent";
-  const EXCHANGE_API_URL = "https://api.exchangerate-api.com/v4/latest/"; 
-  const WORLDTIME_API_URL = "https://worldtimeapi.org/api/timezone/"; 
-  
-  const MAX_RETRIES = 5;
-  const NOTE_COLLECTION_NAME = 'notas_rapidas'; 
-  const AGENDA_COLLECTION_NAME = 'agenda_compromissos'; 
-  const TODO_COLLECTION_NAME = 'lista_de_tarefas';
+    /**
+     * Adiciona uma mensagem ao chat.
+     * @param {string} text - O conteúdo da mensagem (pode conter HTML).
+     * @param {string} sender - 'user' ou 'eva'.
+     */
+    function addMessage(text, sender = "eva") {
+      const msg = document.createElement("div");
+      msg.className = "msg " + sender;
 
-  // Elementos do DOM
-  const chatMessages = document.getElementById("chat-messages");
-  const input = document.getElementById("user-input");
-  const sendBtn = document.getElementById("send-button");
-  const exportBtn = document.getElementById('export-btn');
-  const clearChatBtn = document.getElementById('clear-btn');
-  const modalContainer = document.getElementById('modal-container');
-  const userIdDisplay = document.getElementById('user-id-display');
-  const authStatusDisplay = document.getElementById('auth-status');
-
-  // Variáveis de Estado
-  let app, db, auth, userId = null;
-  let chatHistory = []; 
-  let isSchoolMode = false;
-  let audioContext;
-
-  // --- FUNÇÕES DE UTILIDADE E UI ---
-
-  /** Adiciona uma mensagem ao chat e ao histórico. */
-  function addMessage(sender, content, type = 'text', isHtml = false) {
-    const div = document.createElement("div");
-    div.className = "flex items-start space-x-2 " + (sender === "user" ? "justify-end" : "");
-    
-    let contentHtml;
-    
-    if (sender === "user") {
-        contentHtml = content;
-    } else if (sender === "system") {
-        div.className = "bubble-system";
-        contentHtml = content;
-    } else { // eva
-        contentHtml = isHtml ? content : escapeHtml(content);
-    }
-    
-    // Renderização
-    if (sender === "system") {
-      div.innerHTML = contentHtml;
-    } else {
-        const bubbleClass = sender === "user" ? "bubble-user" : "bubble-ai";
-        const avatar = sender === "user" ? "" : `<img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" class="w-8 h-8">`;
-        
-        let ttsButtonHtml = '';
-        // TTS só para respostas de texto da EVA (não comandos) e se não for HTML
-        if (sender === 'eva' && type === 'text' && !isHtml && contentHtml.length < 500) { 
-            ttsButtonHtml = `<button class="tts-button" onclick="window.speakText(this, '${btoa(content)}')">
-                              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9.383 3.094A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.2zM14 8a1 1 0 011 1v2a1 1 0 11-2 0V9a1 1 0 011-1zm-1 6a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd" /></svg>
-                            </button>`;
-        }
-
-        div.innerHTML = `${avatar}<div class="${bubbleClass}">${contentHtml}${ttsButtonHtml}</div>`;
-    }
-
-    chatMessages.appendChild(div);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-    
-    // Adicionar ao Histórico
-    if (sender !== "system" && type !== 'document') { 
-        chatHistory.push({ sender, content, type, isHtml });
-    }
-  }
-
-  /** Sanitiza strings para evitar injeção de HTML. */
-  function escapeHtml(text) {
-    if (!text) return "";
-    return text.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
-  }
-
-  /** Converte Markdown básico (negrito, itálico, quebra de linha) em HTML. */
-  function convertMarkdownToHtml(text) {
-      if (!text) return "";
-      let html = escapeHtml(text);
-      html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-      html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
-      html = html.replace(/\n/g, '<br>');
-      return html;
-  }
-
-  /** Apresenta um modal personalizado em vez de alert/confirm. */
-  function showModal(title, content, onConfirm = null) {
-      modalContainer.classList.remove('hidden');
-      modalContainer.classList.add('modal-overlay');
-
-      const buttonsHtml = onConfirm 
-          ? `<button id="modal-confirm" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">Confirmar</button>
-             <button id="modal-cancel" class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg ml-2 hover:bg-gray-400 transition-colors">Cancelar</button>`
-          : `<button id="modal-close" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">Fechar</button>`;
-
-      modalContainer.innerHTML = `
-          <div class="modal-content">
-              <h3 class="text-xl font-bold mb-4">${escapeHtml(title)}</h3>
-              <p class="mb-6">${content}</p>
-              <div class="flex justify-end">
-                  ${buttonsHtml}
-              </div>
-          </div>
-      `;
-
-      const closeModal = () => modalContainer.classList.add('hidden');
-
-      if (onConfirm) {
-          document.getElementById('modal-confirm').onclick = () => { onConfirm(); closeModal(); };
-          document.getElementById('modal-cancel').onclick = closeModal;
+      if (sender === "eva") {
+        msg.innerHTML = `<img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" alt="EVA"> ${text}`;
       } else {
-          document.getElementById('modal-close').onclick = closeModal;
+        msg.textContent = text;
       }
-  }
-
-  // --- FIREBASE E PERSISTÊNCIA ---
-
-  /** Inicializa o Firebase e a Autenticação. */
-  async function initializeFirebase() {
-    const firebase = window.firebase;
-    const firebaseConfig = window.__firebase_config_global;
-    const initialAuthToken = window.__initial_auth_token_global;
-    const appId = window.__app_id_global;
-
-    if (Object.keys(firebaseConfig).length > 0) {
-      app = firebase.initializeApp(firebaseConfig);
-      db = firebase.getFirestore(app);
-      auth = firebase.getAuth(app);
-      firebase.setLogLevel('debug');
-
-      authStatusDisplay.textContent = "A autenticar...";
-
-      firebase.onAuthStateChanged(auth, async (user) => {
-        if (user) {
-          userId = user.uid;
-          userIdDisplay.textContent = userId;
-          authStatusDisplay.textContent = "Autenticado";
-          addMessage("system", `✅ Autenticação concluída. A sua ID de utilizador é: ${userId}.`);
-        } else {
-          try {
-            if (initialAuthToken) {
-              const userCredential = await firebase.signInWithCustomToken(auth, initialAuthToken);
-              userId = userCredential.user.uid;
-            } else {
-              const userCredential = await firebase.signInAnonymously(auth);
-              userId = userCredential.user.uid;
-            }
-            userIdDisplay.textContent = userId;
-            authStatusDisplay.textContent = "Autenticado";
-            addMessage("system", `✅ Autenticação concluída. A sua ID de utilizador é: ${userId}.`);
-          } catch (error) {
-            console.error("Firebase Auth Error:", error);
-            userId = crypto.randomUUID(); 
-            userIdDisplay.textContent = `ANON-${userId.substring(0, 8)}`;
-            authStatusDisplay.textContent = "Erro de Autenticação";
-            addMessage("system", `⚠️ Erro de autenticação. Usando ID anónima. As funções persistentes podem não funcionar corretamente.`);
-          }
-        }
-      });
-    } else {
-      userId = crypto.randomUUID();
-      userIdDisplay.textContent = `ANON-${userId.substring(0, 8)}`;
-      authStatusDisplay.textContent = "Sem Configuração Firebase";
-      addMessage("system", "⚠️ Configuração Firebase não encontrada. As funcionalidades de Notas e Agenda não serão persistentes. Usando ID anónima.");
+      chat.appendChild(msg);
+      chat.scrollTop = chat.scrollHeight; // Rola para a mensagem mais recente
     }
-  }
-  
-  /** Retorna o path de uma coleção privada do utilizador. */
-  function getPrivateCollectionPath(collectionName) {
-    const appId = window.__app_id_global;
-    if (!userId || !appId || !db) return null;
-    return firebase.collection(db, `/artifacts/${appId}/users/${userId}/${collectionName}`);
-  }
 
-  // --- MÓDULO DE NOTAS ---
-  async function saveNote(noteText) {
-    const collectionRef = getPrivateCollectionPath(NOTE_COLLECTION_NAME);
-    if (!collectionRef) { showModal("Erro de Persistência", "As notas não podem ser guardadas. Tente mais tarde."); return; }
-    try {
-      await firebase.addDoc(collectionRef, { text: noteText, createdAt: firebase.serverTimestamp(), });
-      addMessage("system", `📝 Nota guardada com sucesso! ("${noteText.substring(0, 50)}...")`);
-    } catch (e) {
-      console.error("Erro ao adicionar nota: ", e);
-      showModal("Erro de Persistência", "Ocorreu um erro ao tentar guardar a nota.");
+    /**
+     * Exibe o indicador de carregamento (dots).
+     * @returns {HTMLElement} O elemento de mensagem de carregamento.
+     */
+    function showLoadingIndicator() {
+      const loadingMsg = document.createElement("div");
+      loadingMsg.className = "msg eva loading-indicator";
+      loadingMsg.innerHTML = `<img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" alt="EVA"> 
+        <span>
+          <span class="loading-dot"></span>
+          <span class="loading-dot"></span>
+          <span class="loading-dot"></span>
+        </span>`;
+      chat.appendChild(loadingMsg);
+      chat.scrollTop = chat.scrollHeight;
+      return loadingMsg;
     }
-  }
 
-  async function listNotes() {
-    const collectionRef = getPrivateCollectionPath(NOTE_COLLECTION_NAME);
-    if (!collectionRef) { showModal("Erro de Persistência", "Não é possível listar notas."); return; }
-    
-    try {
-      const q = firebase.query(collectionRef);
-      const querySnapshot = await firebase.getDocs(q);
-
-      if (querySnapshot.empty) {
-        addMessage("eva", "Ainda não tens notas guardadas. Usa `/nota <texto>` para adicionar uma.");
-        return;
-      }
-
-      let notesHtml = `<h4 class="font-bold mb-2">As tuas Notas Rápidas:</h4><ul class="list-disc pl-5 space-y-2">`;
-      querySnapshot.forEach(doc => {
-        const data = doc.data();
-        const date = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString('pt-PT') : 'Data Desconhecida';
-        notesHtml += `<li class="text-gray-700"><strong>[${date}]</strong> ${escapeHtml(data.text)} <button onclick="window.deleteNote('${doc.id}')" class="text-red-500 hover:text-red-700 ml-2 text-sm">(Apagar)</button></li>`;
-      });
-      notesHtml += `</ul><p class="mt-4 text-sm text-gray-500">Estas notas são privadas e guardadas no Firestore.</p>`;
-
-      addMessage("eva", notesHtml, 'text', true);
-
-    } catch (e) {
-      console.error("Erro ao listar notas: ", e);
-      showModal("Erro de Persistência", "Ocorreu um erro ao tentar listar as notas.");
+    /**
+     * Habilita/Desabilita a UI durante o carregamento.
+     * @param {boolean} state - true para carregar, false para pronto.
+     */
+    function setUILoading(state) {
+        isLoading = state;
+        input.disabled = state;
+        sendButton.disabled = state;
+        sendButton.textContent = state ? "Processando..." : "Enviar";
+        sendButton.classList.toggle('opacity-60', state);
+        sendButton.classList.toggle('cursor-not-allowed', state);
     }
-  }
 
-  window.deleteNote = async function(noteId) {
-      showModal("Confirmar Apagar", "Tens a certeza que queres apagar esta nota?", async () => {
-          try {
-              const noteRef = firebase.doc(db, `/artifacts/${window.__app_id_global}/users/${userId}/${NOTE_COLLECTION_NAME}`, noteId);
-              await firebase.deleteDoc(noteRef);
-              addMessage("system", "✅ Nota apagada com sucesso! Lista as tuas notas novamente para ver a alteração.");
-          } catch (e) {
-              console.error("Erro ao apagar nota: ", e);
-              showModal("Erro ao Apagar", "Ocorreu um erro ao tentar apagar a nota.");
-          }
-      });
-  }
-
-  // --- MÓDULO DE AGENDA ---
-  async function scheduleAppointment(datetimeStr, eventText) {
-      const collectionRef = getPrivateCollectionPath(AGENDA_COLLECTION_NAME);
-      if (!collectionRef) { showModal("Erro de Persistência", "A agenda não pode ser guardada. Tente mais tarde."); return; }
-      const regex = /^(\d{2})\/(\d{2})\/(\d{4})\s*(\d{2}):(\d{2})$/;
-      const match = datetimeStr.match(regex);
-      
-      if (!match) {
-          addMessage("eva", "O formato da data/hora está incorreto. Usa: <code>DD/MM/AAAA HH:MM</code>. Exemplo: <code>/agendar 15/12/2025 14:30 Reunião</code>", 'text', true);
-          return;
-      }
-      const dateString = `${match[3]}-${match[2]}-${match[1]}T${match[4]}:${match[5]}:00`;
-      const appointmentDate = new Date(dateString);
-
-      if (isNaN(appointmentDate)) {
-          addMessage("eva", "Data/hora inválida. Confirma o formato DD/MM/AAAA HH:MM.", 'text', true);
-          return;
-      }
-      
-      try {
-          await firebase.addDoc(collectionRef, { date: appointmentDate, description: eventText, timestamp: firebase.serverTimestamp(), });
-          addMessage("system", `📅 Compromisso agendado para ${appointmentDate.toLocaleDateString('pt-PT')} às ${appointmentDate.toLocaleTimeString('pt-PT', {hour: '2-digit', minute:'2-digit'})}.`);
-      } catch (e) {
-          console.error("Erro ao agendar compromisso: ", e);
-          showModal("Erro de Persistência", "Ocorreu um erro ao tentar agendar o compromisso.");
-      }
-  }
-
-  async function listAppointments() {
-      const collectionRef = getPrivateCollectionPath(AGENDA_COLLECTION_NAME);
-      if (!collectionRef) { showModal("Erro de Persistência", "Não é possível listar a agenda."); return; }
-      
-      try {
-          const now = new Date();
-          const q = firebase.query(collectionRef, firebase.where('date', '>=', now));
-          const querySnapshot = await firebase.getDocs(q);
-          
-          let appointments = [];
-          querySnapshot.forEach(doc => {
-            const data = doc.data();
-            appointments.push({ id: doc.id, date: data.date.toDate(), description: data.description });
-          });
-          appointments.sort((a, b) => a.date - b.date);
-
-          if (appointments.length === 0) {
-              addMessage("eva", "Não tens compromissos futuros agendados. Usa `/agendar` para adicionar um.");
-              return;
-          }
-
-          let html = `<h4 class="font-bold mb-2 text-blue-800">🗓️ Próximos Compromissos:</h4><ul class="space-y-3">`;
-          appointments.forEach(apt => {
-              const dateStr = apt.date.toLocaleDateString('pt-PT', {day: '2-digit', month: 'short', year: 'numeric'});
-              const timeStr = apt.date.toLocaleTimeString('pt-PT', {hour: '2-digit', minute:'2-digit'});
-              
-              html += `<li class="appointment-card border-l-4 border-blue-500">
-                          <strong class="text-lg">${escapeHtml(apt.description)}</strong>
-                          <div class="text-gray-600 text-base mt-1">
-                              ${dateStr} às ${timeStr} 
-                              <button onclick="window.deleteAppointment('${apt.id}')" class="text-red-500 hover:text-red-700 ml-3 text-sm font-normal">(Apagar)</button>
-                          </div>
-                      </li>`;
-          });
-          html += `</ul>`;
-
-          addMessage("eva", html, 'text', true);
-
-      } catch (e) {
-          console.error("Erro ao listar agenda: ", e);
-          showModal("Erro de Persistência", "Ocorreu um erro ao tentar listar a agenda.");
-      }
-  }
-  
-  window.deleteAppointment = async function(aptId) {
-      showModal("Confirmar Apagar", "Tens a certeza que queres apagar este compromisso?", async () => {
-          try {
-              const aptRef = firebase.doc(db, `/artifacts/${window.__app_id_global}/users/${userId}/${AGENDA_COLLECTION_NAME}`, aptId);
-              await firebase.deleteDoc(aptRef);
-              addMessage("system", "✅ Compromisso apagado com sucesso! Lista a agenda novamente para ver a alteração.");
-          } catch (e) {
-              console.error("Erro ao apagar compromisso: ", e);
-              showModal("Erro ao Apagar", "Ocorreu um erro ao tentar apagar o compromisso.");
-          }
-      });
-  }
-
-  // --- MÓDULO DE LISTA DE TAREFAS ---
-  async function addTodo(taskText) {
-      const collectionRef = getPrivateCollectionPath(TODO_COLLECTION_NAME);
-      if (!collectionRef) { showModal("Erro de Persistência", "A lista de tarefas não está disponível."); return; }
-      try {
-          await firebase.addDoc(collectionRef, {
-              description: taskText,
-              completed: false,
-              createdAt: firebase.serverTimestamp(),
-          });
-          addMessage("system", `✅ Tarefa adicionada: "${taskText.substring(0, 50)}..."`);
-      } catch (e) {
-          console.error("Erro ao adicionar tarefa: ", e);
-          showModal("Erro de Persistência", "Ocorreu um erro ao adicionar a tarefa.");
-      }
-  }
-
-  async function listTodos() {
-      const collectionRef = getPrivateCollectionPath(TODO_COLLECTION_NAME);
-      if (!collectionRef) { showModal("Erro de Persistência", "A lista de tarefas não está disponível."); return; }
-      
-      try {
-          const q = firebase.query(collectionRef);
-          const querySnapshot = await firebase.getDocs(q);
-
-          let todos = [];
-          querySnapshot.forEach(doc => {
-            todos.push({ id: doc.id, ...doc.data() });
-          });
-          
-          if (todos.length === 0) {
-              addMessage("eva", "A tua lista de tarefas está vazia. Usa `/todo adicionar [tarefa]` para começar.");
-              return;
-          }
-
-          // Ordena por concluído (os concluídos no fim) e depois por data de criação
-          todos.sort((a, b) => {
-              if (a.completed !== b.completed) {
-                  return a.completed ? 1 : -1;
-              }
-              const dateA = a.createdAt ? a.createdAt.seconds : 0;
-              const dateB = b.createdAt ? b.createdAt.seconds : 0;
-              return dateB - dateA; // Mais recente primeiro
-          });
-
-          let pendingHtml = '';
-          let completedHtml = '';
-          
-          todos.forEach((task, index) => {
-              const statusClass = task.completed ? 'text-gray-500 line-through' : 'text-gray-900 font-medium';
-              const actionButton = task.completed 
-                  ? `<button onclick="window.deleteTodo('${task.id}')" class="text-red-500 hover:text-red-700 ml-3 text-sm font-normal">(Apagar)</button>`
-                  : `<button onclick="window.completeTodo('${task.id}')" class="text-green-600 hover:text-green-800 ml-3 text-sm font-medium">(Concluir)</button>`;
-              
-              const itemHtml = `<li class="todo-card p-3 flex justify-between items-center ${task.completed ? 'bg-gray-50 border-l-4 border-green-500' : 'bg-white border-l-4 border-blue-500'}">
-                                  <span class="${statusClass} text-base break-words flex-1 pr-2">#${index + 1} - ${escapeHtml(task.description)}</span>
-                                  <div>${actionButton}</div>
-                              </li>`;
-              
-              if (task.completed) {
-                  completedHtml += itemHtml;
-              } else {
-                  pendingHtml += itemHtml;
-              }
-          });
-
-          let finalHtml = `<h4 class="font-bold mb-2 text-blue-800">✅ A Tua Lista de Tarefas:</h4><ul class="space-y-2">`;
-          finalHtml += pendingHtml;
-          if (completedHtml) {
-              finalHtml += `<li class="my-4 text-center text-gray-700 font-bold">--- CONCLUÍDAS ---</li>` + completedHtml;
-          }
-          finalHtml += `</ul>`;
-          
-          addMessage("eva", finalHtml, 'text', true);
-
-      } catch (e) {
-          console.error("Erro ao listar tarefas: ", e);
-          showModal("Erro de Persistência", "Ocorreu um erro ao tentar listar as tarefas.");
-      }
-  }
-
-  window.completeTodo = async function(todoId) {
-      try {
-          const todoRef = firebase.doc(db, `/artifacts/${window.__app_id_global}/users/${userId}/${TODO_COLLECTION_NAME}`, todoId);
-          await firebase.updateDoc(todoRef, { completed: true });
-          addMessage("system", "✅ Tarefa concluída!");
-          listTodos();
-      } catch (e) {
-          console.error("Erro ao completar tarefa: ", e);
-          showModal("Erro ao Concluir", "Ocorreu um erro ao tentar marcar a tarefa como concluída.");
-      }
-  }
-  
-  window.deleteTodo = async function(todoId) {
-      showModal("Confirmar Apagar", "Tens a certeza que queres apagar esta tarefa?", async () => {
-          try {
-              const todoRef = firebase.doc(db, `/artifacts/${window.__app_id_global}/users/${userId}/${TODO_COLLECTION_NAME}`, todoId);
-              await firebase.deleteDoc(todoRef);
-              addMessage("system", "🗑️ Tarefa apagada com sucesso!");
-              listTodos();
-          } catch (e) {
-              console.error("Erro ao apagar tarefa: ", e);
-              showModal("Erro ao Apagar", "Ocorreu um erro ao tentar apagar a tarefa.");
-          }
-      });
-  }
-
-
-  // --- MÓDULO DE RELÓGIO MUNDIAL ---
-  async function getWorldTime(location) {
-      const loadingId = Date.now();
-      addMessage("eva", `<div id="loading-${loadingId}">A procurar a hora em ${escapeHtml(location)}...</div>`, 'text', true);
-
-      try {
-          // 1. Tenta a localização diretamente
-          let url = `${WORLDTIME_API_URL}${encodeURIComponent(location.trim())}`;
-          let response = await fetchWithRetry(url);
-          let data = await response.json();
-
-          // 2. Se falhar ou for uma lista (ambígua), tenta usar o Gemini para obter o fuso horário exato
-          if (Array.isArray(data) || !data || !data.datetime) {
-              const geminiQuery = `Qual é o fuso horário exato (formato continente/cidade, ex: Europe/Lisbon) para a cidade de ${location}? Responda apenas com o fuso horário.`;
-              const geminiResponse = await getGeminiResponse(geminiQuery, true); 
-
-              if (geminiResponse.text && geminiResponse.text.includes('/')) {
-                  const suggestedTimezone = geminiResponse.text.trim();
-                  url = `${WORLDTIME_API_URL}${encodeURIComponent(suggestedTimezone)}`;
-                  response = await fetchWithRetry(url);
-                  data = await response.json();
-                  
-                  if (!data || !data.datetime) throw new Error("Localização falhada após busca Gemini.");
-              } else {
-                  throw new Error("Localização falhada.");
-              }
-          }
-          
-          document.getElementById(`loading-${loadingId}`)?.remove();
-          
-          const time = new Date(data.datetime);
-          const formattedTime = time.toLocaleTimeString('pt-PT', {hour: '2-digit', minute:'2-digit', second: '2-digit'});
-          const formattedDate = time.toLocaleDateString('pt-PT');
-
-          addMessage("eva", `⌚ Em **${data.timezone.replace(/_/g, ' ')}** (${escapeHtml(location)}), são **${formattedTime}** de ${formattedDate}.`, 'text', true);
-
-      } catch (e) {
-          document.getElementById(`loading-${loadingId}`)?.remove();
-          console.error("Erro no Relógio Mundial:", e);
-          addMessage("eva", `❌ Não consegui encontrar a hora exata para **${escapeHtml(location)}**. Tenta o nome do fuso horário (ex: Europe/London) ou uma cidade principal.`, 'text', true);
-      }
-  }
-
-  // --- MÓDULO DE CONVERSOR DE MOEDAS ---
-  async function convertCurrency(amount, from, to) {
-      const loadingId = Date.now();
-      addMessage("eva", `<div id="loading-${loadingId}">A procurar taxas de câmbio...</div>`, 'text', true);
-
-      try {
-          const response = await fetchWithRetry(`${EXCHANGE_API_URL}${from.toUpperCase()}`);
-          const data = await response.json();
-
-          document.getElementById(`loading-${loadingId}`)?.remove();
-
-          if (data.result === 'error' || !data.rates || !data.rates[to.toUpperCase()]) {
-              addMessage("eva", `❌ Não consegui obter a taxa de câmbio para ${from.toUpperCase()} para ${to.toUpperCase()}. Confirma os códigos das moedas.`, 'text', true);
-              return;
-          }
-
-          const rate = data.rates[to.toUpperCase()];
-          const result = amount * rate;
-          const formattedResult = result.toFixed(2).replace('.', ',');
-
-          addMessage("eva", `💱 **${amount} ${from.toUpperCase()}** é equivalente a **${formattedResult} ${to.toUpperCase()}**. (Taxa: ${rate.toFixed(4)})`, 'text', true);
-
-      } catch (e) {
-          document.getElementById(`loading-${loadingId}`)?.remove();
-          console.error("Erro no conversor de moedas:", e);
-          addMessage("eva", "❌ Que azar! Falha na comunicação com o serviço de câmbio de moedas. Tenta de novo.", 'text', true);
-      }
-  }
-
-
-  // --- MÓDULO TEXT-TO-SPEECH (VOZ) ---
-  function base64ToArrayBuffer(base64) {
-      const binaryString = atob(base64);
-      const len = binaryString.length;
-      const bytes = new Uint8Array(len);
-      for (let i = 0; i < len; i++) {
-          bytes[i] = binaryString.charCodeAt(i);
-      }
-      return bytes.buffer;
-  }
-
-  function pcmToWav(pcm16, sampleRate) {
-      const buffer = new ArrayBuffer(44 + pcm16.length * 2);
-      const view = new DataView(buffer);
-
-      function writeString(view, offset, string) {
-          for (let i = 0; i < string.length; i++) { view.setUint8(offset + i, string.charCodeAt(i)); }
-      }
-
-      let offset = 0;
-      writeString(view, offset, 'RIFF'); offset += 4;
-      view.setUint32(offset, 36 + pcm16.length * 2, true); offset += 4;
-      writeString(view, offset, 'WAVE'); offset += 4;
-      writeString(view, offset, 'fmt '); offset += 4;
-      view.setUint32(offset, 16, true); offset += 4; 
-      view.setUint16(offset, 1, true); offset += 2; 
-      view.setUint16(offset, 1, true); offset += 2; 
-      view.setUint32(offset, sampleRate, true); offset += 4; 
-      view.setUint32(offset, sampleRate * 2, true); offset += 4; 
-      view.setUint16(offset, 2, true); offset += 2; 
-      view.setUint16(offset, 16, true); offset += 2; 
-      writeString(view, offset, 'data'); offset += 4;
-      view.setUint32(offset, pcm16.length * 2, true); offset += 4;
-      for (let i = 0; i < pcm16.length; i++) {
-          view.setInt16(offset + i * 2, pcm16[i], true);
-      }
-
-      return new Blob([view], { type: 'audio/wav' });
-  }
-
-
-  window.speakText = async function(button, encodedText) {
-      const text = atob(encodedText);
-      button.disabled = true;
-      const originalHtml = button.innerHTML;
-      button.innerHTML = '🔊';
+    /**
+     * Chama a API do Gemini para gerar conteúdo com Google Search grounding e retries.
+     * @param {string} query - O prompt do usuário.
+     * @returns {Promise<string>} O texto formatado da resposta (incluindo fontes).
+     */
+    async function callGemini(query) {
+      // Instrução do sistema para garantir respostas em português e uso do Grounding
+      const systemPrompt = "Você é a EVA, uma assistente virtual amigável, atenciosa e prestativa. Responda a todas as perguntas em português de forma clara e concisa. Sempre use o Google Search para obter informações atualizadas e inclua as citações das fontes no final da sua resposta, usando a formatação [N].";
 
       const payload = {
-          contents: [{ parts: [{ text: text }] }],
-          generationConfig: {
-              responseModalities: ["AUDIO"],
-              speechConfig: {
-                  voiceConfig: {
-                      prebuiltVoiceConfig: { voiceName: "Kore" } 
-                  }
-              }
-          },
-          model: "gemini-2.5-flash-preview-tts"
-      };
-
-      try {
-          const response = await fetchWithRetry(`${TTS_API_URL}?key=${apiKey}`, {
-              method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
-          });
-          const result = await response.json();
-          
-          const part = result?.candidates?.[0]?.content?.parts?.[0];
-          const audioData = part?.inlineData?.data;
-          const mimeType = part?.inlineData?.mimeType;
-
-          if (audioData && mimeType && mimeType.startsWith("audio/L16")) {
-              const sampleRateMatch = mimeType.match(/rate=(\d+)/);
-              const sampleRate = sampleRateMatch ? parseInt(sampleRateMatch[1], 10) : 24000;
-              const pcmData = base64ToArrayBuffer(audioData);
-              const pcm16 = new Int16Array(pcmData);
-              const wavBlob = pcmToWav(pcm16, sampleRate);
-              const audioUrl = URL.createObjectURL(wavBlob);
-              
-              const audio = new Audio(audioUrl);
-              audio.play();
-              
-              audio.onended = () => {
-                  button.disabled = false;
-                  button.innerHTML = originalHtml;
-                  URL.revokeObjectURL(audioUrl);
-              };
-          } else {
-              throw new Error("Resposta TTS inválida ou faltante.");
-          }
-
-      } catch (e) {
-          console.error("TTS Error:", e);
-          showModal("Erro de Voz", "A EVA falhou a tentar falar. Por favor, tente novamente.");
-          button.disabled = false;
-          button.innerHTML = originalHtml;
-      }
-  }
-
-
-  // --- LÓGICA DE API E RETRY ---
-  async function fetchWithRetry(url, options) {
-      for (let i = 0; i < MAX_RETRIES; i++) {
-          try {
-              const response = await fetch(url, options);
-              if (response.status !== 429 && response.status < 500) { return response; }
-              console.warn(`Tentativa ${i + 1} falhou com status ${response.status}. Retrying...`);
-          } catch (error) {
-              console.warn(`Tentativa ${i + 1} falhou com erro de rede. Retrying...`, error);
-          }
-          if (i < MAX_RETRIES - 1) {
-              const delay = Math.pow(2, i) * 1000 + Math.random() * 500;
-              await new Promise(resolve => setTimeout(resolve, delay));
-          }
-      }
-      throw new Error('Todas as tentativas de API falharam.');
-  }
-
-  // Obter resposta simples do Gemini (usado para o Relógio Mundial)
-  async function getGeminiResponse(query, noSearch) {
-      const payload = {
-          contents: [{ parts: [{ text: query }] }],
-          tools: noSearch ? [] : [{ "google_search": {} }],
-          systemInstruction: { parts: [{ text: "Responda de forma extremamente concisa, com apenas o valor que lhe é pedido. Use o português de Portugal (pt-PT)." }] },
-      };
-      try {
-          const response = await fetchWithRetry(`${GEMINI_API_URL}?key=${apiKey}`, {
-              method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
-          });
-          const responseData = await response.json();
-          if (responseData.candidates?.[0]?.content?.parts?.[0]?.text) {
-              return { text: responseData.candidates[0].content.parts[0].text.trim() };
-          }
-      } catch(e) { console.error("Erro na busca Gemini auxiliar:", e); }
-      return { text: null };
-  }
-
-
-  // --- LÓGICA PRINCIPAL DO CHAT ---
-  async function processMessage(query) {
-    query = query.trim();
-    if(!query) return;
-
-    // 1. Lógica de Comandos (antes de enviar ao Gemini)
-    if (query.startsWith('/')) {
-        const parts = query.substring(1).split(/\s+/);
-        const command = parts[0].toLowerCase();
-        const args = parts.slice(1).join(' ').trim();
-        
-        addMessage("user", query); 
-        
-        switch (command) {
-            case 'ajuda':
-                addMessage("eva", `
-                    Olá! Os meus comandos são:<br>
-                    • 📊 <strong>Cálculos:</strong> <code>(234*2)+50</code><br>
-                    • 📝 <strong>Notas:</strong> <code>/nota [texto]</code> | <code>/listar_notas</code><br>
-                    • 📅 <strong>Agenda:</strong> <code>/agendar DD/MM/AAAA HH:MM [evento]</code> | <code>/ver_agenda</code><br>
-                    • 🚩 <strong>Tarefas:</strong> <code>/todo adicionar [tarefa]</code> | <code>/todo listar</code> | <code>/todo concluir [ID]</code><br>
-                    • ⌚ <strong>Hora:</strong> <code>/hora [cidade]</code> (Ex: <code>/hora Tóquio</code>)<br>
-                    • 💱 <strong>Câmbio:</strong> <code>/converter [100] [EUR] para [USD]</code><br>
-                    • 📚 <strong>Modo:</strong> <code>/modo_escolar</code> | <code>/modo_normal</code><br>
-                    • 🗣️ <strong>Voz:</strong> Clica no ícone Altifalante (🔊).
-                `, 'text', true);
-                return;
-            case 'nota': await (args ? saveNote(args) : addMessage("eva", "Usa: <code>/nota O texto da minha nota</code>", 'text', true)); return;
-            case 'listar_notas': await listNotes(); return;
-            case 'agendar':
-                const aptMatch = args.match(/^(\d{2}\/\d{2}\/\d{4}\s*\d{2}:\d{2})\s+(.+)/);
-                if (aptMatch) { await scheduleAppointment(aptMatch[1], aptMatch[2]); } else { addMessage("eva", "Formato de agendamento incorreto. Usa: <code>/agendar DD/MM/AAAA HH:MM [evento]</code>", 'text', true); }
-                return;
-            case 'ver_agenda': await listAppointments(); return;
-            case 'converter':
-                const convMatch = args.match(/^(\d+(\.\d+)?)\s*(\w+)\s*para\s*(\w+)$/i);
-                if (convMatch) { await convertCurrency(parseFloat(convMatch[1]), convMatch[3], convMatch[4]); } else { addMessage("eva", "Formato de conversão incorreto. Usa: <code>/converter 100 EUR para USD</code>", 'text', true); }
-                return;
-            case 'hora':
-                if (args) { await getWorldTime(args); } else { addMessage("eva", "Para ver a hora, usa: <code>/hora Tóquio</code>", 'text', true); }
-                return;
-            case 'todo':
-                const todoParts = args.match(/^(adicionar|listar|concluir)\s*(.*)/i);
-                if (todoParts) {
-                    const todoAction = todoParts[1].toLowerCase();
-                    const todoArgs = todoParts[2].trim();
-                    if (todoAction === 'adicionar' && todoArgs) { await addTodo(todoArgs); }
-                    else if (todoAction === 'listar') { await listTodos(); }
-                    else if (todoAction === 'concluir' && todoArgs) { window.completeTodo(todoArgs); } 
-                    else { addMessage("eva", "Comando /todo inválido. Usa: <code>/todo adicionar [tarefa]</code>, <code>/todo listar</code> ou <code>/todo concluir [ID]</code>.", 'text', true); }
-                } else { await listTodos(); }
-                return;
-            case 'modo_escolar': isSchoolMode = true; addMessage("system", "✅ Modo Escolar ATIVADO."); return;
-            case 'modo_normal': isSchoolMode = false; addMessage("system", "✅ Modo Escolar DESATIVADO."); return;
-            default: break;
-        }
-    }
-
-    // 2. Lógica da Calculadora
-    const mathRegex = /^(?:[\d\s+\-*/%.()^]|pi|e|log|sqrt|sin|cos|tan)+$/i;
-    if (mathRegex.test(query.replace(/,/g, '.'))) {
-        try {
-            let calculation = query.replace(/\^/g, '**').replace(/,/g, '.');
-            const scope = { 'pi': Math.PI, 'e': Math.E, 'log': (x) => Math.log(x), 'sqrt': (x) => Math.sqrt(x), 'sin': (x) => Math.sin(x), 'cos': (x) => Math.cos(x), 'tan': (x) => Math.tan(x) };
-            const result = new Function('scope', 'with(scope){ return ' + calculation + '}')(scope);
-            addMessage("user", query); 
-            addMessage("eva", `📊 O resultado de <code>${escapeHtml(query)}</code> é <strong>${result.toFixed(4)}</strong>.`, 'text', true);
-            return;
-        } catch (e) {
-            console.warn("Cálculo falhou, a tentar Gemini:", e);
-        }
-    }
-
-
-    // 3. Lógica do Gemini
-    addMessage("user", query); 
-    const loadingMessageId = "loading-" + Date.now();
-    const loadingMessageHtml = `<div id="${loadingMessageId}" class="flex items-start space-x-2">
-                              <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" class="w-8 h-8 animate-pulse">
-                              <div class="bubble-ai">A pensar...</div>
-                           </div>`;
-    chatMessages.insertAdjacentHTML('beforeend', loadingMessageHtml);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-
-    // System Prompt ajustado para priorizar pesquisa de preços
-    let systemPrompt = "Você é EVA, uma assistente virtual divertida e informativa, especializada em pesquisa de preços e custos (lojas, viagens, produtos). Responda de forma concisa e sempre em português de Portugal (pt-PT). Se a resposta necessitar de factos atuais ou gerais, use a pesquisa. Mantenha o tom conversacional.";
-    if (isSchoolMode) {
-        systemPrompt = "Você é EVA, uma assistente em Modo Escolar. Responda de forma breve, precisa e estruturada, usando resumos ou tópicos (bullet points). Use o português de Portugal (pt-PT).";
-    }
-
-    const payload = {
         contents: [{ parts: [{ text: query }] }],
-        tools: [{ "google_search": {} }],
-        systemInstruction: { parts: [{ text: systemPrompt }] },
-    };
+        tools: [{ "google_search": {} }], // Habilita o Grounding com Google Search
+        systemInstruction: {
+          parts: [{ text: systemPrompt }]
+        },
+      };
 
-    let finalResponseHtml = "";
+      let delay = 1000;
+      const maxRetries = 3;
 
-    try {
-        const response = await fetchWithRetry(`${GEMINI_API_URL}?key=${apiKey}`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
-        });
+      for (let i = 0; i < maxRetries; i++) {
+        try {
+          const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
 
-        const responseData = await response.json();
-        
-        if (responseData.candidates?.[0]?.content?.parts?.[0]?.text) {
-            const candidate = responseData.candidates[0];
-            const text = candidate.content.parts[0].text;
-            let formattedText = convertMarkdownToHtml(text);
-            
-            let sourcesHtml = "";
+          // Lidar com erro HTTP (como 429 - Rate Limit)
+          if (!response.ok) {
+            if (response.status === 429 && i < maxRetries - 1) {
+                // Tenta novamente com backoff
+                await new Promise(resolve => setTimeout(resolve, delay));
+                delay *= 2;
+                continue; 
+            }
+            throw new Error(`Erro HTTP! status: ${response.status}`);
+          }
+
+          const result = await response.json();
+          const candidate = result.candidates?.[0];
+
+          if (candidate && candidate.content?.parts?.[0]?.text) {
+            let text = candidate.content.parts[0].text;
+            let sources = [];
             const groundingMetadata = candidate.groundingMetadata;
 
             if (groundingMetadata && groundingMetadata.groundingAttributions) {
-                const sources = groundingMetadata.groundingAttributions
-                    .map(attribution => ({ uri: attribution.web?.uri, title: attribution.web?.title, }))
-                    .filter(source => source.uri && source.title)
-                    .slice(0, 3);
+              sources = groundingMetadata.groundingAttributions
+                .map(attribution => ({
+                  uri: attribution.web?.uri,
+                  title: attribution.web?.title,
+                }))
+                .filter(source => source.uri && source.title);
+            }
 
-                if (sources.length > 0) {
-                    sourcesHtml += "<br><br>🔎 <strong>Fontes:</strong><br>";
-                    sources.forEach(source => {
-                        const hostname = new URL(source.uri).hostname.replace(/^www\./, '');
-                        sourcesHtml += `<div class="search-card"><a href="${source.uri}" target="_blank" class="title">${escapeHtml(source.title)}</a><span class="url">${hostname}</span></div>`;
-                    });
-                    finalResponseHtml = `${formattedText}${sourcesHtml}`;
-                } else { finalResponseHtml = formattedText; }
-            } else { finalResponseHtml = formattedText; }
-        } else {
-            const errorReason = responseData.candidates?.[0]?.finishReason || "desconhecida";
-            console.error("Gemini API falhou. Razão:", errorReason, responseData);
-            finalResponseHtml = "❌ O meu chip de conversa falhou. Tenta de novo.";
-        }
-    } catch (e) {
-        console.error("Erro durante a comunicação com a API:", e);
-        finalResponseHtml = "❌ Que azar! Problemas de rede. Tenta daqui a pouco.";
-    }
-    
-    document.getElementById(loadingMessageId)?.remove();
-    if(finalResponseHtml) { addMessage("eva", finalResponseHtml, 'text', true); }
-  }
+            // Formatação das fontes para exibição na mensagem
+            let sourceHtml = '';
+            if (sources.length > 0) {
+                sourceHtml += '<div class="mt-3 pt-2 border-t border-gray-200">';
+                sources.forEach((source, index) => {
+                    sourceHtml += `<a href="${source.uri}" target="_blank" rel="noopener noreferrer" class="source-link">
+                        [${index + 1}] ${source.title}
+                    </a>`;
+                });
+                sourceHtml += '</div>';
+            }
 
+            return text + sourceHtml;
 
-  // --- FUNÇÕES GERAIS DE EVENTOS ---
-  function exportConversation() {
-      const date = new Date().toLocaleDateString('pt-PT').replace(/\//g, '-');
-      let content = `--- Histórico de Conversa EVA - ${date} ---\n\n`;
-      chatHistory.forEach(msg => {
-          let text = msg.content;
-          text = text.replace(/<br>/g, '\n').replace(/<[^>]*>?/gm, ''); 
-          content += `${msg.sender.toUpperCase()}: ${text}\n\n`;
-      });
-      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `conversa_eva_${date}.txt`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      addMessage("system", "✅ Conversa exportada para um ficheiro .txt.");
-  }
-
-  function clearChatHistory() {
-      showModal("Confirmar Limpar Histórico", "Tens a certeza que queres apagar todas as mensagens do chat? (Notas, Agenda e Tarefas não serão apagadas)", () => {
-          chatMessages.innerHTML = `
-              <div class="flex items-start space-x-2">
-                <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" class="w-8 h-8">
-                <div class="bubble-ai">Chat limpo. Olá de novo! Usa <code>/ajuda</code> para começar.</div>
-              </div>
-          `;
-          chatHistory = [];
-          if (isSchoolMode) {
-              isSchoolMode = false;
-              addMessage("system", "✅ Modo Escolar DESATIVADO.");
+          } else {
+            return "Desculpe, não consegui gerar uma resposta. O resultado do modelo estava vazio. 😔";
           }
-      });
-  }
-  
-  // --- CONFIGURAÇÃO DE EVENTOS ---
-  
-  sendBtn.addEventListener("click", () => { processMessage(input.value); input.value = ""; input.style.height = 'auto'; });
-  input.addEventListener("keydown", e => {
-    if(e.key === "Enter" && !e.shiftKey) { e.preventDefault(); processMessage(input.value); input.value = ""; input.style.height = 'auto'; }
-  });
-  input.addEventListener('input', () => {
-    input.style.height = 'auto';
-    input.style.height = (input.scrollHeight) + 'px';
-  });
 
-  exportBtn.addEventListener('click', exportConversation);
-  clearChatBtn.addEventListener('click', clearChatHistory);
+        } catch (error) {
+          console.error("Erro na chamada da API Gemini:", error);
+          if (i === maxRetries - 1) {
+            return "Desculpe, ocorreu um erro de comunicação com o servidor. 🛠️";
+          }
+          await new Promise(resolve => setTimeout(resolve, delay));
+          delay *= 2;
+        }
+      }
+      return "Um erro inesperado ocorreu. 🛑";
+    }
 
-  window.onload = initializeFirebase;
-</script>
+    /**
+     * Função principal para envio de mensagens.
+     */
+    async function sendMsg() {
+      if (isLoading) return; // Impede envios múltiplos
+
+      const text = input.value.trim();
+      if (!text) return;
+      
+      // 1. Mostrar mensagem do usuário
+      addMessage(text, "user");
+      input.value = "";
+      
+      // 2. Mostrar loading e desabilitar UI
+      const loadingIndicator = showLoadingIndicator();
+      setUILoading(true);
+
+      try {
+        // 3. Chamar a API Gemini (com Grounding)
+        const resposta = await callGemini(text);
+
+        // 4. Remover loading e adicionar resposta
+        chat.removeChild(loadingIndicator);
+        addMessage(resposta);
+      } catch (error) {
+        // Garantir que o loading seja removido em caso de erro
+        if (chat.contains(loadingIndicator)) {
+            chat.removeChild(loadingIndicator);
+        }
+        addMessage("⚠️ Ocorreu um erro ao processar sua solicitação.", "eva");
+        console.error("Erro fatal no sendMsg:", error);
+      } finally {
+        // 5. Reabilitar UI
+        setUILoading(false);
+      }
+    }
+  </script>
 </body>
 </html>
-
