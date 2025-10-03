@@ -233,13 +233,15 @@
 
           // Lidar com erro HTTP (como 429 - Rate Limit)
           if (!response.ok) {
+            console.error(`Erro na tentativa ${i + 1}/${maxRetries}. Status HTTP: ${response.status}. URL: ${apiUrl}`); // Loga o status do erro
             if (response.status === 429 && i < maxRetries - 1) {
                 // Tenta novamente com backoff
                 await new Promise(resolve => setTimeout(resolve, delay));
                 delay *= 2;
                 continue; 
             }
-            throw new Error(`Erro HTTP! status: ${response.status}`);
+            // Para outros erros (400, 403, 500, etc.), lança o erro para o bloco catch final
+            throw new Error(`Erro HTTP: ${response.status}`);
           }
 
           const result = await response.json();
@@ -278,10 +280,12 @@
           }
 
         } catch (error) {
-          console.error("Erro na chamada da API Gemini:", error);
+          console.error(`Erro na tentativa ${i + 1}/${maxRetries} (Exception):`, error);
           if (i === maxRetries - 1) {
-            return "Desculpe, ocorreu um erro de comunicação com o servidor. 🛠️";
+            // Se for o último retry, retorna a mensagem de erro final.
+            return `Desculpe, ocorreu um erro de comunicação com o servidor após ${maxRetries} tentativas. Por favor, verifique o console para mais detalhes sobre o status do erro. 🛠️`;
           }
+          // Espera e tenta novamente
           await new Promise(resolve => setTimeout(resolve, delay));
           delay *= 2;
         }
