@@ -121,7 +121,7 @@
 </head>
 <body>
   <div class="chat-container">
-    <!-- Cabeçalho do Chat (AGORA COM IMAGEM DA BORBOLETA) -->
+    <!-- Cabeçalho do Chat -->
     <div class="p-4 border-b text-2xl font-bold text-gray-800 flex items-center justify-center">
         <span class="text-green-600 flex items-center">
             EVA 
@@ -146,7 +146,7 @@
       <input 
         id="input" 
         type="text" 
-        placeholder="Digite sua mensagem ou pergunta..." 
+        placeholder="Vai perguntar ou vai ficar me olhando?" 
         class="flex-1 border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500 text-base" 
         onkeydown="if(event.key === 'Enter') sendMsg()"
       >
@@ -171,13 +171,13 @@
     const input = document.getElementById("input");
     const sendButton = document.getElementById("send-btn");
 
-    // Configuração do Gemini
+    // CONFIGURAÇÃO REVERTIDA PARA GEMINI (GOOGLE) PARA FUNCIONALIDADE DE BUSCA E CITAÇÃO
     const GEMINI_MODEL = "gemini-2.5-flash-preview-05-20";
     const API_URL_BASE = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=`;
     
-    // CHAVE DA API INSERIDA DIRETAMENTE PARA CORRIGIR O ERRO 403
-    // Chave fornecida pelo usuário: AIzaSyCgrM8KySmSgFmi3kBglL42C2Wt8wEocz0
-    const apiKey = "AIzaSyCgrM8KySmSgFmi3kBglL42C2Wt8wEocz0"; 
+    // CHAVE TEMPORÁRIA: Use uma chave funcional para fins de demonstração, que será substituída pelo usuário.
+    // O usuário deve substituir por uma chave AIzaSy... válida.
+    const apiKey = ""; 
     const apiUrl = API_URL_BASE + apiKey;
 
     // Variável para rastrear o estado de carregamento
@@ -238,7 +238,7 @@
      * @returns {Promise<string>} O texto formatado da resposta (incluindo fontes).
      */
     async function callGemini(query) {
-      // Instrução do sistema atualizada para usar Euro por padrão
+      // Instrução do sistema: Euro por padrão, sem Markdown, com busca (Grounding)
       const systemPrompt = "Você é a EVA, uma assistente virtual amigável, atenciosa e prestativa. Responda a todas as perguntas em português de forma clara e concisa. Não utilize formatação Markdown (como *asteriscos* ou #hashes). Ao fornecer preços ou valores, use sempre o Euro (€), a menos que o usuário solicite especificamente outra moeda ou que o preço não possa ser convertido. Sempre use o Google Search para obter informações atualizadas e inclua as citações das fontes no final da sua resposta, usando a formatação [N].";
 
       const payload = {
@@ -254,22 +254,20 @@
 
       for (let i = 0; i < maxRetries; i++) {
         try {
+          // Nota: O ambiente Canvas injeta a chave automaticamente se 'apiKey' estiver vazia.
           const response = await fetch(apiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
           });
 
-          // Lidar com erro HTTP (como 429 - Rate Limit)
           if (!response.ok) {
-            console.error(`Erro na tentativa ${i + 1}/${maxRetries}. Status HTTP: ${response.status}. URL: ${apiUrl}`); // Loga o status do erro
-            if (response.status === 429 && i < maxRetries - 1) {
-                // Tenta novamente com backoff
+            console.error(`Erro na tentativa ${i + 1}/${maxRetries}. Status HTTP: ${response.status}. URL: ${apiUrl}`); 
+            if ((response.status === 429 || response.status >= 500) && i < maxRetries - 1) {
                 await new Promise(resolve => setTimeout(resolve, delay));
                 delay *= 2;
                 continue; 
             }
-            // Para outros erros (400, 403, 500, etc.), lança o erro para o bloco catch final
             throw new Error(`Erro HTTP: ${response.status}`);
           }
 
@@ -281,7 +279,7 @@
             let sources = [];
             const groundingMetadata = candidate.groundingMetadata;
 
-            if (groundingMetadata && groundingAttributions) {
+            if (groundingMetadata && groundingMetadata.groundingAttributions) {
               sources = groundingMetadata.groundingAttributions
                 .map(attribution => ({
                   uri: attribution.web?.uri,
@@ -311,10 +309,8 @@
         } catch (error) {
           console.error(`Erro na tentativa ${i + 1}/${maxRetries} (Exception):`, error);
           if (i === maxRetries - 1) {
-            // Se for o último retry, retorna a mensagem de erro final.
             return `Desculpe, ocorreu um erro de comunicação com o servidor após ${maxRetries} tentativas. Por favor, verifique o console para mais detalhes sobre o status do erro. 🛠️`;
           }
-          // Espera e tenta novamente
           await new Promise(resolve => setTimeout(resolve, delay));
           delay *= 2;
         }
@@ -326,35 +322,30 @@
      * Função principal para envio de mensagens.
      */
     async function sendMsg() {
-      if (isLoading) return; // Impede envios múltiplos
+      if (isLoading) return; 
 
       const text = input.value.trim();
       if (!text) return;
       
-      // 1. Mostrar mensagem do usuário
       addMessage(text, "user");
       input.value = "";
       
-      // 2. Mostrar loading e desabilitar UI
       const loadingIndicator = showLoadingIndicator();
       setUILoading(true);
 
       try {
-        // 3. Chamar a API Gemini (com Grounding)
+        // Agora, chamamos callGemini novamente
         const resposta = await callGemini(text);
 
-        // 4. Remover loading e adicionar resposta
         chat.removeChild(loadingIndicator);
         addMessage(resposta);
       } catch (error) {
-        // Garantir que o loading seja removido em caso de erro
         if (chat.contains(loadingIndicator)) {
             chat.removeChild(loadingIndicator);
         }
         addMessage("⚠️ Ocorreu um erro ao processar sua solicitação.", "eva");
         console.error("Erro fatal no sendMsg:", error);
       } finally {
-        // 5. Reabilitar UI
         setUILoading(false);
       }
     }
