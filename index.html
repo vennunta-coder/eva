@@ -45,12 +45,12 @@
     }
     /* Estilo básico de todas as mensagens */
     .msg { 
-        padding: 10px 15px; 
-        margin: 10px 0;
-        border-radius: 10px; 
+        padding: 12px 18px; /* Aumentei o padding para corresponder ao novo tamanho da fonte */
+        margin: 12px 0;
+        border-radius: 12px; 
         max-width: 85%; 
-        line-height: 1.5;
-        font-size: 0.95rem;
+        line-height: 1.6;
+        font-size: 1.375rem; /* 22px */
         box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         word-wrap: break-word;
     }
@@ -59,7 +59,7 @@
         background: #22c55e; 
         color: white; 
         margin-left: auto; 
-        border-bottom-right-radius: 2px;
+        border-bottom-right-radius: 4px;
     }
     /* Estilo para mensagens da EVA (cinza claro, alinhado à esquerda) */
     .eva { 
@@ -68,26 +68,38 @@
         margin-right: auto;
         display: flex; 
         align-items: flex-start;
-        border-bottom-left-radius: 2px;
+        border-bottom-left-radius: 4px;
     }
-    /* Ícone da EVA */
+    /* Ícone da EVA na mensagem */
     .eva img { 
-        width: 20px; 
-        height: 20px; 
-        min-width: 20px;
-        margin-right: 8px; 
+        width: 24px; 
+        height: 24px; 
+        min-width: 24px;
+        margin-right: 10px; 
         border-radius: 50%; 
         object-fit: cover;
         margin-top: 2px;
     }
+    /* Estilo da borboleta no cabeçalho (Reintroduzido) */
+    .header-img {
+        width: 28px; /* Tamanho ligeiramente maior para destaque */
+        height: 28px;
+        display: inline-block;
+        vertical-align: middle; /* Alinha a imagem com o texto do cabeçalho */
+        margin-left: 8px;
+    }
+    /* Input de texto */
+    #input {
+        font-size: 1.125rem; /* 18px */
+    }
     /* Animação de carregamento (dots) */
     .loading-dot {
-        width: 8px;
-        height: 8px;
+        width: 10px; /* Ajustado para melhor visualização */
+        height: 10px;
         background-color: #4CAF50;
         border-radius: 50%;
         display: inline-block;
-        margin: 0 2px;
+        margin: 0 3px;
         animation: loading 1.4s infinite ease-in-out both;
     }
     .loading-dot:nth-child(1) { animation-delay: -0.32s; }
@@ -101,16 +113,25 @@
     .source-link {
         color: #1d4ed8;
         text-decoration: underline;
-        font-size: 0.8rem;
-        margin-top: 5px;
+        font-size: 0.9rem; /* Um pouco menor para não competir com a mensagem */
+        margin-top: 8px;
         display: block;
     }
   </style>
 </head>
 <body>
   <div class="chat-container">
-    <!-- Cabeçalho do Chat -->
-    <div class="p-4 border-b text-xl font-bold text-gray-800">Chat com <span class="text-green-600">EVA</span></div>
+    <!-- Cabeçalho do Chat (AGORA COM IMAGEM DA BORBOLETA) -->
+    <div class="p-4 border-b text-2xl font-bold text-gray-800 flex items-center justify-center">
+        <span class="text-green-600 flex items-center">
+            EVA 
+            <img 
+                src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/evabutterfly.png" 
+                alt="Borboleta EVA" 
+                class="header-img"
+            >
+        </span>
+    </div>
     
     <!-- Área de Mensagens -->
     <div id="chat" class="flex flex-col">
@@ -139,8 +160,9 @@
     </div>
 
     <!-- Rodapé Adicionado Aqui -->
-    <footer class="text-center text-xs text-gray-500 py-2 border-t border-gray-100">
-        © 2025 EVA
+    <footer class="text-center text-xs text-gray-500 py-2 border-t border-gray-100 px-4">
+        <p class="mb-0.5">© 2025 EVA 2.0</p>
+        <p class="leading-relaxed">A EVA pode cometer erros. Considere verificar informações importantes.</p>
     </footer>
   </div>
 
@@ -216,8 +238,8 @@
      * @returns {Promise<string>} O texto formatado da resposta (incluindo fontes).
      */
     async function callGemini(query) {
-      // Instrução do sistema atualizada para ELIMINAR A FORMATAÇÃO MARKDOWN (asteriscos, etc.)
-      const systemPrompt = "Você é a EVA, uma assistente virtual amigável, atenciosa e prestativa. Responda a todas as perguntas em português de forma clara e concisa. Não utilize formatação Markdown (como *asteriscos* ou #hashes). Sempre use o Google Search para obter informações atualizadas e inclua as citações das fontes no final da sua resposta, usando a formatação [N].";
+      // Instrução do sistema atualizada para usar Euro por padrão
+      const systemPrompt = "Você é a EVA, uma assistente virtual amigável, atenciosa e prestativa. Responda a todas as perguntas em português de forma clara e concisa. Não utilize formatação Markdown (como *asteriscos* ou #hashes). Ao fornecer preços ou valores, use sempre o Euro (€), a menos que o usuário solicite especificamente outra moeda ou que o preço não possa ser convertido. Sempre use o Google Search para obter informações atualizadas e inclua as citações das fontes no final da sua resposta, usando a formatação [N].";
 
       const payload = {
         contents: [{ parts: [{ text: query }] }],
@@ -259,7 +281,7 @@
             let sources = [];
             const groundingMetadata = candidate.groundingMetadata;
 
-            if (groundingMetadata && groundingMetadata.groundingAttributions) {
+            if (groundingMetadata && groundingAttributions) {
               sources = groundingMetadata.groundingAttributions
                 .map(attribution => ({
                   uri: attribution.web?.uri,
