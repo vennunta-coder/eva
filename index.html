@@ -39,7 +39,6 @@
     </nav>
 
     <main class="flex-grow flex flex-col items-center p-6 mt-4 md:mt-10">
-        
         <div id="setup-view" class="w-full max-w-2xl text-center space-y-10 animate-in fade-in duration-700">
             <div class="space-y-4">
                 <h1 class="text-4xl md:text-5xl font-black leading-tight">Saúde na palma <br>da sua <span class="gradient-text">mão.</span></h1>
@@ -125,7 +124,7 @@
                     </div>
 
                     <footer class="text-[9px] text-gray-600 text-center border-t border-gray-900 pt-8 mt-10 uppercase tracking-widest">
-                        Aviso: Esta ferramenta utiliza IA e não substitui uma consulta médica presencial.
+                        Aviso legal: consulte sempre um profissional de saúde qualificado antes de tomar qualquer decisão relacionada à sua saúde.
                     </footer>
                 </div>
             </div>
@@ -142,6 +141,7 @@
 
     <script>
         lucide.createIcons();
+        // Chave de API atualizada conforme solicitado
         const API_KEY = "AIzaSyBrOQPOnVHa_KGeINJFWhHk_B4enLHdxCY";
         let selectedFileBase64 = null;
 
@@ -174,15 +174,18 @@
             document.getElementById('result-view').classList.remove('hidden');
             document.getElementById('report-id').textContent = `ID: MS-${Math.floor(Math.random()*99999)} | ${new Date().toLocaleDateString()}`;
 
-            const instruction = `Age como MediSearch PRO. Analisa os sintomas/imagem.
+            const instruction = `Age como MediSearch PRO. O MediSearch traduz termos médicos complexos em uma linguagem simples e acessível. Analisa extensas bases de dados de artigos científicos e publicações médicas para fornecer informações precisas e atualizadas baseadas em referências científicas. 
+            
+            Analisa os sintomas ou a imagem fornecida:
             1. Descreve anomalias visuais ou laboratoriais.
             2. Sugere especialidade médica.
             3. Define Urgência (Baixa/Média/Alta).
-            No final escreve: ESPECIALISTA: [nome] | URGENCIA: [nível].`;
+            
+            No final escreve obrigatoriamente: ESPECIALISTA: [nome] | URGENCIA: [nível].`;
 
             const payload = {
                 contents: [{ parts: [
-                    { text: `${instruction} \n Entrada: ${prompt}` },
+                    { text: `${instruction} \n Entrada do utilizador: ${prompt}` },
                     ...(selectedFileBase64 ? [{ inline_data: { mime_type: "image/jpeg", data: selectedFileBase64 } }] : [])
                 ]}]
             };
@@ -194,9 +197,12 @@
                     body: JSON.stringify(payload)
                 });
                 const data = await res.json();
+                
+                if (data.error) throw new Error(data.error.message);
+
                 let full = data.candidates[0].content.parts[0].text;
 
-                const spec = full.match(/ESPECIALISTA:\s*(.*)\|/i)?.[1] || "Clínico Geral";
+                const spec = full.match(/ESPECIALISTA:\s*(.*?)\|/i)?.[1] || "Clínico Geral";
                 const urg = full.match(/URGENCIA:\s*(.*)/i)?.[1] || "Baixa";
 
                 document.getElementById('spec-name').textContent = spec;
@@ -213,7 +219,10 @@
                 
                 saveHistory(prompt);
                 lucide.createIcons();
-            } catch (e) { alert("Erro na API."); location.reload(); }
+            } catch (e) { 
+                alert("Erro na API: " + e.message); 
+                location.reload(); 
+            }
         }
 
         function saveHistory(q) {
