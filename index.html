@@ -1,352 +1,243 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-PT">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chat com EVA (Powered by Gemini)</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    // Configuração do Tailwind CSS
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-          },
-        }
-      }
-    }
-  </script>
-  <style>
-    /* Importa a fonte Inter para um visual moderno */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
-    body { 
-        background: #f3f4f6; 
-        font-family: 'Inter', sans-serif;
-    }
-    /* Contêiner principal, responsivo e centralizado */
-    .chat-container { 
-        width: 95%; 
-        max-width: 600px; 
-        margin: 1rem auto; 
-        background: white; 
-        border-radius: 12px; 
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
-        display: flex;
-        flex-direction: column;
-        min-height: calc(100vh - 2rem); /* Ocupa a altura da tela no mobile */
-    }
-    /* Área de exibição do chat */
-    #chat {
-        flex-grow: 1;
-        overflow-y: auto;
-        padding: 1rem;
-        min-height: 400px; 
-    }
-    /* Estilo básico de todas as mensagens */
-    .msg { 
-        padding: 12px 18px; /* Aumentei o padding para corresponder ao novo tamanho da fonte */
-        margin: 12px 0;
-        border-radius: 12px; 
-        max-width: 85%; 
-        line-height: 1.6;
-        font-size: 1.375rem; /* 22px */
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        word-wrap: break-word;
-    }
-    /* Estilo para mensagens do usuário (verde, alinhado à direita) */
-    .user { 
-        background: #22c55e; 
-        color: white; 
-        margin-left: auto; 
-        border-bottom-right-radius: 4px;
-    }
-    /* Estilo para mensagens da EVA (cinza claro, alinhado à esquerda) */
-    .eva { 
-        background: #f0f0f0; 
-        color: #111; 
-        margin-right: auto;
-        display: flex; 
-        align-items: flex-start;
-        border-bottom-left-radius: 4px;
-    }
-    /* Ícone da EVA na mensagem */
-    .eva img { 
-        width: 24px; 
-        height: 24px; 
-        min-width: 24px;
-        margin-right: 10px; 
-        border-radius: 50%; 
-        object-fit: cover;
-        margin-top: 2px;
-    }
-    /* Estilo da borboleta no cabeçalho (Reintroduzido) */
-    .header-img {
-        width: 28px; /* Tamanho ligeiramente maior para destaque */
-        height: 28px;
-        display: inline-block;
-        vertical-align: middle; /* Alinha a imagem com o texto do cabeçalho */
-        margin-left: 8px;
-    }
-    /* Input de texto */
-    #input {
-        font-size: 1.125rem; /* 18px */
-    }
-    /* Animação de carregamento (dots) */
-    .loading-dot {
-        width: 10px; /* Ajustado para melhor visualização */
-        height: 10px;
-        background-color: #4CAF50;
-        border-radius: 50%;
-        display: inline-block;
-        margin: 0 3px;
-        animation: loading 1.4s infinite ease-in-out both;
-    }
-    .loading-dot:nth-child(1) { animation-delay: -0.32s; }
-    .loading-dot:nth-child(2) { animation-delay: -0.16s; }
-    .loading-dot:nth-child(3) { animation-delay: 0s; }
-    @keyframes loading {
-        0%, 80%, 100% { transform: scale(0); }
-        40% { transform: scale(1.0); }
-    }
-    /* Estilo para links de fonte de citação */
-    .source-link {
-        color: #1d4ed8;
-        text-decoration: underline;
-        font-size: 0.9rem; /* Um pouco menor para não competir com a mensagem */
-        margin-top: 8px;
-        display: block;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MediSearch PRO</title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="MediSearch">
+    <link rel="icon" type="image/png" href="https://img.icons8.com/fluency/96/shield-with-cross.png">
+    <link rel="apple-touch-icon" href="https://img.icons8.com/fluency/180/shield-with-cross.png">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+        body { background-color: #050505; color: #e5e5e5; font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .gradient-text { background: linear-gradient(90deg, #3b82f6, #10b981); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .pdf-export { background: white !important; color: black !important; padding: 40px !important; }
+        input:focus, textarea:focus { outline: none; }
+    </style>
 </head>
-<body>
-  <div class="chat-container">
-    <!-- Cabeçalho do Chat -->
-    <div class="p-4 border-b text-2xl font-bold text-gray-800 flex items-center justify-center">
-        <span class="text-green-600 flex items-center">
-            EVA 
-            <img 
-                src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/evabutterfly.png" 
-                alt="Borboleta EVA" 
-                class="header-img"
-            >
-        </span>
+<body class="min-h-screen flex flex-col">
+
+    <nav class="border-b border-gray-900 p-4 sticky top-0 bg-black/90 backdrop-blur-md z-50">
+        <div class="max-w-5xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3 cursor-pointer" onclick="location.reload()">
+                <img src="https://img.icons8.com/fluency/48/shield-with-cross.png" class="w-8 h-8" alt="Logo">
+                <span class="font-800 text-xl tracking-tighter">MediSearch <span class="gradient-text">PRO</span></span>
+            </div>
+            <button onclick="toggleHistory()" class="p-2 text-gray-400 hover:text-white transition">
+                <i data-lucide="history" class="w-6 h-6"></i>
+            </button>
+        </div>
+    </nav>
+
+    <main class="flex-grow flex flex-col items-center p-6 mt-4 md:mt-10">
+        
+        <div id="setup-view" class="w-full max-w-2xl text-center space-y-10 animate-in fade-in duration-700">
+            <div class="space-y-4">
+                <h1 class="text-4xl md:text-5xl font-black leading-tight">Saúde na palma <br>da sua <span class="gradient-text">mão.</span></h1>
+                <p class="text-gray-500 text-sm md:text-base font-light px-4">Analise sintomas visuais, exames e interações medicamentosas com IA médica de última geração.</p>
+            </div>
+
+            <div class="glass rounded-[2rem] p-4 shadow-2xl">
+                <div id="file-indicator" class="hidden bg-blue-500/10 p-3 text-xs text-blue-400 flex justify-between items-center rounded-2xl mb-4 border border-blue-500/20">
+                    <span id="file-name" class="flex items-center gap-2 font-semibold"></span>
+                    <button onclick="removeFile()" class="bg-blue-500/20 p-1 rounded-full"><i data-lucide="x" class="w-3 h-3"></i></button>
+                </div>
+
+                <div class="flex flex-col gap-4">
+                    <textarea id="user-prompt" rows="2" placeholder="Descreva os sintomas ou peça para analisar um exame..." 
+                              class="bg-transparent w-full p-2 text-white text-lg placeholder-gray-700 resize-none"></textarea>
+                    
+                    <div class="flex justify-between items-center border-t border-gray-800 pt-4">
+                        <div class="flex gap-2">
+                            <input type="file" id="file-input" class="hidden" accept="image/*" onchange="handleFile(this)">
+                            <button onclick="document.getElementById('file-input').click()" class="p-4 glass rounded-2xl text-blue-400 hover:bg-blue-500/10 transition">
+                                <i data-lucide="camera" class="w-6 h-6"></i>
+                            </button>
+                        </div>
+                        <button onclick="startAnalysis()" class="bg-blue-600 px-8 py-4 rounded-2xl hover:bg-blue-500 transition shadow-lg shadow-blue-600/30 font-bold flex items-center gap-2">
+                            Analisar <i data-lucide="sparkles" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 text-left">
+                <div class="glass p-4 rounded-2xl border-blue-500/10">
+                    <i data-lucide="microscope" class="text-blue-500 w-4 h-4 mb-2"></i>
+                    <p class="text-[10px] font-bold uppercase text-gray-500 mb-1">Exames</p>
+                    <p class="text-xs text-gray-300">Explicação de hemogramas e análises.</p>
+                </div>
+                <div class="glass p-4 rounded-2xl border-emerald-500/10">
+                    <i data-lucide="scan" class="text-emerald-500 w-4 h-4 mb-2"></i>
+                    <p class="text-[10px] font-bold uppercase text-gray-500 mb-1">Pele/Olhos</p>
+                    <p class="text-xs text-gray-300">Análise visual de irritações e sinais.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="result-view" class="hidden w-full max-w-4xl space-y-6">
+            <div class="flex justify-between items-center">
+                <button onclick="location.reload()" class="text-xs text-gray-500 flex items-center gap-1 font-bold uppercase tracking-widest">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i> Voltar
+                </button>
+                <button id="btn-pdf" onclick="exportToPDF()" class="hidden glass text-[10px] font-bold uppercase px-6 py-2 rounded-full flex items-center gap-2">
+                    <i data-lucide="file-text" class="w-4 h-4"></i> Gerar Relatório
+                </button>
+            </div>
+
+            <div id="pdf-content" class="glass rounded-[2.5rem] p-8 md:p-12">
+                <div id="loading" class="py-20 flex flex-col items-center">
+                    <div class="w-12 h-12 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin mb-6"></div>
+                    <p class="text-blue-400 font-bold tracking-widest text-xs uppercase animate-pulse">A cruzar dados científicos...</p>
+                </div>
+
+                <div id="content" class="hidden space-y-8">
+                    <div class="flex items-center gap-4 border-b border-gray-900 pb-8">
+                        <div id="preview-mini" class="w-20 h-20 rounded-2xl overflow-hidden border border-gray-800 hidden">
+                            <img id="img-source" class="w-full h-full object-cover">
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-black italic">ANÁLISE MÉDICA</h2>
+                            <p class="text-[10px] text-gray-500 font-mono" id="report-id"></p>
+                        </div>
+                    </div>
+
+                    <div id="ai-text" class="text-gray-300 leading-relaxed text-base space-y-6"></div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-10">
+                        <div class="p-6 bg-blue-600/5 border border-blue-600/10 rounded-3xl">
+                            <p class="text-[10px] text-blue-500 font-black uppercase mb-2">Especialista Recomendado</p>
+                            <p id="spec-name" class="text-xl font-bold">...</p>
+                        </div>
+                        <div id="urg-box" class="p-6 border rounded-3xl bg-black/20">
+                            <p class="text-[10px] font-black uppercase mb-2">Nível de Urgência</p>
+                            <p id="urg-level" class="text-xl font-bold">...</p>
+                        </div>
+                    </div>
+
+                    <footer class="text-[9px] text-gray-600 text-center border-t border-gray-900 pt-8 mt-10 uppercase tracking-widest">
+                        Aviso: Esta ferramenta utiliza IA e não substitui uma consulta médica presencial.
+                    </footer>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="history-panel" class="hidden fixed inset-y-0 right-0 w-80 glass border-l border-white/5 z-[100] p-8 animate-in slide-in-from-right duration-300">
+        <div class="flex justify-between items-center mb-10 font-black">
+            <h2>HISTÓRICO</h2>
+            <button onclick="toggleHistory()"><i data-lucide="x"></i></button>
+        </div>
+        <div id="history-list" class="space-y-3 overflow-y-auto max-h-[80vh]"></div>
     </div>
-    
-    <!-- Área de Mensagens -->
-    <div id="chat" class="flex flex-col">
-      <div class="msg eva">
-        <img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" alt="EVA"> 
-        Olá, sou a EVA, versão 2.0. Pode perguntar. Mas, sinceramente, a gente já sabe que você vai me perguntar onde estão as chaves perdidas. 💅
-      </div>
-    </div>
-    
-    <!-- Área de Input e Envio -->
-    <div class="p-4 border-t flex items-center bg-gray-50">
-      <input 
-        id="input" 
-        type="text" 
-        placeholder="Vai perguntar ou vai ficar me olhando?" 
-        class="flex-1 border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500 text-base" 
-        onkeydown="if(event.key === 'Enter') sendMsg()"
-      >
-      <button 
-        id="send-btn" 
-        onclick="sendMsg()" 
-        class="ml-3 bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded-lg transition duration-200 shadow-md active:shadow-none"
-      >
-        Enviar
-      </button>
-    </div>
 
-    <!-- Rodapé Adicionado Aqui -->
-    <footer class="text-center text-xs text-gray-500 py-2 border-t border-gray-100 px-4">
-        <p class="mb-0.5">© 2025 EVA 2.0</p>
-        <p class="leading-relaxed">A EVA pode cometer erros. Considere verificar informações importantes.</p>
-    </footer>
-  </div>
+    <script>
+        lucide.createIcons();
+        const API_KEY = "AIzaSyBrOQPOnVHa_KGeINJFWhHk_B4enLHdxCY";
+        let selectedFileBase64 = null;
 
-  <script>
-    const chat = document.getElementById("chat");
-    const input = document.getElementById("input");
-    const sendButton = document.getElementById("send-btn");
-
-    // CONFIGURAÇÃO REVERTIDA PARA GEMINI (GOOGLE)
-    const GEMINI_MODEL = "gemini-2.5-flash-preview-05-20";
-    const API_URL_BASE = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=`;
-    
-    // CHAVE DE API DO GEMINI: Revertendo para a última chave AIzaSy... fornecida.
-    // Se o erro 403 persistir, a chave está restrita no seu projeto Google Cloud.
-    const apiKey = "AIzaSyAJLJMKp0URsuD9iueHgwZR4PY6-vvFotI"; 
-    const apiUrl = API_URL_BASE + apiKey;
-
-    // Variável para rastrear o estado de carregamento
-    let isLoading = false;
-
-    /**
-     * Adiciona uma mensagem ao chat.
-     * @param {string} text - O conteúdo da mensagem (pode conter HTML).
-     * @param {string} sender - 'user' ou 'eva'.
-     */
-    function addMessage(text, sender = "eva") {
-      const msg = document.createElement("div");
-      msg.className = "msg " + sender;
-
-      if (sender === "eva") {
-        msg.innerHTML = `<img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" alt="EVA"> ${text}`;
-      } else {
-        msg.textContent = text;
-      }
-      chat.appendChild(msg);
-      chat.scrollTop = chat.scrollHeight; // Rola para a mensagem mais recente
-    }
-
-    /**
-     * Exibe o indicador de carregamento (dots).
-     * @returns {HTMLElement} O elemento de mensagem de carregamento.
-     */
-    function showLoadingIndicator() {
-      const loadingMsg = document.createElement("div");
-      loadingMsg.className = "msg eva loading-indicator";
-      loadingMsg.innerHTML = `<img src="https://raw.githubusercontent.com/vennunta-coder/eva/refs/heads/main/logoeva.png" alt="EVA"> 
-        <span>
-          <span class="loading-dot"></span>
-          <span class="loading-dot"></span>
-          <span class="loading-dot"></span>
-        </span>`;
-      chat.appendChild(loadingMsg);
-      chat.scrollTop = chat.scrollHeight;
-      return loadingMsg;
-    }
-
-    /**
-     * Habilita/Desabilita a UI durante o carregamento.
-     * @param {boolean} state - true para carregar, false para pronto.
-     */
-    function setUILoading(state) {
-        isLoading = state;
-        input.disabled = state;
-        sendButton.disabled = state;
-        sendButton.textContent = state ? "Processando..." : "Enviar";
-        sendButton.classList.toggle('opacity-60', state);
-        sendButton.classList.toggle('cursor-not-allowed', state);
-    }
-
-    /**
-     * Chama a API do Gemini para gerar conteúdo com Google Search grounding e retries.
-     * @param {string} query - O prompt do usuário.
-     * @returns {Promise<string>} O texto formatado da resposta (incluindo fontes).
-     */
-    async function callGemini(query) {
-      // Instrução do sistema: Euro por padrão, sem Markdown, com busca (Grounding)
-      const systemPrompt = "Você é a EVA, uma assistente virtual amigável, atenciosa e prestativa. Responda a todas as perguntas em português de forma clara e concisa. Não utilize formatação Markdown (como *asteriscos* ou #hashes). Ao fornecer preços ou valores, use sempre o Euro (€), a menos que o usuário solicite especificamente outra moeda ou que o preço não possa ser convertido. Sempre use o Google Search para obter informações atualizadas e inclua as citações das fontes no final da sua resposta, usando a formatação [N].";
-
-      const payload = {
-        contents: [{ parts: [{ text: query }] }],
-        tools: [{ "google_search": {} }], // Habilita o Grounding com Google Search
-        systemInstruction: {
-          parts: [{ text: systemPrompt }]
-        },
-      };
-
-      let delay = 1000;
-      const maxRetries = 3;
-
-      for (let i = 0; i < maxRetries; i++) {
-        try {
-          const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-
-          if (!response.ok) {
-            console.error(`Erro na tentativa ${i + 1}/${maxRetries}. Status HTTP: ${response.status}. URL: ${apiUrl}`); 
-            if ((response.status === 429 || response.status >= 500) && i < maxRetries - 1) {
-                await new Promise(resolve => setTimeout(resolve, delay));
-                delay *= 2;
-                continue; 
+        function handleFile(input) {
+            const file = input.files[0];
+            if (file) {
+                document.getElementById('file-indicator').classList.remove('hidden');
+                document.getElementById('file-name').textContent = file.name;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    selectedFileBase64 = e.target.result.split(',')[1];
+                    document.getElementById('img-source').src = e.target.result;
+                    document.getElementById('preview-mini').classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
             }
-            throw new Error(`Erro HTTP: ${response.status}`);
-          }
+        }
 
-          const result = await response.json();
-          const candidate = result.candidates?.[0];
+        function removeFile() {
+            selectedFileBase64 = null;
+            document.getElementById('file-indicator').classList.add('hidden');
+            document.getElementById('preview-mini').classList.add('hidden');
+        }
 
-          if (candidate && candidate.content?.parts?.[0]?.text) {
-            let text = candidate.content.parts[0].text;
-            let sources = [];
-            const groundingMetadata = candidate.groundingMetadata;
+        function toggleHistory() { document.getElementById('history-panel').classList.toggle('hidden'); renderHistory(); }
 
-            if (groundingMetadata && groundingMetadata.groundingAttributions) {
-              sources = groundingMetadata.groundingAttributions
-                .map(attribution => ({
-                  uri: attribution.web?.uri,
-                  title: attribution.web?.title,
-                }))
-                .filter(source => source.uri && source.title);
-            }
+        async function startAnalysis() {
+            const prompt = document.getElementById('user-prompt').value || "Análise Geral";
+            document.getElementById('setup-view').classList.add('hidden');
+            document.getElementById('result-view').classList.remove('hidden');
+            document.getElementById('report-id').textContent = `ID: MS-${Math.floor(Math.random()*99999)} | ${new Date().toLocaleDateString()}`;
 
-            // Formatação das fontes para exibição na mensagem
-            let sourceHtml = '';
-            if (sources.length > 0) {
-                sourceHtml += '<div class="mt-3 pt-2 border-t border-gray-200">';
-                sources.forEach((source, index) => {
-                    sourceHtml += `<a href="${source.uri}" target="_blank" rel="noopener noreferrer" class="source-link">
-                        [${index + 1}] ${source.title}
-                    </a>`;
+            const instruction = `Age como MediSearch PRO. Analisa os sintomas/imagem.
+            1. Descreve anomalias visuais ou laboratoriais.
+            2. Sugere especialidade médica.
+            3. Define Urgência (Baixa/Média/Alta).
+            No final escreve: ESPECIALISTA: [nome] | URGENCIA: [nível].`;
+
+            const payload = {
+                contents: [{ parts: [
+                    { text: `${instruction} \n Entrada: ${prompt}` },
+                    ...(selectedFileBase64 ? [{ inline_data: { mime_type: "image/jpeg", data: selectedFileBase64 } }] : [])
+                ]}]
+            };
+
+            try {
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
                 });
-                sourceHtml += '</div>';
-            }
+                const data = await res.json();
+                let full = data.candidates[0].content.parts[0].text;
 
-            return text + sourceHtml;
+                const spec = full.match(/ESPECIALISTA:\s*(.*)\|/i)?.[1] || "Clínico Geral";
+                const urg = full.match(/URGENCIA:\s*(.*)/i)?.[1] || "Baixa";
 
-          } else {
-            return "Desculpe, não consegui gerar uma resposta. O resultado do modelo estava vazio. 😔";
-          }
+                document.getElementById('spec-name').textContent = spec;
+                document.getElementById('urg-level').textContent = urg;
+                document.getElementById('urg-box').style.borderColor = urg.includes('Alta') ? '#ef4444' : '#3b82f6';
+                document.getElementById('urg-level').style.color = urg.includes('Alta') ? '#ef4444' : '#3b82f6';
 
-        } catch (error) {
-          console.error(`Erro na tentativa ${i + 1}/${maxRetries} (Exception):`, error);
-          if (i === maxRetries - 1) {
-            return `Desculpe, ocorreu um erro de comunicação com o servidor após ${maxRetries} tentativas. Por favor, verifique o console para mais detalhes sobre o status do erro. 🛠️`;
-          }
-          await new Promise(resolve => setTimeout(resolve, delay));
-          delay *= 2;
+                document.getElementById('ai-text').innerHTML = full.split('ESPECIALISTA:')[0]
+                    .replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>').replace(/\n/g, '<br>');
+
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('content').classList.remove('hidden');
+                document.getElementById('btn-pdf').classList.remove('hidden');
+                
+                saveHistory(prompt);
+                lucide.createIcons();
+            } catch (e) { alert("Erro na API."); location.reload(); }
         }
-      }
-      return "Um erro inesperado ocorreu. 🛑";
-    }
 
-    /**
-     * Função principal para envio de mensagens.
-     */
-    async function sendMsg() {
-      if (isLoading) return; 
-
-      const text = input.value.trim();
-      if (!text) return;
-      
-      addMessage(text, "user");
-      input.value = "";
-      
-      const loadingIndicator = showLoadingIndicator();
-      setUILoading(true);
-
-      try {
-        const resposta = await callGemini(text);
-
-        chat.removeChild(loadingIndicator);
-        addMessage(resposta);
-      } catch (error) {
-        if (chat.contains(loadingIndicator)) {
-            chat.removeChild(loadingIndicator);
+        function saveHistory(q) {
+            let h = JSON.parse(localStorage.getItem('ms_ultimate') || '[]');
+            h.unshift({ q, d: new Date().toLocaleDateString() });
+            localStorage.setItem('ms_ultimate', JSON.stringify(h.slice(0,10)));
         }
-        addMessage("⚠️ Ocorreu um erro ao processar sua solicitação.", "eva");
-        console.error("Erro fatal no sendMsg:", error);
-      } finally {
-        setUILoading(false);
-      }
-    }
-  </script>
+
+        function renderHistory() {
+            const h = JSON.parse(localStorage.getItem('ms_ultimate') || '[]');
+            document.getElementById('history-list').innerHTML = h.map(i => `
+                <div class="p-4 glass rounded-2xl mb-2 text-[10px]">
+                    <p class="text-blue-500 font-bold mb-1">${i.d}</p>
+                    <p class="truncate text-gray-400">${i.q}</p>
+                </div>
+            `).join('');
+        }
+
+        function exportToPDF() {
+            const e = document.getElementById('pdf-content');
+            e.classList.add('pdf-export');
+            html2pdf().set({ margin: 10, filename: 'MediSearch_Relatorio.pdf', html2canvas: { scale: 3 } })
+                .from(e).save().then(()=>e.classList.remove('pdf-export'));
+        }
+    </script>
 </body>
 </html>
