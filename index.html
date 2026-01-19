@@ -37,7 +37,7 @@
         <div id="setup-view" class="w-full max-w-2xl text-center space-y-10">
             <div class="space-y-4">
                 <h1 class="text-4xl md:text-5xl font-black leading-tight">Saúde na palma <br>da sua <span class="gradient-text">mão.</span></h1>
-                <p class="text-gray-500 text-sm md:text-base font-light px-4">Analise sintomas visuais, exames e interações medicamentosas com IA médica de última geração.</p>
+                <p class="text-gray-500 text-sm md:text-base font-light px-4">Analise sintomas visuais, exames e interações medicamentosas com IA médica de última geração (powered by Grok).</p>
             </div>
             <div class="glass rounded-[2rem] p-4 shadow-2xl">
                 <div id="file-indicator" class="hidden bg-blue-500/10 p-3 text-xs text-blue-400 flex justify-between items-center rounded-2xl mb-4 border border-blue-500/20">
@@ -84,7 +84,7 @@
             <div id="pdf-content" class="glass rounded-[2.5rem] p-8 md:p-12">
                 <div id="loading" class="py-20 flex flex-col items-center">
                     <div class="w-12 h-12 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin mb-6"></div>
-                    <p class="text-blue-400 font-bold tracking-widest text-xs uppercase animate-pulse">A cruzar dados científicos...</p>
+                    <p class="text-blue-400 font-bold tracking-widest text-xs uppercase animate-pulse">A processar com Grok...</p>
                 </div>
                 <div id="content" class="hidden space-y-8">
                     <div class="flex items-center gap-4 border-b border-gray-900 pb-8">
@@ -123,7 +123,7 @@
     </div>
     <script>
         lucide.createIcons();
-        const API_KEY = "AIzaSyBrOQPOnVHa_KGeINJFWhHk_B4enLHdxCY"; // A tua chave Gemini válida
+        const API_KEY = "xai-VLhbzdLRfOvWFj2y2LX5S8Shyb3EPFlKV3bzvLFrR3HGnNF2pU"; // A tua chave Grok API
         let selectedFileBase64 = null;
 
         function handleFile(input) {
@@ -158,34 +158,38 @@
             document.getElementById('result-view').classList.remove('hidden');
             document.getElementById('report-id').textContent = `ID: MS-${Math.floor(Math.random()*99999)} | ${new Date().toLocaleDateString()}`;
 
-            const instruction = `Age como MediSearch PRO, um assistente médico IA avançado e ético. Traduz termos médicos complexos para linguagem simples e acessível. Baseia-te em dados científicos atualizados.
-
-Analisa os sintomas ou imagem fornecida:
-1. Descreve anomalias visuais ou laboratoriais de forma clara.
-2. Sugere especialidade médica recomendada.
-3. Define nível de urgência (Baixa, Média ou Alta).
-
-No final, escreve obrigatoriamente: ESPECIALISTA: [nome da especialidade] | URGENCIA: [nível].
-
-Aviso final: Esta análise é informativa. Consulte sempre um médico qualificado.`;
-
-            const payload = {
-                contents: [{ parts: [
-                    { text: `${instruction}\n\nEntrada do utilizador: ${prompt}` },
-                    ...(selectedFileBase64 ? [{ inline_data: { mime_type: "image/jpeg", data: selectedFileBase64 } }] : [])
-                ]}]
-            };
+            const messages = [
+                {
+                    role: "system",
+                    content: "És o MediSearch PRO, um assistente médico IA avançado, ético e empático desenvolvido pela xAI. Traduz termos médicos complexos para linguagem simples. Baseia-te sempre em evidência científica atualizada. Fornece respostas claras, estruturadas e com aviso de consulta profissional."
+                },
+                {
+                    role: "user",
+                    content: [
+                        { type: "text", text: `Analisa os sintomas ou imagem fornecida:\n1. Descreve anomalias visuais ou laboratoriais de forma clara.\n2. Sugere especialidade médica recomendada.\n3. Define nível de urgência (Baixa, Média ou Alta).\n\nNo final, escreve obrigatoriamente: ESPECIALISTA: [nome da especialidade] | URGENCIA: [nível].\n\nEntrada do utilizador: ${prompt}\n\nAviso final: Esta análise é informativa. Consulte sempre um médico qualificado.` },
+                        ...(selectedFileBase64 ? [{ type: "image_url", image_url: { url: `data:image/jpeg;base64,${selectedFileBase64}` } }] : [])
+                    ]
+                }
+            ];
 
             try {
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                const res = await fetch("https://api.x.ai/v1/chat/completions", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: "grok-4-1-fast-reasoning", // Ou "grok-4" para máxima qualidade (verifica disponibilidade no console.x.ai)
+                        messages: messages,
+                        temperature: 0.7,
+                        max_tokens: 2048
+                    })
                 });
                 const data = await res.json();
-                if (data.error) throw new Error(data.error.message || "Erro na API");
+                if (data.error) throw new Error(data.error.message || "Erro na API Grok");
 
-                let full = data.candidates[0].content.parts[0].text.trim();
+                let full = data.choices[0].message.content.trim();
 
                 const specMatch = full.match(/ESPECIALISTA:\s*(.*?)\|/i);
                 const urgMatch = full.match(/URGENCIA:\s*(.*)/i);
@@ -210,19 +214,19 @@ Aviso final: Esta análise é informativa. Consulte sempre um médico qualificad
                 saveHistory(prompt);
                 lucide.createIcons();
             } catch (e) {
-                alert("Erro na análise: " + e.message + ". Verifica a conexão ou a quota da API.");
+                alert("Erro na análise Grok: " + e.message + ". Verifica a conexão, quota ou chave API.");
                 location.reload();
             }
         }
 
         function saveHistory(q) {
-            let h = JSON.parse(localStorage.getItem('ms_ultimate') || '[]');
+            let h = JSON.parse(localStorage.getItem('ms_grok') || '[]');
             h.unshift({ q, d: new Date().toLocaleDateString() });
-            localStorage.setItem('ms_ultimate', JSON.stringify(h.slice(0,10)));
+            localStorage.setItem('ms_grok', JSON.stringify(h.slice(0,10)));
         }
 
         function renderHistory() {
-            const h = JSON.parse(localStorage.getItem('ms_ultimate') || '[]');
+            const h = JSON.parse(localStorage.getItem('ms_grok') || '[]');
             document.getElementById('history-list').innerHTML = h.map(i => `
                 <div class="p-4 glass rounded-2xl mb-2 text-[10px]">
                     <p class="text-blue-500 font-bold mb-1">${i.d}</p>
