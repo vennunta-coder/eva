@@ -102,4 +102,141 @@
                             <p class="text-[10px] text-blue-500 font-black uppercase mb-2">Especialista Recomendado</p>
                             <p id="spec-name" class="text-xl font-bold">...</p>
                         </div>
-                        <div id="urg-box
+                        <div id="urg-box" class="p-6 border rounded-3xl bg-black/20">
+                            <p class="text-[10px] font-black uppercase mb-2">Nível de Urgência</p>
+                            <p id="urg-level" class="text-xl font-bold">...</p>
+                        </div>
+                    </div>
+                    <footer class="text-[9px] text-gray-600 text-center border-t border-gray-900 pt-8 mt-10 uppercase tracking-widest">
+                        Aviso: Esta ferramenta utiliza IA e não substitui uma consulta médica presencial.
+                    </footer>
+                </div>
+            </div>
+        </div>
+    </main>
+    <div id="history-panel" class="hidden fixed inset-y-0 right-0 w-80 glass border-l border-white/5 z-[100] p-8">
+        <div class="flex justify-between items-center mb-10 font-black">
+            <h2>HISTÓRICO</h2>
+            <button onclick="toggleHistory()"><i data-lucide="x"></i></button>
+        </div>
+        <div id="history-list" class="space-y-3 overflow-y-auto max-h-[80vh]"></div>
+    </div>
+    <script>
+        lucide.createIcons();
+        const API_KEY = "AIzaSyBrOQPOnVHa_KGeINJFWhHk_B4enLHdxCY"; // A tua chave Gemini válida
+        let selectedFileBase64 = null;
+
+        function handleFile(input) {
+            const file = input.files[0];
+            if (file) {
+                document.getElementById('file-indicator').classList.remove('hidden');
+                document.getElementById('file-name').textContent = file.name;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    selectedFileBase64 = e.target.result.split(',')[1];
+                    document.getElementById('img-source').src = e.target.result;
+                    document.getElementById('preview-mini').classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function removeFile() {
+            selectedFileBase64 = null;
+            document.getElementById('file-indicator').classList.add('hidden');
+            document.getElementById('preview-mini').classList.add('hidden');
+        }
+
+        function toggleHistory() {
+            document.getElementById('history-panel').classList.toggle('hidden');
+            renderHistory();
+        }
+
+        async function startAnalysis() {
+            const prompt = document.getElementById('user-prompt').value || "Análise Geral";
+            document.getElementById('setup-view').classList.add('hidden');
+            document.getElementById('result-view').classList.remove('hidden');
+            document.getElementById('report-id').textContent = `ID: MS-${Math.floor(Math.random()*99999)} | ${new Date().toLocaleDateString()}`;
+
+            const instruction = `Age como MediSearch PRO, um assistente médico IA avançado e ético. Traduz termos médicos complexos para linguagem simples e acessível. Baseia-te em dados científicos atualizados.
+
+Analisa os sintomas ou imagem fornecida:
+1. Descreve anomalias visuais ou laboratoriais de forma clara.
+2. Sugere especialidade médica recomendada.
+3. Define nível de urgência (Baixa, Média ou Alta).
+
+No final, escreve obrigatoriamente: ESPECIALISTA: [nome da especialidade] | URGENCIA: [nível].
+
+Aviso final: Esta análise é informativa. Consulte sempre um médico qualificado.`;
+
+            const payload = {
+                contents: [{ parts: [
+                    { text: `${instruction}\n\nEntrada do utilizador: ${prompt}` },
+                    ...(selectedFileBase64 ? [{ inline_data: { mime_type: "image/jpeg", data: selectedFileBase64 } }] : [])
+                ]}]
+            };
+
+            try {
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.error) throw new Error(data.error.message || "Erro na API");
+
+                let full = data.candidates[0].content.parts[0].text.trim();
+
+                const specMatch = full.match(/ESPECIALISTA:\s*(.*?)\|/i);
+                const urgMatch = full.match(/URGENCIA:\s*(.*)/i);
+                const spec = specMatch ? specMatch[1].trim() : "Clínico Geral";
+                const urg = urgMatch ? urgMatch[1].trim() : "Baixa";
+
+                document.getElementById('spec-name').textContent = spec;
+                document.getElementById('urg-level').textContent = urg;
+                document.getElementById('urg-box').style.borderColor = urg.includes('Alta') ? '#ef4444' : '#3b82f6';
+                document.getElementById('urg-level').style.color = urg.includes('Alta') ? '#ef4444' : '#3b82f6';
+
+                document.getElementById('ai-text').innerHTML = full.split(/ESPECIALISTA:/i)[0]
+                    .replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>')
+                    .replace(/\n/g, '<br>');
+
+                if (selectedFileBase64) document.getElementById('preview-mini').classList.remove('hidden');
+
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('content').classList.remove('hidden');
+                document.getElementById('btn-pdf').classList.remove('hidden');
+
+                saveHistory(prompt);
+                lucide.createIcons();
+            } catch (e) {
+                alert("Erro na análise: " + e.message + ". Verifica a conexão ou a quota da API.");
+                location.reload();
+            }
+        }
+
+        function saveHistory(q) {
+            let h = JSON.parse(localStorage.getItem('ms_ultimate') || '[]');
+            h.unshift({ q, d: new Date().toLocaleDateString() });
+            localStorage.setItem('ms_ultimate', JSON.stringify(h.slice(0,10)));
+        }
+
+        function renderHistory() {
+            const h = JSON.parse(localStorage.getItem('ms_ultimate') || '[]');
+            document.getElementById('history-list').innerHTML = h.map(i => `
+                <div class="p-4 glass rounded-2xl mb-2 text-[10px]">
+                    <p class="text-blue-500 font-bold mb-1">${i.d}</p>
+                    <p class="truncate text-gray-400">${i.q}</p>
+                </div>
+            `).join('');
+        }
+
+        function exportToPDF() {
+            const e = document.getElementById('pdf-content');
+            e.classList.add('pdf-export');
+            html2pdf().set({ margin: 10, filename: 'MediSearch_Relatorio.pdf', html2canvas: { scale: 3 } })
+                .from(e).save().then(() => e.classList.remove('pdf-export'));
+        }
+    </script>
+</body>
+</html>
