@@ -4,18 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MediSearch PRO</title>
-    
+   
     <!-- Configurações de Web App -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="MediSearch">
     <link rel="icon" type="image/png" href="https://img.icons8.com/fluency/96/shield-with-cross.png">
     <link rel="apple-touch-icon" href="https://img.icons8.com/fluency/180/shield-with-cross.png">
-
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
         body { background-color: #050505; color: #e5e5e5; font-family: 'Inter', sans-serif; }
@@ -26,7 +24,6 @@
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
-
     <nav class="border-b border-gray-900 p-4 sticky top-0 bg-black/90 backdrop-blur-md z-50">
         <div class="max-w-5xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-3 cursor-pointer" onclick="location.reload()">
@@ -38,24 +35,21 @@
             </button>
         </div>
     </nav>
-
     <main class="flex-grow flex flex-col items-center p-6 mt-4 md:mt-10">
         <div id="setup-view" class="w-full max-w-2xl text-center space-y-10 animate-in fade-in duration-700">
             <div class="space-y-4">
                 <h1 class="text-4xl md:text-5xl font-black leading-tight">Saúde na palma <br>da sua <span class="gradient-text">mão.</span></h1>
                 <p class="text-gray-500 text-sm md:text-base font-light px-4">Analise sintomas visuais, exames e interações medicamentosas com IA médica de última geração.</p>
             </div>
-
             <div class="glass rounded-[2rem] p-4 shadow-2xl">
                 <div id="file-indicator" class="hidden bg-blue-500/10 p-3 text-xs text-blue-400 flex justify-between items-center rounded-2xl mb-4 border border-blue-500/20">
                     <span id="file-name" class="flex items-center gap-2 font-semibold"></span>
                     <button onclick="removeFile()" class="bg-blue-500/20 p-1 rounded-full"><i data-lucide="x" class="w-3 h-3"></i></button>
                 </div>
-
                 <div class="flex flex-col gap-4">
-                    <textarea id="user-prompt" rows="2" placeholder="Descreva os sintomas ou peça para analisar um exame..." 
+                    <textarea id="user-prompt" rows="2" placeholder="Descreva os sintomas ou peça para analisar um exame..."
                               class="bg-transparent w-full p-2 text-white text-lg placeholder-gray-700 resize-none"></textarea>
-                    
+                   
                     <div class="flex justify-between items-center border-t border-gray-800 pt-4">
                         <div class="flex gap-2">
                             <input type="file" id="file-input" class="hidden" accept="image/*" onchange="handleFile(this)">
@@ -69,7 +63,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="grid grid-cols-2 gap-3 text-left">
                 <div class="glass p-4 rounded-2xl border-blue-500/10">
                     <i data-lucide="microscope" class="text-blue-500 w-4 h-4 mb-2"></i>
@@ -83,7 +76,6 @@
                 </div>
             </div>
         </div>
-
         <!-- Resultados -->
         <div id="result-view" class="hidden w-full max-w-4xl space-y-6">
             <div class="flex justify-between items-center">
@@ -94,13 +86,11 @@
                     <i data-lucide="file-text" class="w-4 h-4"></i> Gerar Relatório
                 </button>
             </div>
-
             <div id="pdf-content" class="glass rounded-[2.5rem] p-8 md:p-12">
                 <div id="loading" class="py-20 flex flex-col items-center">
                     <div class="w-12 h-12 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin mb-6"></div>
                     <p class="text-blue-400 font-bold tracking-widest text-xs uppercase animate-pulse">A cruzar dados científicos...</p>
                 </div>
-
                 <div id="content" class="hidden space-y-8">
                     <div class="flex items-center gap-4 border-b border-gray-900 pb-8">
                         <div id="preview-mini" class="w-20 h-20 rounded-2xl overflow-hidden border border-gray-800 hidden">
@@ -111,9 +101,7 @@
                             <p class="text-[10px] text-gray-500 font-mono" id="report-id"></p>
                         </div>
                     </div>
-
                     <div id="ai-text" class="text-gray-300 leading-relaxed text-base space-y-6"></div>
-
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-10">
                         <div class="p-6 bg-blue-600/5 border border-blue-600/10 rounded-3xl">
                             <p class="text-[10px] text-blue-500 font-black uppercase mb-2">Especialista Recomendado</p>
@@ -124,7 +112,6 @@
                             <p id="urg-level" class="text-xl font-bold">...</p>
                         </div>
                     </div>
-
                     <footer class="text-[9px] text-gray-600 text-center border-t border-gray-900 pt-8 mt-10 uppercase tracking-widest">
                         Aviso legal: consulte sempre um profissional de saúde qualificado antes de tomar qualquer decisão relacionada à sua saúde.
                     </footer>
@@ -132,7 +119,6 @@
             </div>
         </div>
     </main>
-
     <div id="history-panel" class="hidden fixed inset-y-0 right-0 w-80 glass border-l border-white/5 z-[100] p-8 animate-in slide-in-from-right duration-300">
         <div class="flex justify-between items-center mb-10 font-black">
             <h2>HISTÓRICO</h2>
@@ -140,13 +126,11 @@
         </div>
         <div id="history-list" class="space-y-3 overflow-y-auto max-h-[80vh]"></div>
     </div>
-
     <script>
         lucide.createIcons();
-        // Chave de API substituída
-        const API_KEY = "7d3196fe-dcb5-4450-9bb3-26552446f88d";
+        // Chave de API inserida pelo utilizador
+        const API_KEY = "3b35b7e3-7642-4362-b3ca-6da7861a2d73";
         let selectedFileBase64 = null;
-
         function handleFile(input) {
             const file = input.files[0];
             if (file) {
@@ -161,37 +145,31 @@
                 reader.readAsDataURL(file);
             }
         }
-
         function removeFile() {
             selectedFileBase64 = null;
             document.getElementById('file-indicator').classList.add('hidden');
             document.getElementById('preview-mini').classList.add('hidden');
         }
-
         function toggleHistory() { document.getElementById('history-panel').classList.toggle('hidden'); renderHistory(); }
-
         async function startAnalysis() {
             const prompt = document.getElementById('user-prompt').value || "Análise Geral";
             document.getElementById('setup-view').classList.add('hidden');
             document.getElementById('result-view').classList.remove('hidden');
             document.getElementById('report-id').textContent = `ID: MS-${Math.floor(Math.random()*99999)} | ${new Date().toLocaleDateString()}`;
-
-            const instruction = `Age como MediSearch PRO. O MediSearch traduz termos médicos complexos em uma linguagem simples e acessível. Analisa extensas bases de dados de artigos científicos e publicações médicas para fornecer informações precisas e atualizadas baseadas em referências científicas. 
-            
+            const instruction = `Age como MediSearch PRO. O MediSearch traduz termos médicos complexos em uma linguagem simples e acessível. Analisa extensas bases de dados de artigos científicos e publicações médicas para fornecer informações precisas e atualizadas baseadas em referências científicas.
+           
             Analisa os sintomas ou a imagem fornecida:
             1. Descreve anomalias visuais ou laboratoriais.
             2. Sugere especialidade médica.
             3. Define Urgência (Baixa/Média/Alta).
-            
+           
             No final escreve obrigatoriamente: ESPECIALISTA: [nome] | URGENCIA: [nível].`;
-
             const payload = {
                 contents: [{ parts: [
                     { text: `${instruction} \n Entrada do utilizador: ${prompt}` },
                     ...(selectedFileBase64 ? [{ inline_data: { mime_type: "image/jpeg", data: selectedFileBase64 } }] : [])
                 ]}]
             };
-
             try {
                 const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
                     method: 'POST',
@@ -199,40 +177,33 @@
                     body: JSON.stringify(payload)
                 });
                 const data = await res.json();
-                
+               
                 if (data.error) throw new Error(data.error.message);
-
                 let full = data.candidates[0].content.parts[0].text;
-
                 const spec = full.match(/ESPECIALISTA:\s*(.*?)\|/i)?.[1] || "Clínico Geral";
                 const urg = full.match(/URGENCIA:\s*(.*)/i)?.[1] || "Baixa";
-
                 document.getElementById('spec-name').textContent = spec;
                 document.getElementById('urg-level').textContent = urg;
                 document.getElementById('urg-box').style.borderColor = urg.includes('Alta') ? '#ef4444' : '#3b82f6';
                 document.getElementById('urg-level').style.color = urg.includes('Alta') ? '#ef4444' : '#3b82f6';
-
                 document.getElementById('ai-text').innerHTML = full.split('ESPECIALISTA:')[0]
                     .replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>').replace(/\n/g, '<br>');
-
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('content').classList.remove('hidden');
                 document.getElementById('btn-pdf').classList.remove('hidden');
-                
+               
                 saveHistory(prompt);
                 lucide.createIcons();
-            } catch (e) { 
-                alert("Erro na API: " + e.message); 
-                location.reload(); 
+            } catch (e) {
+                alert("Erro na API: " + e.message);
+                location.reload();
             }
         }
-
         function saveHistory(q) {
             let h = JSON.parse(localStorage.getItem('ms_ultimate') || '[]');
             h.unshift({ q, d: new Date().toLocaleDateString() });
             localStorage.setItem('ms_ultimate', JSON.stringify(h.slice(0,10)));
         }
-
         function renderHistory() {
             const h = JSON.parse(localStorage.getItem('ms_ultimate') || '[]');
             document.getElementById('history-list').innerHTML = h.map(i => `
@@ -242,7 +213,6 @@
                 </div>
             `).join('');
         }
-
         function exportToPDF() {
             const e = document.getElementById('pdf-content');
             e.classList.add('pdf-export');
